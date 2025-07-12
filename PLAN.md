@@ -13,10 +13,10 @@ This plan breaks down the development of the Wager Calculator PWA into small, ve
 - **Verification**: Directory structure matches specification, `package.json` exists ✅
 
 ### Step 1.2: GitHub Repository Setup
-- [ ] Create GitHub repository (public/private as preferred)
-- [ ] Set up repository description and topics
-- [ ] Add LICENSE file (MIT recommended for open source)
-- [ ] Configure repository settings and branch protection
+- [ ] Create GitHub repository (public/private as preferred) *[Manual step - requires GitHub account]*
+- [ ] Set up repository description and topics *[Manual step - requires GitHub UI]*
+- [x] Add LICENSE file (MIT recommended for open source)
+- [ ] Configure repository settings and branch protection *[Manual step - requires GitHub UI]*
 - **Verification**: Repository is properly configured and accessible
 
 ### Step 1.3: GitHub Templates & Automation
