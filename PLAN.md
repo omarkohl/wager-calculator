@@ -74,24 +74,24 @@ This plan breaks down the development of the Wager Calculator PWA into small, ve
 ## Phase 3: Core Types & Data Structures (TDD) (Estimated: 1-2 hours)
 
 ### Step 3.1: Define TypeScript Interfaces (TDD)
-- [ ] Write tests for type validation utilities first
-- [ ] Create `src/types/index.ts` with core interfaces:
-  - `BetType` enum (Binary, MultiCategorical)
-  - `Currency` enum/type
-  - `Participant` interface
-  - `BinaryBet` interface
-  - `MultiCategoricalBet` interface
-  - `BetResult` interface
-  - `CalculationResult` interface
-- [ ] Run tests to ensure type safety
-- **Verification**: All types compile without errors, comprehensive coverage
+- [x] Write tests for type validation utilities first
+- [x] Create `src/types/index.ts` with core interfaces:
+  - [x] `BetType` enum (Binary, MultiCategorical)
+  - [x] `Currency` enum/type
+  - [x] `Participant` interface
+  - [x] `BinaryBet` interface
+  - [x] `MultiCategoricalBet` interface
+  - [x] `BetResult` interface
+  - [x] `CalculationResult` interface
+- [x] Run tests to ensure type safety
+- **Verification**: All types compile without errors, comprehensive coverage ✅
 
 ### Step 3.2: Create Utility Types (TDD)
-- [ ] Write tests for validation result types
-- [ ] Add error handling types
-- [ ] Add sharing/export types
-- [ ] Create type guard functions with tests
-- **Verification**: Type definitions are complete and well-documented
+- [x] Write tests for validation result types
+- [x] Add error handling types
+- [x] Add sharing/export types
+- [x] Create type guard functions with tests
+- **Verification**: Type definitions are complete and well-documented ✅
 
 ## Phase 4: Mathematical Calculation Engine (TDD) (Estimated: 4-5 hours)
 
