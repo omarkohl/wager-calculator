@@ -1,6 +1,12 @@
 # 🎯 Wager Calculator
 
-> A client-side Progressive Web App for calculating fair betting odds using logarithmic scoring rules
+> App for calculating fair betting odds for friendly everyday wagers. The
+> motivation is that we all make very confident statements in everyday life
+> about things that are going to happen (e.g. "Trump will definitely not win
+> the election!", "This project will fail within 3 months!"). Putting your
+> money where your mouth is by betting a symbolic amount of money with a friend
+> on the outcome you predict is a good way of grounding yourself in reality. As
+> the saying goes: "Betting is a tax on bullshit".
 
 [![Build Status](https://github.com/omarkohl/wager-calculator/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/omarkohl/wager-calculator/actions)
 [![Coverage Status](https://codecov.io/gh/omarkohl/wager-calculator/branch/main/graph/badge.svg)](https://codecov.io/gh/omarkohl/wager-calculator)
