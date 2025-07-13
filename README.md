@@ -2,8 +2,8 @@
 
 > A client-side Progressive Web App for calculating fair betting odds using logarithmic scoring rules
 
-[![Build Status](https://github.com/yourusername/wager-calculator/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/yourusername/wager-calculator/actions)
-[![Coverage Status](https://codecov.io/gh/yourusername/wager-calculator/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/wager-calculator)
+[![Build Status](https://github.com/omarkohl/wager-calculator/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/omarkohl/wager-calculator/actions)
+[![Coverage Status](https://codecov.io/gh/omarkohl/wager-calculator/branch/main/graph/badge.svg)](https://codecov.io/gh/omarkohl/wager-calculator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🚀 Features
@@ -34,7 +34,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/wager-calculator.git
+git clone https://github.com/omarkohl/wager-calculator.git
 
 # Navigate to project directory
 cd wager-calculator
@@ -94,7 +94,7 @@ We welcome contributions! Please see our [Contributing Guide](./.github/CONTRIBU
 
 ### Development Process
 1. Read the [Development Plan](./PLAN.md)
-2. Check [open issues](https://github.com/yourusername/wager-calculator/issues)
+2. Check [open issues](https://github.com/omarkohl/wager-calculator/issues)
 3. Follow our [coding standards](./.github/CONTRIBUTING.md#style-guidelines)
 4. Submit PRs with comprehensive tests
 
