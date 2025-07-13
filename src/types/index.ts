@@ -147,15 +147,10 @@ export function isBinaryBet(obj: unknown): obj is BinaryBet {
     (obj as Record<string, unknown>)['type'] !== BetType.Binary ||
     typeof (obj as Record<string, unknown>)['id'] !== 'string' ||
     typeof (obj as Record<string, unknown>)['title'] !== 'string' ||
-    !Object.values(Currency).includes(
-      (obj as Record<string, unknown>)['currency'] as Currency,
-    ) ||
+    !Object.values(Currency).includes((obj as Record<string, unknown>)['currency'] as Currency) ||
     !Array.isArray((obj as Record<string, unknown>)['participants']) ||
-    ((obj as Record<string, unknown>)['participants'] as unknown[]).length !==
-      2 ||
-    !((obj as Record<string, unknown>)['participants'] as unknown[]).every(
-      isParticipant,
-    ) ||
+    ((obj as Record<string, unknown>)['participants'] as unknown[]).length !== 2 ||
+    !((obj as Record<string, unknown>)['participants'] as unknown[]).every(isParticipant) ||
     !(obj as Record<string, unknown>)['probabilities'] ||
     typeof (obj as Record<string, unknown>)['probabilities'] !== 'object' ||
     Array.isArray((obj as Record<string, unknown>)['probabilities'])
@@ -176,15 +171,10 @@ export function isMultiCategoricalBet(obj: unknown): obj is MultiCategoricalBet 
     (obj as Record<string, unknown>)['type'] !== BetType.MultiCategorical ||
     typeof (obj as Record<string, unknown>)['id'] !== 'string' ||
     typeof (obj as Record<string, unknown>)['title'] !== 'string' ||
-    !Object.values(Currency).includes(
-      (obj as Record<string, unknown>)['currency'] as Currency,
-    ) ||
+    !Object.values(Currency).includes((obj as Record<string, unknown>)['currency'] as Currency) ||
     !Array.isArray((obj as Record<string, unknown>)['participants']) ||
-    ((obj as Record<string, unknown>)['participants'] as unknown[]).length !==
-      2 ||
-    !((obj as Record<string, unknown>)['participants'] as unknown[]).every(
-      isParticipant,
-    ) ||
+    ((obj as Record<string, unknown>)['participants'] as unknown[]).length !== 2 ||
+    !((obj as Record<string, unknown>)['participants'] as unknown[]).every(isParticipant) ||
     !Array.isArray((obj as Record<string, unknown>)['categories']) ||
     ((obj as Record<string, unknown>)['categories'] as unknown[]).length < 1 ||
     ((obj as Record<string, unknown>)['categories'] as unknown[]).length > 8 ||
