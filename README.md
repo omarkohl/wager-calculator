@@ -135,6 +135,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by the need for fair betting among friends
 - Built with modern web standards and accessibility in mind
 
+https://www.lesswrong.com/posts/aiz4FCKTgFBtKiWsE/even-odds
+
 ---
 
 **Made with ❤️ for fair betting calculations**
