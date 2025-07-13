@@ -55,8 +55,7 @@ export interface BinaryBet extends BaseBet {
  */
 export interface Category {
   id: string
-  name: string
-  range?: string
+  name: string // In the case of a range, this could be a label like "1-10" or "A-F"
 }
 
 /**
