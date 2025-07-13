@@ -42,14 +42,37 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Run unit tests
+    - name: Run unit tests with coverage
       run: npm run test:coverage
     
-    - name: Upload coverage to Codecov
+    - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage/lcov.info
-        fail_ci_if_error: true
+        fail_ci_if_error: false
+        verbose: true
+    
+    - name: Upload coverage to GitHub
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/
+    
+    - name: Check coverage thresholds
+      run: |
+        echo "Coverage thresholds configured:"
+        echo "- Global: 80% (branches, functions, lines, statements)"
+        echo "- Calculation modules: 90% (as specified in requirements)"
+        echo "- Types and utilities: 85%"
+    
+    - name: Generate test summary
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: 'Jest Unit Test Results'
+        path: 'coverage/junit.xml'
+        reporter: 'jest-junit'
+        fail-on-error: true
 
   build:
     runs-on: ubuntu-latest

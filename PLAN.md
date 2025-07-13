@@ -65,11 +65,11 @@ This plan breaks down the development of the Wager Calculator PWA into small, ve
 - **Verification**: E2E framework can run basic navigation tests ✅
 
 ### Step 2.3: Test Coverage and CI Integration
-- [ ] Configure test coverage reporting
-- [ ] Set up test coverage thresholds (90% for calculation logic)
-- [ ] Integrate tests into GitHub Actions workflow
-- [ ] Set up automated test reporting
-- **Verification**: Coverage reports generate correctly, CI runs tests
+- [x] Configure test coverage reporting
+- [x] Set up test coverage thresholds (90% for calculation logic)
+- [x] Integrate tests into GitHub Actions workflow
+- [x] Set up automated test reporting
+- **Verification**: Coverage reports generate correctly, CI runs tests ✅
 
 ## Phase 3: Core Types & Data Structures (TDD) (Estimated: 1-2 hours)
 

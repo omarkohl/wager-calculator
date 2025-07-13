@@ -7,13 +7,18 @@ export default {
     '**/__tests__/**/*.{ts,tsx}',
     '**/?(*.)+(spec|test).{ts,tsx}'
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/tests/e2e',
+    '<rootDir>/node_modules'
+  ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/main.ts'
+    '!src/main.ts',
+    '!src/vite-env.d.ts'
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageReporters: ['text', 'lcov', 'html', 'clover'],
   coverageThreshold: {
     global: {
       branches: 80,
@@ -21,12 +26,25 @@ export default {
       lines: 80,
       statements: 80
     },
-    // Calculation logic requires 90% coverage
-    'src/modules/calculation.ts': {
+    // Calculation logic requires 90% coverage as specified
+    'src/modules/**/*.ts': {
       branches: 90,
       functions: 90,
       lines: 90,
       statements: 90
+    },
+    // Type definitions and utilities should have high coverage
+    'src/types/**/*.ts': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85
+    },
+    'src/utils/**/*.ts': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85
     }
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
@@ -40,13 +58,20 @@ export default {
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', {
-      useESM: true
+      useESM: true,
+      tsconfig: {
+        esModuleInterop: true
+      }
     }]
   },
   extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  }
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: 'coverage',
+      outputName: 'junit.xml',
+      suiteName: 'Jest Unit Tests',
+      reportTestSuiteErrors: true
+    }]
+  ]
 }
