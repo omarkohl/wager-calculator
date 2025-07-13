@@ -7,8 +7,9 @@ import {
   createParticipant,
   type Category,
   type Participant,
-  type MultiCategoricalBet
-} from '@types/index'
+  type MultiCategoricalBet,
+  validateBinaryBetProbabilities
+} from '../../src/types/index'
 
 describe('Additional Type Coverage Tests', () => {
   describe('createParticipant edge cases', () => {
@@ -251,18 +252,86 @@ describe('Additional Type Coverage Tests', () => {
     })
   })
 
+  describe('validateBinaryBetProbabilities', () => {
+    const participants: Participant[] = [
+      { name: 'Alice', maxContribution: 100 },
+      { name: 'Bob', maxContribution: 100 }
+    ]
+
+    it('should validate correct binary bet probabilities', () => {
+      const probabilities = {
+        'Alice': 60,
+        'Bob': 40
+      }
+
+      const result = validateBinaryBetProbabilities(probabilities, participants)
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
+    })
+
+    it('should detect missing participants in probabilities', () => {
+      const probabilities = {
+        'Alice': 60
+        // Bob missing
+      }
+
+      const result = validateBinaryBetProbabilities(probabilities, participants)
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Missing probability for participant: Bob')
+    })
+
+    it('should detect extra participants in probabilities', () => {
+      const probabilities = {
+        'Alice': 60,
+        'Bob': 40,
+        'Charlie': 30 // Extra participant
+      }
+
+      const result = validateBinaryBetProbabilities(probabilities, participants)
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Unknown participant in probabilities: Charlie')
+    })
+
+    it('should detect invalid probability ranges', () => {
+      const probabilities = {
+        'Alice': -10, // Invalid negative
+        'Bob': 150   // Invalid over 100
+      }
+
+      const result = validateBinaryBetProbabilities(probabilities, participants)
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Invalid probability -10 for Alice. Must be between 0 and 100.')
+      expect(result.errors).toContain('Invalid probability 150 for Bob. Must be between 0 and 100.')
+    })
+
+    it('should handle multiple validation errors', () => {
+      const probabilities = {
+        'Alice': 150, // Invalid range
+        'Charlie': 50 // Unknown participant
+        // Bob missing
+      }
+
+      const result = validateBinaryBetProbabilities(probabilities, participants)
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Missing probability for participant: Bob')
+      expect(result.errors).toContain('Unknown participant in probabilities: Charlie')
+      expect(result.errors).toContain('Invalid probability 150 for Alice. Must be between 0 and 100.')
+    })
+  })
+
   describe('Currency enum completeness', () => {
     it('should have all required currencies', () => {
-      expect(Currency.USD).toBe('USD')
-      expect(Currency.EUR).toBe('EUR')
-      expect(Currency.GBP).toBe('GBP')
-      expect(Currency.CAD).toBe('CAD')
+      expect(Currency.USD).toBe('USD ($)')
+      expect(Currency.EUR).toBe('EUR (€)')
+      expect(Currency.GBP).toBe('GBP (£)')
+      expect(Currency.CAD).toBe('CAD (C$)')
+      expect(Currency.ZZZ).toBe('DEFAULT')
     })
 
     it('should only have the specified currencies', () => {
       const currencyValues = Object.values(Currency)
-      expect(currencyValues).toHaveLength(4)
-      expect(currencyValues).toEqual(['USD', 'EUR', 'GBP', 'CAD'])
+      expect(currencyValues).toHaveLength(5)
+      expect(currencyValues).toEqual(['USD ($)', 'EUR (€)', 'GBP (£)', 'CAD (C$)', 'DEFAULT'])
     })
   })
 
