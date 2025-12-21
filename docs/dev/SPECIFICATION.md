@@ -19,9 +19,15 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
   - Support for 2-8 participants with add/remove participant buttons
   - Inline-editable text fields for custom names (seamless view/edit experience)
   - Maximum Bet: Numerical input for each participant
-- **Currency Selection**: Headless UI Listbox/Dropdown with common currencies (USD, EUR, GBP, CAD, etc.) plus other options like "I was wrong", "Cookies", "Hugs" or "Other" (specify in "Details")
+- **Stakes Selection**: Searchable Headless UI Combobox for selecting what participants are betting. Grouped options:
+  - Common currencies first (USD, EUR, GBP, CAD, AUD, JPY, CHF, CNY) sorted by global usage frequency
+  - Fun/non-monetary options: "Cookies", "Hugs", "I was wrong"
+  - "Other" option (user documents details in the Details field)
 - **Outcomes**: Add or remove outcomes with inline-editable labels
-- **Predictions**: For each participant and outcome, specify their personal prediction (0-100%). When a participant moves focus away from a prediction field (on blur), remaining probability is automatically distributed evenly across outcomes they haven't yet assigned.
+- **Predictions**: For each participant and outcome, specify their personal prediction (0-100%, supporting two decimal places).
+  - Slider adjusts in whole percentage points (1% increments)
+  - Text input allows two decimal places (e.g., 33.33%)
+  - Auto-distribute on blur: when total probability is under 100% and user blurs a field, remaining probability is distributed evenly across outcomes they haven't yet touched
 - **Resolution**: Headless UI Listbox/RadioGroup to select which outcome occurred. Option to un-resolve and change the selected outcome. Display a summary showing who has to pay whom and how much. If all participants have identical predictions, explain that payouts are zero.
 
 #### Validation & Warnings
@@ -53,7 +59,6 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ### 4. Sharing Features
 - **Visual Design**: Clean, professional layout suitable for screenshots
 - **Share the URL**: All data encoded as JSON, compressed with lz-string, and base64-encoded in URL hash/anchor. When opening such a URL, the form is populated with the decoded data.
-- **Text Export**: Plain text format for copy-paste sharing
 
 ### 5. Technical Requirements
 
