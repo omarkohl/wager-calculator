@@ -12,9 +12,9 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 2: UI Shell
 
-- [ ] Create basic `App.tsx` layout with header ("Wager" + tagline)
-- [ ] Add "Reset Form" and "Share Wager" button placeholders (non-functional)
-- [ ] Mobile-first responsive container
+- [x] Create basic `App.tsx` layout with header ("Wager" + tagline)
+- [x] Add "Reset Form" and "Share Wager" button placeholders (non-functional)
+- [x] Mobile-first responsive container
 
 ## Phase 3: Claim & Details Section
 

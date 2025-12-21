@@ -3,8 +3,15 @@ import { render, screen } from '@testing-library/react'
 import App from './App'
 
 describe('App', () => {
-  it('renders without crashing', () => {
+  it('renders the header', () => {
     render(<App />)
-    expect(screen.getByText('Wager Calculator')).toBeInTheDocument()
+    expect(screen.getByText('Wager')).toBeInTheDocument()
+    expect(screen.getByText('Calculate fair betting odds using Brier scoring')).toBeInTheDocument()
+  })
+
+  it('renders action buttons', () => {
+    render(<App />)
+    expect(screen.getByText('Reset Form')).toBeInTheDocument()
+    expect(screen.getByText('Share Wager')).toBeInTheDocument()
   })
 })
