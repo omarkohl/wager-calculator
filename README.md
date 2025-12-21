@@ -60,6 +60,7 @@ This rewards accurate predictions and ensures zero-sum payouts across all partic
 ### Example: 3-Person Binary Bet
 
 **Scenario**: "Will it rain tomorrow?"
+
 - Alice: 70% chance of rain, max bet $50
 - Bob: 30% chance of rain, max bet $40
 - Carol: 50% chance of rain, max bet $60
@@ -68,11 +69,13 @@ This rewards accurate predictions and ensures zero-sum payouts across all partic
 **Outcome: It rains (actual = 1)**
 
 **Calculations:**
+
 - Alice's Brier: (0.70 - 1)² + (0.30 - 0)² = 0.18
 - Bob's Brier: (0.30 - 1)² + (0.70 - 0)² = 0.98
 - Carol's Brier: (0.50 - 1)² + (0.50 - 0)² = 0.50
 
 **Payouts:**
+
 - Alice: $40 × ((0.98 + 0.50) / 2 - 0.18) / 2 = +$11.20
 - Bob: $40 × ((0.18 + 0.50) / 2 - 0.98) / 2 = -$12.80
 - Carol: $40 × ((0.18 + 0.98) / 2 - 0.50) / 2 = +$1.60
@@ -88,6 +91,7 @@ So Bob has to give $1.60 to Carol and $11.20 to Alice.
 ## 🤝 Contributing
 
 See [Contributing Guide](./docs/dev/CONTRIBUTING.md) for details. We especially welcome:
+
 - Mathematical accuracy improvements
 - UI/UX enhancements
 - Test coverage expansion

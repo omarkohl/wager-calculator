@@ -4,11 +4,11 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 1: Project Setup
 
-- [ ] Initialize Vite + React + TypeScript project
-- [ ] Configure Tailwind CSS
-- [ ] Set up ESLint, Prettier, Husky + lint-staged
-- [ ] Configure Vitest
-- [ ] Define TypeScript interfaces (`types/wager.ts`)
+- [x] Initialize Vite + React + TypeScript project
+- [x] Configure Tailwind CSS
+- [x] Set up ESLint, Prettier, Husky + lint-staged
+- [x] Configure Vitest
+- [x] Define TypeScript interfaces (`types/wager.ts`)
 
 ## Phase 2: UI Shell
 
