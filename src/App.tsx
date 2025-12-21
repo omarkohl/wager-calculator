@@ -1,11 +1,17 @@
 import { useState } from 'react'
 import InlineEdit from './components/InlineEdit'
 import StakesSelector from './components/StakesSelector'
+import ParticipantsList from './components/ParticipantsList'
+import type { Participant } from './types/wager'
 
 function App() {
   const [claim, setClaim] = useState('')
   const [details, setDetails] = useState('')
   const [stakes, setStakes] = useState('usd')
+  const [participants, setParticipants] = useState<Participant[]>([
+    { id: crypto.randomUUID(), name: 'Artem', maxBet: 0 },
+    { id: crypto.randomUUID(), name: 'Baani', maxBet: 0 },
+  ])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,6 +67,17 @@ function App() {
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Stakes</label>
               <StakesSelector value={stakes} onChange={value => value && setStakes(value)} />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Participants & Max Bets
+              </label>
+              <ParticipantsList
+                participants={participants}
+                onChange={setParticipants}
+                stakes={stakes}
+              />
             </div>
           </div>
         </main>

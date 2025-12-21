@@ -6,27 +6,7 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from '@headlessui/react'
-
-const CURRENCY_OPTIONS = [
-  { id: 'usd', label: 'USD ($)', group: 'Currencies' },
-  { id: 'eur', label: 'EUR (€)', group: 'Currencies' },
-  { id: 'gbp', label: 'GBP (£)', group: 'Currencies' },
-  { id: 'cad', label: 'CAD ($)', group: 'Currencies' },
-  { id: 'aud', label: 'AUD ($)', group: 'Currencies' },
-  { id: 'jpy', label: 'JPY (¥)', group: 'Currencies' },
-  { id: 'chf', label: 'CHF (Fr)', group: 'Currencies' },
-  { id: 'cny', label: 'CNY (¥)', group: 'Currencies' },
-]
-
-const FUN_OPTIONS = [
-  { id: 'cookies', label: 'Cookies', group: 'Fun' },
-  { id: 'hugs', label: 'Hugs', group: 'Fun' },
-  { id: 'i-was-wrong', label: 'I was wrong', group: 'Fun' },
-]
-
-const OTHER_OPTION = { id: 'other', label: 'Other', group: 'Other' }
-
-const ALL_OPTIONS = [...CURRENCY_OPTIONS, ...FUN_OPTIONS, OTHER_OPTION]
+import { ALL_OPTIONS } from '../utils/stakes'
 
 interface StakesSelectorProps {
   value: string

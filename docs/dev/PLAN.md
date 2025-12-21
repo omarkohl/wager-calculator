@@ -28,10 +28,10 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 5: Participants Section
 
-- [ ] List of participants with inline-editable names
-- [ ] Max bet input per participant (numerical, shows currency symbol/unit)
-- [ ] Add/remove participant buttons (min 2, max 8)
-- [ ] Default placeholder names "Artem" and "Baani" (cleared on first input)
+- [x] List of participants with inline-editable names
+- [x] Max bet input per participant (numerical, shows currency symbol/unit)
+- [x] Add/remove participant buttons (min 2, max 8)
+- [x] Default placeholder names "Artem" and "Baani" (cleared on first input)
 
 ## Phase 6: Outcomes Section
 
