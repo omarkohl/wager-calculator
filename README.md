@@ -1,12 +1,6 @@
 # 🎯 Wager Calculator
 
-> App for calculating fair betting odds for friendly everyday wagers. The
-> motivation is that we all make very confident statements in everyday life
-> about things that are going to happen (e.g. "Trump will definitely not win
-> the election!", "This project will fail within 3 months!"). Putting your
-> money where your mouth is by betting a symbolic amount of money with a friend
-> on the outcome you predict is a good way of grounding yourself in reality. As
-> the saying goes: "Betting is a tax on bullshit".
+> Calculate fair betting odds for friendly wagers using Brier scoring. Put your money where your mouth is on confident predictions. As the saying goes: "Betting is a tax on bullshit".
 
 [![Build Status](https://github.com/omarkohl/wager-calculator/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/omarkohl/wager-calculator/actions)
 [![Coverage Status](https://codecov.io/gh/omarkohl/wager-calculator/branch/main/graph/badge.svg)](https://codecov.io/gh/omarkohl/wager-calculator)
@@ -14,13 +8,13 @@
 
 ## 🚀 Features
 
-- **📱 Mobile-First PWA**: Install on any device, works offline
-- **🎲 Binary & Multi-categorical Bets**: Simple YES/NO or up to 8 custom categories
-- **🧮 Logarithmic Scoring**: Mathematically fair odds calculation
-- **💰 Multi-Currency Support**: USD, EUR, GBP, CAD and more
-- **📊 Real-time Validation**: Instant feedback on probability distributions
-- **📤 Easy Sharing**: Screenshot, text export, and native sharing
-- **♿ Fully Accessible**: WCAG AA compliant, keyboard navigation
+- **📱 PWA**: Install on any device, works offline
+- **👥 2-8 Participants**: Support for multiple players per bet
+- **🎲 Binary & Multi-categorical**: YES/NO or up to 8 custom categories
+- **🧮 Brier Scoring**: Mathematically fair odds using proper scoring rules
+- **💰 Multi-Currency**: USD, EUR, GBP, CAD and more
+- **📊 Smart Validation**: Probability scaling and instant feedback
+- **📤 Easy Sharing**: Screenshot, text export, native sharing
 - **🔒 Privacy-First**: No data storage, completely client-side
 
 ## 🎮 Try It Live
@@ -31,10 +25,10 @@
 
 ### For Users
 1. Visit the live demo link above
-2. Choose between Binary or Multi-categorical bet
-3. Enter participant names and probabilities
+2. Add participants (2-8 people)
+3. Enter probability assessments for each participant
 4. Set maximum contributions
-5. Share the calculated fair odds!
+5. Share the calculated payouts and settlements!
 
 ### For Developers
 
@@ -60,30 +54,31 @@ npm run build
 
 ## 🧮 How It Works
 
-The Wager Calculator uses **logarithmic scoring rules** to ensure fair betting odds:
+The Wager Calculator uses **Brier scoring** to ensure fair betting:
 
 ```
-Score = log(probability of actual outcome)
+Brier Score = (1/N) × Σ(predicted_probability - actual_outcome)²
+Payout = (amount_in_play) × (avg_others_brier - my_brier) / 2
 ```
 
-This creates incentives for honest probability reporting while ensuring positive expected value for both participants when mathematically possible.
+This rewards accurate predictions and ensures zero-sum payouts across all participants.
 
-### Example: Binary Bet
+### Example: 3-Person Binary Bet
 
 **Scenario**: "Will it rain tomorrow?"
-- Person A believes: 70% chance of rain
-- Person B believes: 30% chance of rain
-- Both contribute: $100 maximum
+- Alice: 70% chance of rain, max bet $50
+- Bob: 30% chance of rain, max bet $40  
+- Carol: 50% chance of rain, max bet $60
+- Amount in play: $40 (minimum of max bets)
 
-**Fair Odds**: The calculator determines optimal bet amounts within contribution limits to ensure mathematical fairness.
+**If it rains**: Alice wins, Bob and Carol pay based on their Brier scores relative to the group average.
 
-## 🛠️ Technology Stack
+## 🛠️ Tech Stack
 
-- **Frontend**: TypeScript, HTML5, CSS3
-- **Build Tool**: Vite
-- **Testing**: Jest + Testing Library + Playwright
-- **PWA**: Service Worker + Web App Manifest
-- **Deployment**: Netlify/Vercel (static hosting)
+- **TypeScript + Vite**: Modern build tooling
+- **Jest + Playwright**: Comprehensive testing
+- **PWA**: Service worker + manifest
+- **Static hosting**: Netlify/Vercel
 
 ## 📊 Project Status
 
@@ -96,53 +91,33 @@ This creates incentives for honest probability reporting while ensuring positive
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](./.github/CONTRIBUTING.md) for details.
-
-### Development Process
-1. Read the [Development Plan](./PLAN.md)
-2. Check [open issues](https://github.com/omarkohl/wager-calculator/issues)
-3. Follow our [coding standards](./.github/CONTRIBUTING.md#style-guidelines)
-4. Submit PRs with comprehensive tests
-
-### Mathematical Contributions
-Special attention is given to:
-- Calculation accuracy and verification
-- Edge case handling
-- Performance optimization
-- Algorithm documentation
+See [Contributing Guide](./.github/CONTRIBUTING.md) for details. We especially welcome:
+- Mathematical accuracy improvements
+- UI/UX enhancements
+- Test coverage expansion
+- Documentation improvements
 
 ## 📚 Documentation
 
-- [📋 Development Plan](./PLAN.md) - Complete development roadmap
-- [🏗️ Architecture Guide](./docs/ARCHITECTURE.md) _(Coming soon)_
-- [🧮 Mathematical Documentation](./docs/MATH.md) _(Coming soon)_
-- [🚀 Deployment Guide](./docs/DEPLOYMENT.md) _(Coming soon)_
+- [📋 Development Plan](./PLAN.md) - Complete roadmap
+- [🏗️ Architecture](./docs/ARCHITECTURE.md) _(Coming soon)_
+- [🧮 Mathematics](./docs/MATH.md) _(Coming soon)_
 
-## 🔒 Security
+## 🔒 Security & Privacy
 
-- No user data collection or storage
-- Client-side only calculations
-- See our [Security Policy](./.github/SECURITY.md) for vulnerability reporting
+- No data collection or storage
+- Client-side calculations only
+- See [Security Policy](./.github/SECURITY.md) for details
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🎯 Project Goals
-
-- **Usability**: Users can create and share bets within 2 minutes
-- **Accuracy**: Mathematical calculations are precise and verifiable  
-- **Accessibility**: Works across all target devices and browsers
-- **Adoption**: Friends can easily access and use shared calculations
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Logarithmic scoring rule implementation based on academic research
-- Inspired by the need for fair betting among friends
-- Built with modern web standards and accessibility in mind
-
-https://www.lesswrong.com/posts/aiz4FCKTgFBtKiWsE/even-odds
+- Built on Brier scoring research and proper scoring rules
+- Inspired by the need for fair multi-participant betting
 
 ---
 
-**Made with ❤️ for fair betting calculations**
+**Fair betting calculations for everyone** ❤️

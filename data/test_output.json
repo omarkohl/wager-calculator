@@ -1,0 +1,71 @@
+[
+  {
+    "amount_in_play": 40,
+    "categories": [
+      "Rain",
+      "No Rain"
+    ],
+    "description": "Binary Case - Weather Prediction (2 Players)",
+    "outcomes": {
+      "No Rain": {
+        "avg_brier_others": {
+          "A": 0.32,
+          "B": 0.98
+        },
+        "brier_scores": {
+          "A": 0.98,
+          "B": 0.32
+        },
+        "payouts": {
+          "A": -13.2,
+          "B": 13.2
+        },
+        "settlements": [
+          {
+            "amount": 13.2,
+            "from": "A",
+            "to": "B"
+          }
+        ]
+      },
+      "Rain": {
+        "avg_brier_others": {
+          "A": 0.72,
+          "B": 0.18
+        },
+        "brier_scores": {
+          "A": 0.18,
+          "B": 0.72
+        },
+        "payouts": {
+          "A": 10.8,
+          "B": -10.8
+        },
+        "settlements": [
+          {
+            "amount": 10.8,
+            "from": "B",
+            "to": "A"
+          }
+        ]
+      }
+    },
+    "players": {
+      "A": {
+        "max_bet": 50,
+        "predictions": [
+          0.7,
+          0.3
+        ]
+      },
+      "B": {
+        "max_bet": 40,
+        "predictions": [
+          0.4,
+          0.6
+        ]
+      }
+    },
+    "scenario_id": "binary_weather_2p"
+  }
+]

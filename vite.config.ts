@@ -22,7 +22,7 @@ export default defineConfig({
       manifest: {
         name: 'Wager Calculator',
         short_name: 'WagerCalc',
-        description: 'A client-side Progressive Web App for calculating fair betting odds using logarithmic scoring rules',
+        description: 'A client-side Progressive Web App for calculating fair betting odds',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',

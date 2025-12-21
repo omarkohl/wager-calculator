@@ -3,12 +3,6 @@
  * Following the specification requirements for binary and multi-categorical betting
  */
 
-// Bet Type Enumeration
-export enum BetType {
-  Binary = 'Binary',
-  MultiCategorical = 'MultiCategorical',
-}
-
 // Currency Enumeration
 export enum Currency {
   USD = 'USD ($)',
@@ -16,6 +10,12 @@ export enum Currency {
   GBP = 'GBP (£)',
   CAD = 'CAD (C$)',
   ZZZ = 'DEFAULT', // Placeholder for no currency
+}
+
+// Bet Type Enumeration
+export enum BetType {
+  Binary = 'binary',
+  MultiCategorical = 'multi-categorical',
 }
 
 // Core Interfaces
@@ -29,29 +29,7 @@ export interface Participant {
 }
 
 /**
- * Base interface for all bet types
- */
-export interface BaseBet {
-  id: string
-  type: BetType
-  title: string
-  details?: string
-  deadline?: Date
-  currency: Currency
-  participants: [Participant, Participant] // Exactly 2 participants
-}
-
-/**
- * Binary bet interface - YES/NO outcomes where each participant provides their probability assessment for the YES outcome
- * The title field from BaseBet serves as the claim/statement being bet on
- */
-export interface BinaryBet extends BaseBet {
-  type: BetType.Binary
-  probabilities: Record<string, number> // participant name -> their probability for YES outcome
-}
-
-/**
- * Category definition for multi-categorical bets
+ * Category definition for bets
  */
 export interface Category {
   id: string
@@ -59,18 +37,19 @@ export interface Category {
 }
 
 /**
- * Multi-categorical bet interface - up to 8 categories
+ * Unified bet interface - supports both binary (2 categories) and multi-categorical (2-8 categories) bets
+ * Binary bets are just a special case with exactly 2 categories
  */
-export interface MultiCategoricalBet extends BaseBet {
-  type: BetType.MultiCategorical
-  categories: Category[] // 1-8 categories
-  probabilities: Record<string, Record<string, number>> // participant -> category -> probability
+export interface Bet {
+  id: string
+  title: string
+  details?: string
+  deadline?: Date
+  currency: Currency
+  participants: Participant[] // 2-8 participants
+  categories: Category[]
+  probabilities: Record<string, Record<string, number>> // participant -> category -> probability (2-8 participants)
 }
-
-/**
- * Union type for all bet types
- */
-export type Bet = BinaryBet | MultiCategoricalBet
 
 /**
  * Result of a bet calculation
@@ -88,11 +67,12 @@ export interface BetResult {
  * Detailed calculation result with mathematical breakdown
  */
 export interface CalculationResult extends BetResult {
-  methodology: 'logarithmic_scoring'
+  methodology: 'brier_scoring'
   calculations: {
-    scores: Record<string, number>
-    fairOdds: Record<string, number>
-    optimalBets: Record<string, number>
+    brierScores: Record<string, number> // participant -> brier score
+    avgBrierOthers: Record<string, number> // participant -> average brier score of others
+    payouts: Record<string, Record<string, number>> // outcome -> participant -> payout
+    settlements: Record<string, Array<{ from: string; to: string; amount: number }>> // outcome -> settlements
   }
   mathematicalDetails?: {
     formula: string
@@ -137,43 +117,19 @@ export function isParticipant(obj: unknown): obj is Participant {
 }
 
 /**
- * Type guard for BinaryBet
+ * Type guard for Bet
  */
-export function isBinaryBet(obj: unknown): obj is BinaryBet {
+export function isBet(obj: unknown): obj is Bet {
   if (
     obj === null ||
     obj === undefined ||
     typeof obj !== 'object' ||
-    (obj as Record<string, unknown>)['type'] !== BetType.Binary ||
     typeof (obj as Record<string, unknown>)['id'] !== 'string' ||
     typeof (obj as Record<string, unknown>)['title'] !== 'string' ||
     !Object.values(Currency).includes((obj as Record<string, unknown>)['currency'] as Currency) ||
     !Array.isArray((obj as Record<string, unknown>)['participants']) ||
-    ((obj as Record<string, unknown>)['participants'] as unknown[]).length !== 2 ||
-    !((obj as Record<string, unknown>)['participants'] as unknown[]).every(isParticipant) ||
-    !(obj as Record<string, unknown>)['probabilities'] ||
-    typeof (obj as Record<string, unknown>)['probabilities'] !== 'object' ||
-    Array.isArray((obj as Record<string, unknown>)['probabilities'])
-  ) {
-    return false
-  }
-  return true
-}
-
-/**
- * Type guard for MultiCategoricalBet
- */
-export function isMultiCategoricalBet(obj: unknown): obj is MultiCategoricalBet {
-  if (
-    obj === null ||
-    obj === undefined ||
-    typeof obj !== 'object' ||
-    (obj as Record<string, unknown>)['type'] !== BetType.MultiCategorical ||
-    typeof (obj as Record<string, unknown>)['id'] !== 'string' ||
-    typeof (obj as Record<string, unknown>)['title'] !== 'string' ||
-    !Object.values(Currency).includes((obj as Record<string, unknown>)['currency'] as Currency) ||
-    !Array.isArray((obj as Record<string, unknown>)['participants']) ||
-    ((obj as Record<string, unknown>)['participants'] as unknown[]).length !== 2 ||
+    ((obj as Record<string, unknown>)['participants'] as unknown[]).length < 2 ||
+    ((obj as Record<string, unknown>)['participants'] as unknown[]).length > 8 ||
     !((obj as Record<string, unknown>)['participants'] as unknown[]).every(isParticipant) ||
     !Array.isArray((obj as Record<string, unknown>)['categories']) ||
     ((obj as Record<string, unknown>)['categories'] as unknown[]).length < 1 ||
@@ -185,6 +141,20 @@ export function isMultiCategoricalBet(obj: unknown): obj is MultiCategoricalBet 
     return false
   }
   return true
+}
+
+/**
+ * Helper function to check if a bet is binary (has exactly 2 categories)
+ */
+export function isBinaryBet(bet: Bet): boolean {
+  return bet.categories.length === 2
+}
+
+/**
+ * Helper function to check if a bet is multi-categorical (has more than 2 categories)
+ */
+export function isMultiCategoricalBet(bet: Bet): boolean {
+  return bet.categories.length > 2
 }
 
 // Validation Functions
@@ -212,63 +182,24 @@ export function validateContribution(amount: number): boolean {
 }
 
 /**
- * Validates binary bet probabilities
+ * Validates bet probabilities for all participants and categories
  */
-export function validateBinaryBetProbabilities(
-  probabilities: Record<string, number>,
-  participants: Participant[]
-): { isValid: boolean; errors: string[] } {
+export function validateBetProbabilities(bet: Bet): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
 
-  // Check that we have exactly the right participants
-  const participantNames = participants.map(p => p.name)
-  const probabilityNames = Object.keys(probabilities)
+  // Check that each participant has probabilities for all categories
+  for (const participant of bet.participants) {
+    const participantProbs = bet.probabilities[participant.name]
 
-  // Check for missing participants
-  for (const participantName of participantNames) {
-    if (!(participantName in probabilities)) {
-      errors.push(`Missing probability for participant: ${participantName}`)
+    if (!participantProbs) {
+      errors.push(`Missing probabilities for participant: ${participant.name}`)
+      continue
     }
-  }
 
-  // Check for extra participants
-  for (const probabilityName of probabilityNames) {
-    if (!participantNames.includes(probabilityName)) {
-      errors.push(`Unknown participant in probabilities: ${probabilityName}`)
-    }
-  }
-
-  // Validate probability ranges
-  for (const [participantName, probability] of Object.entries(probabilities)) {
-    if (!validateProbabilityRange(probability)) {
-      errors.push(
-        `Invalid probability ${probability} for ${participantName}. Must be between 0 and 100.`
-      )
-    }
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-  }
-}
-
-/**
- * Validates that probabilities for all participants sum to 100% for each category
- */
-export function validateMultiCategoricalProbabilities(
-  probabilities: Record<string, Record<string, number>>,
-  categories: Category[],
-  participants: Participant[]
-): { isValid: boolean; errors: string[] } {
-  const errors: string[] = []
-
-  // Check that each category has probabilities for all participants
-  for (const category of categories) {
     const categoryProbs: number[] = []
 
-    for (const participant of participants) {
-      const prob = probabilities[participant.name]?.[category.id]
+    for (const category of bet.categories) {
+      const prob = participantProbs[category.id]
 
       if (prob === undefined || prob === null) {
         errors.push(`Missing probability for ${participant.name} in category ${category.name}`)
@@ -277,7 +208,7 @@ export function validateMultiCategoricalProbabilities(
 
       if (!validateProbabilityRange(prob)) {
         errors.push(
-          `Invalid probability ${prob} for ${participant.name} in category ${category.name}`
+          `Invalid probability ${prob} for ${participant.name} in category ${category.name}. Must be between 0 and 100.`
         )
         continue
       }
@@ -285,9 +216,10 @@ export function validateMultiCategoricalProbabilities(
       categoryProbs.push(prob)
     }
 
-    if (categoryProbs.length === participants.length) {
+    // Check that probabilities sum to 100% for this participant
+    if (categoryProbs.length === bet.categories.length) {
       if (!validateProbabilitySum(categoryProbs)) {
-        errors.push(`Probabilities for category ${category.name} do not sum to 100%`)
+        errors.push(`Probabilities for ${participant.name} do not sum to 100%`)
       }
     }
   }

@@ -1,0 +1,1145 @@
+[
+  {
+    "amount_in_play": 40,
+    "categories": [
+      "Rain",
+      "No Rain"
+    ],
+    "description": "Binary Case - Weather Prediction (2 Players)",
+    "outcomes": {
+      "No Rain": {
+        "avg_brier_others": {
+          "A": 0.32,
+          "B": 0.98
+        },
+        "brier_scores": {
+          "A": 0.98,
+          "B": 0.32
+        },
+        "payouts": {
+          "A": -13.2,
+          "B": 13.2
+        },
+        "settlements": [
+          {
+            "amount": 13.2,
+            "from": "A",
+            "to": "B"
+          }
+        ]
+      },
+      "Rain": {
+        "avg_brier_others": {
+          "A": 0.72,
+          "B": 0.18
+        },
+        "brier_scores": {
+          "A": 0.18,
+          "B": 0.72
+        },
+        "payouts": {
+          "A": 10.8,
+          "B": -10.8
+        },
+        "settlements": [
+          {
+            "amount": 10.8,
+            "from": "B",
+            "to": "A"
+          }
+        ]
+      }
+    },
+    "players": {
+      "A": {
+        "max_bet": 50,
+        "predictions": [
+          0.7,
+          0.3
+        ]
+      },
+      "B": {
+        "max_bet": 40,
+        "predictions": [
+          0.4,
+          0.6
+        ]
+      }
+    },
+    "scenario_id": "binary_weather_2p"
+  },
+  {
+    "amount_in_play": 45,
+    "categories": [
+      "1-star",
+      "2-star",
+      "3-star",
+      "4-star",
+      "5-star"
+    ],
+    "description": "Complex Multi-Category - Restaurant Rating (4 Players, 5 Categories)",
+    "outcomes": {
+      "1-star": {
+        "avg_brier_others": {
+          "A": 1.015,
+          "B": 0.9817,
+          "C": 1.0867,
+          "D": 1.0217
+        },
+        "brier_scores": {
+          "A": 1.06,
+          "B": 1.16,
+          "C": 0.845,
+          "D": 1.04
+        },
+        "payouts": {
+          "A": -1.01,
+          "B": -4.01,
+          "C": 5.43,
+          "D": -0.41
+        },
+        "settlements": [
+          {
+            "amount": 4.01,
+            "from": "B",
+            "to": "C"
+          },
+          {
+            "amount": 1.01,
+            "from": "A",
+            "to": "C"
+          },
+          {
+            "amount": 0.41,
+            "from": "D",
+            "to": "C"
+          }
+        ]
+      },
+      "2-star": {
+        "avg_brier_others": {
+          "A": 0.8817,
+          "B": 0.8483,
+          "C": 0.9533,
+          "D": 0.8217
+        },
+        "brier_scores": {
+          "A": 0.86,
+          "B": 0.96,
+          "C": 0.645,
+          "D": 1.04
+        },
+        "payouts": {
+          "A": 0.49,
+          "B": -2.51,
+          "C": 6.93,
+          "D": -4.91
+        },
+        "settlements": [
+          {
+            "amount": 4.91,
+            "from": "D",
+            "to": "C"
+          },
+          {
+            "amount": 2.02,
+            "from": "B",
+            "to": "C"
+          },
+          {
+            "amount": 0.49,
+            "from": "B",
+            "to": "A"
+          }
+        ]
+      },
+      "3-star": {
+        "avg_brier_others": {
+          "A": 0.715,
+          "B": 0.6483,
+          "C": 0.6533,
+          "D": 0.5883
+        },
+        "brier_scores": {
+          "A": 0.46,
+          "B": 0.66,
+          "C": 0.645,
+          "D": 0.84
+        },
+        "payouts": {
+          "A": 5.73,
+          "B": -0.26,
+          "C": 0.19,
+          "D": -5.66
+        },
+        "settlements": [
+          {
+            "amount": 5.66,
+            "from": "D",
+            "to": "A"
+          },
+          {
+            "amount": 0.07,
+            "from": "B",
+            "to": "A"
+          },
+          {
+            "amount": 0.19,
+            "from": "B",
+            "to": "C"
+          }
+        ]
+      },
+      "4-star": {
+        "avg_brier_others": {
+          "A": 0.715,
+          "B": 0.815,
+          "C": 0.6867,
+          "D": 0.7883
+        },
+        "brier_scores": {
+          "A": 0.86,
+          "B": 0.56,
+          "C": 0.945,
+          "D": 0.64
+        },
+        "payouts": {
+          "A": -3.26,
+          "B": 5.74,
+          "C": -5.82,
+          "D": 3.34
+        },
+        "settlements": [
+          {
+            "amount": 5.74,
+            "from": "C",
+            "to": "B"
+          },
+          {
+            "amount": 0.08,
+            "from": "C",
+            "to": "D"
+          },
+          {
+            "amount": 3.26,
+            "from": "A",
+            "to": "D"
+          }
+        ]
+      },
+      "5-star": {
+        "avg_brier_others": {
+          "A": 0.915,
+          "B": 0.9483,
+          "C": 0.8867,
+          "D": 1.055
+        },
+        "brier_scores": {
+          "A": 1.06,
+          "B": 0.96,
+          "C": 1.145,
+          "D": 0.64
+        },
+        "payouts": {
+          "A": -3.26,
+          "B": -0.26,
+          "C": -5.81,
+          "D": 9.33
+        },
+        "settlements": [
+          {
+            "amount": 5.81,
+            "from": "C",
+            "to": "D"
+          },
+          {
+            "amount": 3.26,
+            "from": "A",
+            "to": "D"
+          },
+          {
+            "amount": 0.26,
+            "from": "B",
+            "to": "D"
+          }
+        ]
+      }
+    },
+    "players": {
+      "A": {
+        "max_bet": 50,
+        "predictions": [
+          0.1,
+          0.2,
+          0.4,
+          0.2,
+          0.1
+        ]
+      },
+      "B": {
+        "max_bet": 60,
+        "predictions": [
+          0.05,
+          0.15,
+          0.3,
+          0.35,
+          0.15
+        ]
+      },
+      "C": {
+        "max_bet": 45,
+        "predictions": [
+          0.2,
+          0.3,
+          0.3,
+          0.15,
+          0.05
+        ]
+      },
+      "D": {
+        "max_bet": 55,
+        "predictions": [
+          0.1,
+          0.1,
+          0.2,
+          0.3,
+          0.3
+        ]
+      }
+    },
+    "scenario_id": "restaurant_rating_4p"
+  },
+  {
+    "amount_in_play": 100,
+    "categories": [
+      "Heads",
+      "Tails"
+    ],
+    "description": "Edge Case - Unanimous Predictions (3 Players)",
+    "outcomes": {
+      "Heads": {
+        "avg_brier_others": {
+          "A": 0.32,
+          "B": 0.32,
+          "C": 0.32
+        },
+        "brier_scores": {
+          "A": 0.32,
+          "B": 0.32,
+          "C": 0.32
+        },
+        "payouts": {
+          "A": 0.0,
+          "B": 0.0,
+          "C": 0.0
+        },
+        "settlements": []
+      },
+      "Tails": {
+        "avg_brier_others": {
+          "A": 0.72,
+          "B": 0.72,
+          "C": 0.72
+        },
+        "brier_scores": {
+          "A": 0.72,
+          "B": 0.72,
+          "C": 0.72
+        },
+        "payouts": {
+          "A": 0.0,
+          "B": 0.0,
+          "C": 0.0
+        },
+        "settlements": []
+      }
+    },
+    "players": {
+      "A": {
+        "max_bet": 100,
+        "predictions": [
+          0.6,
+          0.4
+        ]
+      },
+      "B": {
+        "max_bet": 100,
+        "predictions": [
+          0.6,
+          0.4
+        ]
+      },
+      "C": {
+        "max_bet": 100,
+        "predictions": [
+          0.6,
+          0.4
+        ]
+      }
+    },
+    "scenario_id": "coin_flip_unanimous_3p"
+  },
+  {
+    "amount_in_play": 500,
+    "categories": [
+      "Success",
+      "Failure"
+    ],
+    "description": "Edge Case - Extreme Confidence Levels (2 Players)",
+    "outcomes": {
+      "Failure": {
+        "avg_brier_others": {
+          "A": 0.005,
+          "B": 1.9602
+        },
+        "brier_scores": {
+          "A": 1.9602,
+          "B": 0.005
+        },
+        "payouts": {
+          "A": -488.8,
+          "B": 488.8
+        },
+        "settlements": [
+          {
+            "amount": 488.8,
+            "from": "A",
+            "to": "B"
+          }
+        ]
+      },
+      "Success": {
+        "avg_brier_others": {
+          "A": 1.805,
+          "B": 0.0002
+        },
+        "brier_scores": {
+          "A": 0.0002,
+          "B": 1.805
+        },
+        "payouts": {
+          "A": 451.2,
+          "B": -451.2
+        },
+        "settlements": [
+          {
+            "amount": 451.2,
+            "from": "B",
+            "to": "A"
+          }
+        ]
+      }
+    },
+    "players": {
+      "A": {
+        "max_bet": 1000,
+        "predictions": [
+          0.99,
+          0.01
+        ]
+      },
+      "B": {
+        "max_bet": 500,
+        "predictions": [
+          0.05,
+          0.95
+        ]
+      }
+    },
+    "scenario_id": "extreme_confidence_2p"
+  },
+  {
+    "amount_in_play": 140,
+    "categories": [
+      "Cat1",
+      "Cat2",
+      "Cat3",
+      "Cat4",
+      "Cat5",
+      "Cat6",
+      "Cat7",
+      "Cat8"
+    ],
+    "description": "Edge Case - Many Categories with Close Predictions (5 Players)",
+    "outcomes": {
+      "Cat1": {
+        "avg_brier_others": {
+          "A": 0.8982,
+          "B": 0.8828,
+          "C": 0.873,
+          "D": 0.8887,
+          "E": 0.8783
+        },
+        "brier_scores": {
+          "A": 0.828,
+          "B": 0.8898,
+          "C": 0.929,
+          "D": 0.8664,
+          "E": 0.9078
+        },
+        "payouts": {
+          "A": 4.91,
+          "B": -0.49,
+          "C": -3.92,
+          "D": 1.56,
+          "E": -2.06
+        },
+        "settlements": [
+          {
+            "amount": 3.92,
+            "from": "C",
+            "to": "A"
+          },
+          {
+            "amount": 0.99,
+            "from": "E",
+            "to": "A"
+          },
+          {
+            "amount": 1.07,
+            "from": "E",
+            "to": "D"
+          },
+          {
+            "amount": 0.49,
+            "from": "B",
+            "to": "D"
+          }
+        ]
+      },
+      "Cat2": {
+        "avg_brier_others": {
+          "A": 0.8732,
+          "B": 0.8678,
+          "C": 0.878,
+          "D": 0.8587,
+          "E": 0.8633
+        },
+        "brier_scores": {
+          "A": 0.848,
+          "B": 0.8698,
+          "C": 0.829,
+          "D": 0.9064,
+          "E": 0.8878
+        },
+        "payouts": {
+          "A": 1.77,
+          "B": -0.14,
+          "C": 3.43,
+          "D": -3.34,
+          "E": -1.72
+        },
+        "settlements": [
+          {
+            "amount": 3.34,
+            "from": "D",
+            "to": "C"
+          },
+          {
+            "amount": 0.09,
+            "from": "E",
+            "to": "C"
+          },
+          {
+            "amount": 1.63,
+            "from": "E",
+            "to": "A"
+          },
+          {
+            "amount": 0.14,
+            "from": "B",
+            "to": "A"
+          }
+        ]
+      },
+      "Cat3": {
+        "avg_brier_others": {
+          "A": 0.8682,
+          "B": 0.8728,
+          "C": 0.863,
+          "D": 0.8787,
+          "E": 0.8583
+        },
+        "brier_scores": {
+          "A": 0.868,
+          "B": 0.8498,
+          "C": 0.889,
+          "D": 0.8264,
+          "E": 0.9078
+        },
+        "payouts": {
+          "A": 0.02,
+          "B": 1.61,
+          "C": -1.82,
+          "D": 3.65,
+          "E": -3.46
+        },
+        "settlements": [
+          {
+            "amount": 3.46,
+            "from": "E",
+            "to": "D"
+          },
+          {
+            "amount": 0.19,
+            "from": "C",
+            "to": "D"
+          },
+          {
+            "amount": 1.61,
+            "from": "C",
+            "to": "B"
+          },
+          {
+            "amount": 0.02,
+            "from": "C",
+            "to": "A"
+          }
+        ]
+      },
+      "Cat4": {
+        "avg_brier_others": {
+          "A": 0.8382,
+          "B": 0.8528,
+          "C": 0.843,
+          "D": 0.8487,
+          "E": 0.8583
+        },
+        "brier_scores": {
+          "A": 0.888,
+          "B": 0.8298,
+          "C": 0.869,
+          "D": 0.8464,
+          "E": 0.8078
+        },
+        "payouts": {
+          "A": -3.48,
+          "B": 1.61,
+          "C": -1.82,
+          "D": 0.16,
+          "E": 3.53
+        },
+        "settlements": [
+          {
+            "amount": 3.48,
+            "from": "A",
+            "to": "E"
+          },
+          {
+            "amount": 0.05,
+            "from": "C",
+            "to": "E"
+          },
+          {
+            "amount": 1.61,
+            "from": "C",
+            "to": "B"
+          },
+          {
+            "amount": 0.16,
+            "from": "C",
+            "to": "D"
+          }
+        ]
+      },
+      "Cat5": {
+        "avg_brier_others": {
+          "A": 0.8432,
+          "B": 0.8678,
+          "C": 0.858,
+          "D": 0.8487,
+          "E": 0.8633
+        },
+        "brier_scores": {
+          "A": 0.908,
+          "B": 0.8098,
+          "C": 0.849,
+          "D": 0.8864,
+          "E": 0.8278
+        },
+        "payouts": {
+          "A": -4.53,
+          "B": 4.06,
+          "C": 0.63,
+          "D": -2.64,
+          "E": 2.48
+        },
+        "settlements": [
+          {
+            "amount": 4.06,
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "amount": 0.47,
+            "from": "A",
+            "to": "E"
+          },
+          {
+            "amount": 2.01,
+            "from": "D",
+            "to": "E"
+          },
+          {
+            "amount": 0.63,
+            "from": "D",
+            "to": "C"
+          }
+        ]
+      },
+      "Cat6": {
+        "avg_brier_others": {
+          "A": 0.8682,
+          "B": 0.8778,
+          "C": 0.898,
+          "D": 0.8737,
+          "E": 0.8833
+        },
+        "brier_scores": {
+          "A": 0.928,
+          "B": 0.8898,
+          "C": 0.809,
+          "D": 0.9064,
+          "E": 0.8678
+        },
+        "payouts": {
+          "A": -4.18,
+          "B": -0.84,
+          "C": 6.22,
+          "D": -2.29,
+          "E": 1.09
+        },
+        "settlements": [
+          {
+            "amount": 4.18,
+            "from": "A",
+            "to": "C"
+          },
+          {
+            "amount": 2.04,
+            "from": "D",
+            "to": "C"
+          },
+          {
+            "amount": 0.25,
+            "from": "D",
+            "to": "E"
+          },
+          {
+            "amount": 0.84,
+            "from": "B",
+            "to": "E"
+          }
+        ]
+      },
+      "Cat7": {
+        "avg_brier_others": {
+          "A": 0.9233,
+          "B": 0.8878,
+          "C": 0.898,
+          "D": 0.9086,
+          "E": 0.9033
+        },
+        "brier_scores": {
+          "A": 0.828,
+          "B": 0.9698,
+          "C": 0.929,
+          "D": 0.8864,
+          "E": 0.9078
+        },
+        "payouts": {
+          "A": 6.66,
+          "B": -5.74,
+          "C": -2.17,
+          "D": 1.56,
+          "E": -0.31
+        },
+        "settlements": [
+          {
+            "amount": 5.74,
+            "from": "B",
+            "to": "A"
+          },
+          {
+            "amount": 0.92,
+            "from": "C",
+            "to": "A"
+          },
+          {
+            "amount": 1.25,
+            "from": "C",
+            "to": "D"
+          },
+          {
+            "amount": 0.31,
+            "from": "E",
+            "to": "D"
+          }
+        ]
+      },
+      "Cat8": {
+        "avg_brier_others": {
+          "A": 0.9133,
+          "B": 0.9128,
+          "C": 0.913,
+          "D": 0.9236,
+          "E": 0.9183
+        },
+        "brier_scores": {
+          "A": 0.928,
+          "B": 0.9298,
+          "C": 0.929,
+          "D": 0.8864,
+          "E": 0.9078
+        },
+        "payouts": {
+          "A": -1.03,
+          "B": -1.19,
+          "C": -1.12,
+          "D": 2.61,
+          "E": 0.73
+        },
+        "settlements": [
+          {
+            "amount": 1.19,
+            "from": "B",
+            "to": "D"
+          },
+          {
+            "amount": 1.12,
+            "from": "C",
+            "to": "D"
+          },
+          {
+            "amount": 0.3,
+            "from": "A",
+            "to": "D"
+          },
+          {
+            "amount": 0.73,
+            "from": "A",
+            "to": "E"
+          }
+        ]
+      }
+    },
+    "players": {
+      "A": {
+        "max_bet": 200,
+        "predictions": [
+          0.15,
+          0.14,
+          0.13,
+          0.12,
+          0.11,
+          0.1,
+          0.15,
+          0.1
+        ]
+      },
+      "B": {
+        "max_bet": 150,
+        "predictions": [
+          0.12,
+          0.13,
+          0.14,
+          0.15,
+          0.16,
+          0.12,
+          0.08,
+          0.1
+        ]
+      },
+      "C": {
+        "max_bet": 180,
+        "predictions": [
+          0.1,
+          0.15,
+          0.12,
+          0.13,
+          0.14,
+          0.16,
+          0.1,
+          0.1
+        ]
+      },
+      "D": {
+        "max_bet": 160,
+        "predictions": [
+          0.13,
+          0.11,
+          0.15,
+          0.14,
+          0.12,
+          0.11,
+          0.12,
+          0.12
+        ]
+      },
+      "E": {
+        "max_bet": 140,
+        "predictions": [
+          0.11,
+          0.12,
+          0.11,
+          0.16,
+          0.15,
+          0.13,
+          0.11,
+          0.11
+        ]
+      }
+    },
+    "scenario_id": "many_categories_5p"
+  },
+  {
+    "amount_in_play": 5,
+    "categories": [
+      "Win",
+      "Lose",
+      "Draw"
+    ],
+    "description": "Edge Case - Highly Unbalanced Betting Power (3 Players)",
+    "outcomes": {
+      "Draw": {
+        "avg_brier_others": {
+          "Minnow1": 0.87,
+          "Minnow2": 1.11,
+          "Whale": 1.02
+        },
+        "brier_scores": {
+          "Minnow1": 1.26,
+          "Minnow2": 0.78,
+          "Whale": 0.96
+        },
+        "payouts": {
+          "Minnow1": -0.97,
+          "Minnow2": 0.82,
+          "Whale": 0.15
+        },
+        "settlements": [
+          {
+            "amount": 0.82,
+            "from": "Minnow1",
+            "to": "Minnow2"
+          },
+          {
+            "amount": 0.15,
+            "from": "Minnow1",
+            "to": "Whale"
+          }
+        ]
+      },
+      "Lose": {
+        "avg_brier_others": {
+          "Minnow1": 0.47,
+          "Minnow2": 0.71,
+          "Whale": 0.62
+        },
+        "brier_scores": {
+          "Minnow1": 0.86,
+          "Minnow2": 0.38,
+          "Whale": 0.56
+        },
+        "payouts": {
+          "Minnow1": -0.97,
+          "Minnow2": 0.82,
+          "Whale": 0.15
+        },
+        "settlements": [
+          {
+            "amount": 0.82,
+            "from": "Minnow1",
+            "to": "Minnow2"
+          },
+          {
+            "amount": 0.15,
+            "from": "Minnow1",
+            "to": "Whale"
+          }
+        ]
+      },
+      "Win": {
+        "avg_brier_others": {
+          "Minnow1": 0.77,
+          "Minnow2": 0.41,
+          "Whale": 0.62
+        },
+        "brier_scores": {
+          "Minnow1": 0.26,
+          "Minnow2": 0.98,
+          "Whale": 0.56
+        },
+        "payouts": {
+          "Minnow1": 1.27,
+          "Minnow2": -1.42,
+          "Whale": 0.15
+        },
+        "settlements": [
+          {
+            "amount": 1.27,
+            "from": "Minnow2",
+            "to": "Minnow1"
+          },
+          {
+            "amount": 0.15,
+            "from": "Minnow2",
+            "to": "Whale"
+          }
+        ]
+      }
+    },
+    "players": {
+      "Minnow1": {
+        "max_bet": 10,
+        "predictions": [
+          0.6,
+          0.3,
+          0.1
+        ]
+      },
+      "Minnow2": {
+        "max_bet": 5,
+        "predictions": [
+          0.2,
+          0.5,
+          0.3
+        ]
+      },
+      "Whale": {
+        "max_bet": 10000,
+        "predictions": [
+          0.4,
+          0.4,
+          0.2
+        ]
+      }
+    },
+    "scenario_id": "unbalanced_betting_power_3p"
+  },
+  {
+    "amount_in_play": 250,
+    "categories": [
+      "Alpha",
+      "Beta",
+      "Gamma"
+    ],
+    "description": "Edge Case - Complex Fractional Predictions (3 Players)",
+    "outcomes": {
+      "Alpha": {
+        "avg_brier_others": {
+          "A": 0.6344,
+          "B": 0.4167,
+          "C": 0.8844
+        },
+        "brier_scores": {
+          "A": 0.6667,
+          "B": 1.102,
+          "C": 0.1667
+        },
+        "payouts": {
+          "A": -4.04,
+          "B": -85.67,
+          "C": 89.71
+        },
+        "settlements": [
+          {
+            "amount": 85.67,
+            "from": "B",
+            "to": "C"
+          },
+          {
+            "amount": 4.04,
+            "from": "A",
+            "to": "C"
+          }
+        ]
+      },
+      "Beta": {
+        "avg_brier_others": {
+          "A": 0.8486,
+          "B": 0.9167,
+          "C": 0.5986
+        },
+        "brier_scores": {
+          "A": 0.6667,
+          "B": 0.5306,
+          "C": 1.1667
+        },
+        "payouts": {
+          "A": 22.75,
+          "B": 48.26,
+          "C": -71.01
+        },
+        "settlements": [
+          {
+            "amount": 48.26,
+            "from": "C",
+            "to": "B"
+          },
+          {
+            "amount": 22.75,
+            "from": "C",
+            "to": "A"
+          }
+        ]
+      },
+      "Gamma": {
+        "avg_brier_others": {
+          "A": 0.8486,
+          "B": 0.9167,
+          "C": 0.5986
+        },
+        "brier_scores": {
+          "A": 0.6667,
+          "B": 0.5306,
+          "C": 1.1667
+        },
+        "payouts": {
+          "A": 22.75,
+          "B": 48.26,
+          "C": -71.01
+        },
+        "settlements": [
+          {
+            "amount": 48.26,
+            "from": "C",
+            "to": "B"
+          },
+          {
+            "amount": 22.75,
+            "from": "C",
+            "to": "A"
+          }
+        ]
+      }
+    },
+    "players": {
+      "A": {
+        "max_bet": 333,
+        "predictions": [
+          0.333333,
+          0.333334,
+          0.333333
+        ]
+      },
+      "B": {
+        "max_bet": 250,
+        "predictions": [
+          0.142857,
+          0.428571,
+          0.428572
+        ]
+      },
+      "C": {
+        "max_bet": 300,
+        "predictions": [
+          0.666667,
+          0.166666,
+          0.166667
+        ]
+      }
+    },
+    "scenario_id": "fractional_predictions_3p"
+  }
+]

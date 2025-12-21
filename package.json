@@ -1,7 +1,7 @@
 {
   "name": "wager-calculator",
   "version": "1.0.0",
-  "description": "A client-side Progressive Web App for calculating fair betting odds using logarithmic scoring rules",
+  "description": "A client-side Progressive Web App for calculating fair betting odds",
   "main": "src/main.ts",
   "type": "module",
   "directories": {
@@ -33,7 +33,7 @@
     "betting",
     "odds",
     "calculator",
-    "logarithmic",
+    "Brier",
     "scoring",
     "pwa",
     "typescript",

@@ -1,17 +1,6 @@
 import { describe, it, expect } from '@jest/globals'
 
 describe('Core Types - Type Validation', () => {
-  describe('BetType enum', () => {
-    it('should have Binary and MultiCategorical variants', async () => {
-      // Import the BetType enum and test its values
-      const { BetType } = await import('../../src/types/index')
-      
-      expect(BetType.Binary).toBeDefined()
-      expect(BetType.MultiCategorical).toBeDefined()
-      expect(Object.keys(BetType)).toHaveLength(2)
-    })
-  })
-
   describe('Currency type', () => {
     it('should support common currencies', async () => {
       const { Currency } = await import('../../src/types/index')
@@ -65,13 +54,12 @@ describe('Type Guards (TDD)', () => {
   })
 
   describe('isBinaryBet', () => {
-    it('should identify binary bet objects correctly', async () => {
-      const { isBinaryBet, BetType, Currency } = await import('../../src/types/index')
+    it('should identify binary bets correctly (bets with exactly 2 categories)', async () => {
+      const { isBinaryBet, Currency } = await import('../../src/types/index')
       
       const validBinaryBet = {
         id: 'bet1',
-        type: BetType.Binary,
-        title: 'Test Bet',
+        title: 'Test Binary Bet',
         details: 'Test details',
         deadline: new Date(),
         currency: Currency.USD,
@@ -79,21 +67,43 @@ describe('Type Guards (TDD)', () => {
           { name: 'Alice', maxContribution: 100 },
           { name: 'Bob', maxContribution: 100 }
         ],
+        categories: [
+          { id: 'yes', name: 'Yes' },
+          { id: 'no', name: 'No' }
+        ],
         probabilities: {
-          'Alice': 60,
-          'Bob': 40
+          'Alice': { 'yes': 60, 'no': 40 },
+          'Bob': { 'yes': 40, 'no': 60 }
         }
       }
       
       expect(isBinaryBet(validBinaryBet)).toBe(true)
     })
 
-    it('should reject non-binary bet objects', async () => {
-      const { isBinaryBet } = await import('../../src/types/index')
+    it('should identify multi-categorical bets correctly (bets with more than 2 categories)', async () => {
+      const { isBinaryBet, isMultiCategoricalBet, Currency } = await import('../../src/types/index')
       
-      expect(isBinaryBet({})).toBe(false)
-      expect(isBinaryBet(null)).toBe(false)
-      expect(isBinaryBet({ type: 'MultiCategorical' })).toBe(false)
+      const validMultiCategoricalBet = {
+        id: 'bet1',
+        title: 'Test Multi-Categorical Bet',
+        currency: Currency.USD,
+        participants: [
+          { name: 'Alice', maxContribution: 100 },
+          { name: 'Bob', maxContribution: 100 }
+        ],
+        categories: [
+          { id: 'cat1', name: 'Category 1' },
+          { id: 'cat2', name: 'Category 2' },
+          { id: 'cat3', name: 'Category 3' }
+        ],
+        probabilities: {
+          'Alice': { 'cat1': 33.33, 'cat2': 33.33, 'cat3': 33.34 },
+          'Bob': { 'cat1': 40, 'cat2': 30, 'cat3': 30 }
+        }
+      }
+      
+      expect(isBinaryBet(validMultiCategoricalBet)).toBe(false)
+      expect(isMultiCategoricalBet(validMultiCategoricalBet)).toBe(true)
     })
   })
 })

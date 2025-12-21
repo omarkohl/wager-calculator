@@ -24,16 +24,3 @@ describe('Jest Setup Test', () => {
     expect(value).toBeWithinRange(1, 10)
   })
 })
-
-// This test should initially fail to demonstrate TDD approach
-describe('TDD Demo - Initial Failing Test', () => {
-  test('should have a logarithmic scoring function (FAILING - TDD)', () => {
-    // This test will fail until we implement the calculation module
-    // This demonstrates the TDD "Red" phase
-    expect(() => {
-      // We'll implement this in the calculation module later
-      const module = require('@modules/calculation')
-      expect(module.calculateLogarithmicScore).toBeDefined()
-    }).toThrow() // This should throw because the module doesn't exist yet
-  })
-})

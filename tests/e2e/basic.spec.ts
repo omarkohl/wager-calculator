@@ -11,7 +11,7 @@ test.describe('Wager Calculator App', () => {
     await expect(page.getByRole('heading', { name: 'Wager Calculator' })).toBeVisible()
     
     // Check that the description is present
-    await expect(page.getByText('Fair betting odds using logarithmic scoring rules')).toBeVisible()
+    await expect(page.getByText('Fair betting odds')).toBeVisible()
   })
 
   test('should display development message', async ({ page }) => {

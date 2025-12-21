@@ -1,7 +1,7 @@
 # Wager Calculator Application Specification
 
 ## Overview
-A client-side Progressive Web App (PWA) that calculates fair betting odds for friendly wagers using logarithmic scoring rules. The application functions as a calculator without user accounts or data storage, focusing on binary and multi-categorical betting scenarios.
+A client-side Progressive Web App (PWA) that calculates fair betting odds for friendly wagers using Brier scoring rules. The application functions as a calculator without user accounts or data storage, focusing on binary and multi-categorical betting scenarios.
 
 ## Core Features
 
@@ -16,58 +16,64 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - **Details** (Optional): Multi-line text field for resolution criteria and additional context
 - **Deadline** (Optional): Date/time picker for bet resolution deadline
 - **Bet Type**: Toggle between Binary and Multi-categorical
-- **Participant Names**: 
-  - Default: "Person A" and "Person B"
+- **Participants**: 
+  - Default: 2 participants ("Person A" and "Person B")
+  - Support for 2-8 participants with add/remove participant buttons
   - Editable text fields for custom names
+  - Maximum Bet: Numerical input for each participant
 - **Currency Selection**: Dropdown with common currencies (USD, EUR, GBP, CAD, etc.)
 
 #### Binary Bet Inputs
 - **Claim Statement**: Text describing the binary outcome
-- **Person A Probability**: Slider (0-100%) + percentage input field
-- **Person B Probability**: Slider (0-100%) + percentage input field
-- **Person A Max Contribution**: Numerical input
-- **Person B Max Contribution**: Numerical input
+- **Probability Inputs**: For each participant (2-8):
+  - Slider (0-100%) + percentage input field for YES outcome probability
+  - NO probability automatically calculated as (100% - YES probability)
 
 #### Multi-categorical Bet Inputs
 - **Category Definition**: Up to 8 custom ranges/categories
   - Text field for category name/range (e.g., "0-5 people", "6-10 people")
-  - Probability input for each participant per category
+  - Probability input for each participant (2-8) per category
   - Add/Remove category buttons
-- **Maximum Contributions**: Same as binary bets
 
 #### Validation & Warnings
 - **Probability Sum Check**: Warning if total probabilities ≠ 100%
-- **Extreme Payout Warning**: Alert when logarithmic scoring could result in very large payouts (e.g., when probabilities < 5% or > 95%)
+  - Add a button to scale probabilities so they add up to 100%
 - **Input Validation**: Ensure all required fields are filled
 
 ### 3. Calculation Engine
 
-#### Logarithmic Scoring Rule Implementation
-- Calculate fair odds using logarithmic scoring: Score = log(probability of actual outcome)
-- Determine optimal bet amounts within maximum contribution constraints
-- Ensure positive expected value for both participants where mathematically possible
+#### Brier Scoring Rule Implementation
+- Calculate fair odds using the original Brier scoring formula for multi-categorical outcomes
+- For each outcome, calculate individual Brier scores for each participant using: BS = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
+  - Where R = number of possible categories, N = number of instances (always 1 for single predictions)
+  - f_ti = predicted probability for category i, o_ti = 1 if category i occurs, 0 otherwise
+- Calculate average Brier score of other participants for comparison
+- Determine payouts based on performance relative to others: Payout = (amount_in_play) × (avg_others_brier - my_brier) / 2
+- Amount in play is determined by the minimum of all participants' maximum contributions
+- Ensure payouts sum to zero across all participants
 
 #### Mathematical Display
 - **Default**: Hide mathematical formulas
 - **On Request**: Expandable section showing:
-  - Logarithmic scoring formula
-  - Calculation steps
-  - Expected value calculations for each participant
+  - Brier scoring formula and calculation steps
+  - Individual Brier scores for each participant
+  - Average Brier scores of others
+  - Payout calculations for each possible outcome
+  - Settlement structure between participants
 
 ### 4. Output Display
 
 #### Results Section
-- **Clear Payout Structure**: 
-  - Binary: "If YES, [Person A] pays [Person B] $X. If NO, [Person B] pays [Person A] $Y"
-  - Multi-categorical: Similar format for each possible outcome
-- **Bet Summary**: Include all input information:
-  - Participant names
+- **Clear Payout Structure**:
+  - Binary: "If YES, [Participant names] pay/receive [amounts]. If NO, [Participant names] pay/receive [amounts]"
+  - Multi-categorical: Similar format showing all possible outcomes and corresponding payouts for all participants
+- **Settlement Details**: Show simplified payment structure (who pays whom and how much) for each possible outcome
+- **Bet Summary**: Include relevant input information:
+  - All participant names and their probability assessments
   - Bet title and details
   - Bet deadline (if specified)
-  - Assigned probabilities
-  - Maximum contributions
-  - Currency used
-  - Calculated fair odds
+  - Maximum amount in play
+  - Amount in play (minimum of all max contributions)
 
 #### Sharing Features
 - **Visual Design**: Clean, professional layout suitable for screenshots
@@ -99,27 +105,30 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 ### 6. User Experience Flow
 
 #### Binary Bet Flow
-1. User selects binary bet type
-2. Enters bet title and optional details
-3. Optionally sets bet deadline
-4. Inputs participant names (or uses defaults)
-5. Selects currency
-6. Sets probabilities via sliders or direct input
-7. Enters maximum contributions
-8. Views validation warnings if any
-9. Sees calculated fair odds and payout structure
-10. Shares results via text or screenshot
+1. Adds participants (defaults to 2, can add up to 8 total)
+2. Inputs participant names (or uses defaults)
+3. Enters maximum contributions for each participant
+4. Selects currency
+5. User selects binary bet type
+6. Enters bet title and optional details
+7. Optionally sets bet deadline
+8. Sets probabilities for YES outcome via sliders or direct input for each participant
+9. Views validation warnings if any
+10. Sees calculated fair odds and payout structure for all participants
+11. Shares results via text or screenshot
 
 #### Multi-categorical Flow
-1. User selects multi-categorical bet type
-2. Enters bet title and optional details
-3. Optionally sets bet deadline
-4. Defines categories (up to 8)
-5. Assigns probabilities for each participant per category
-6. Enters maximum contributions
-7. Views validation warnings
-8. Sees calculated outcomes for all categories
-9. Shares comprehensive bet terms
+1. Adds participants (defaults to 2, can add up to 8 total)
+2. Inputs participant names (or uses defaults)
+3. Enters maximum contributions for each participant
+4. Selects currency
+5. User selects multi-categorical bet type
+6. Enters bet title and optional details
+7. Optionally sets bet deadline
+8. Sets probabilities per participant and category
+9. Views validation warnings if any
+10. Sees calculated fair odds and payout structure for all participants
+11. Shares results via text or screenshot
 
 ### 7. Design Principles
 
@@ -148,9 +157,12 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - Manage extreme probability values
 
 #### Mathematical Edge Cases
-- Handle cases where fair betting isn't possible within contribution limits
-- Provide clear explanations when calculations fail
-- Suggest alternative parameters when needed
+- Handle cases where Brier scoring produces payouts close to the maximum
+- Manage scenarios where participants have identical probability assessments
+- Handle edge cases in settlement calculations (very small amounts)
+- Provide clear explanations when calculations produce warnings
+- Ensure numerical precision in Brier score and payout calculations
+- Handle rounding errors in payouts
 
 ### 9. Performance Requirements
 
@@ -166,7 +178,7 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 ### 10. Future Considerations
 
 #### Potential Enhancements
-- Additional proper scoring rules (quadratic, linear)
+- Additional proper scoring rules (logarithmic, quadratic)
 - Import/export of bet configurations
 - Integration with calendar apps for bet deadlines
 - Multi-language support
@@ -183,11 +195,35 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - **Adoption**: Friends can easily access and use the shared app without barriers
 
 ## Technical Architecture Notes
-- **Calculation Module**: Separate TypeScript module for all mathematical operations
+- **Calculation Module**: Separate TypeScript module for all mathematical operations using Brier scoring
+- **Exact Arithmetic**: Use high-precision arithmetic to minimize rounding errors in calculations
 - **UI Components**: Modular component structure for maintainability
 - **State Management**: Simple state management for form inputs and calculations
 - **PWA Shell**: Efficient caching strategy for offline functionality
 - **Type Safety**: Comprehensive TypeScript interfaces for all data structures
+
+### Brier Scoring Implementation Details
+The application uses Brier scoring, a proper scoring rule that rewards accuracy in probability predictions:
+
+#### Formula (Original Brier Definition for Multi-categorical Outcomes)
+- **Brier Score**: BS = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
+  - R = number of possible categories (e.g., R=2 for Rain/No Rain, R=3 for Cold/Normal/Warm)
+  - N = number of instances (for single predictions, N=1)
+  - f_ti = predicted probability for category i in instance t
+  - o_ti = 1 if category i occurs in instance t, 0 otherwise
+  - Lower scores are better (0 = perfect prediction)
+
+#### Payout Calculation
+- **Amount in Play**: Minimum of all participants' maximum contributions
+- **Individual Payout**: (Amount in Play) × (Average Others' Brier Score - My Brier Score) / 2
+- **Settlement**: Simplified payments between participants to achieve net payouts
+
+#### Key Properties
+- **Proper Scoring**: Participants maximize expected payout by reporting true beliefs
+- **Zero Sum**: Total payouts across all participants always equal zero
+- **Fair**: Expected payout is zero when probabilities match true frequencies
+- **Multi-categorical**: Handles both binary (R=2) and multi-categorical (R>2)
+  outcomes seamlessly. In the backend, binary should just be a special case of multi-categorical.
 
 ## Development & Deployment Toolchain
 
@@ -198,16 +234,18 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - **TypeScript Configuration**: Strict mode with comprehensive type checking
 
 ### Testing Strategy (Imperative)
-- **Unit Tests**: Jest for mathematical calculation modules
+- **Unit Tests**: Jest for mathematical calculation modules (Brier scoring, settlement calculations)
 - **Integration Tests**: Testing Library for component interactions
 - **E2E Tests**: Playwright for full user workflow testing
 - **Test Coverage**: Minimum 90% coverage for calculation logic
 - **Test Types**:
-  - Mathematical accuracy tests (logarithmic scoring calculations)
+  - Mathematical accuracy tests (Brier scoring calculations, exact arithmetic)
+  - Payout and settlement calculation tests
   - UI component behavior tests
   - Input validation tests
   - PWA functionality tests
   - Cross-browser compatibility tests
+- **Test Data**: Use exact scenarios from data generation scripts to verify calculations
 
 ### Code Quality Tools
 - **Linting**: ESLint with TypeScript rules
@@ -232,7 +270,7 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 wager-calculator/
 ├── src/
 │   ├── components/          # UI components
-│   ├── modules/            # Calculation logic
+│   ├── modules/            # Calculation logic (Brier scoring, settlements)
 │   ├── types/              # TypeScript interfaces
 │   ├── utils/              # Utility functions
 │   ├── styles/             # CSS/SCSS files
@@ -240,6 +278,7 @@ wager-calculator/
 ├── public/                 # Static assets
 ├── tests/                  # Test files
 ├── docs/                   # Documentation
+├── data/                   # Test scenarios and generation scripts
 ├── vite.config.ts          # Vite configuration
 ├── tsconfig.json           # TypeScript configuration
 ├── jest.config.js          # Jest configuration
