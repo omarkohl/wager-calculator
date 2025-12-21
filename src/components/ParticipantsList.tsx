@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import type { Participant } from '../types/wager'
 import { getStakesSymbol } from '../utils/stakes'
 
@@ -29,7 +30,7 @@ export default function ParticipantsList({
 
   const handleMaxBetChange = (index: number, maxBet: number) => {
     const updated = [...participants]
-    updated[index] = { ...updated[index], maxBet }
+    updated[index] = { ...updated[index], maxBet: new Decimal(maxBet) }
     onChange(updated)
   }
 
@@ -37,7 +38,7 @@ export default function ParticipantsList({
     const newParticipant: Participant = {
       id: crypto.randomUUID(),
       name: '',
-      maxBet: 0,
+      maxBet: new Decimal(0),
     }
     onChange([...participants, newParticipant])
   }
@@ -70,7 +71,7 @@ export default function ParticipantsList({
             <div className="flex w-40 items-center gap-2">
               <input
                 type="number"
-                value={participant.maxBet}
+                value={participant.maxBet.toDecimalPlaces(2).toNumber()}
                 onChange={e => handleMaxBetChange(index, parseFloat(e.target.value) || 0)}
                 min="0"
                 step="0.01"

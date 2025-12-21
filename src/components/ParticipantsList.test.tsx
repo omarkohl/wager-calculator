@@ -1,14 +1,15 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import Decimal from 'decimal.js'
 import ParticipantsList from './ParticipantsList'
 import type { Participant } from '../types/wager'
 
 describe('ParticipantsList', () => {
   it('renders all participants with their names', () => {
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '2', name: 'Bob', maxBet: 50 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -18,8 +19,8 @@ describe('ParticipantsList', () => {
 
   it('renders max bet inputs with values', () => {
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '2', name: 'Bob', maxBet: 50 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -29,7 +30,7 @@ describe('ParticipantsList', () => {
 
   it('calls onChange when participant name is edited', async () => {
     const user = userEvent.setup()
-    let currentParticipants: Participant[] = [{ id: '1', name: '', maxBet: 100 }]
+    let currentParticipants: Participant[] = [{ id: '1', name: '', maxBet: new Decimal(100) }]
     const onChange = vi.fn(newParticipants => {
       currentParticipants = newParticipants
     })
@@ -52,7 +53,7 @@ describe('ParticipantsList', () => {
 
   it('calls onChange when max bet is edited', async () => {
     const user = userEvent.setup()
-    let currentParticipants: Participant[] = [{ id: '1', name: 'Alice', maxBet: 0 }]
+    let currentParticipants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(0) }]
     const onChange = vi.fn(newParticipants => {
       currentParticipants = newParticipants
     })
@@ -70,13 +71,13 @@ describe('ParticipantsList', () => {
       )
     }
 
-    expect(currentParticipants[0].maxBet).toBe(200)
+    expect(currentParticipants[0].maxBet.toNumber()).toBe(200)
   })
 
   it('shows add participant button when less than 8 participants', () => {
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '2', name: 'Bob', maxBet: 50 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -87,7 +88,7 @@ describe('ParticipantsList', () => {
     const participants: Participant[] = Array.from({ length: 8 }, (_, i) => ({
       id: `${i + 1}`,
       name: `Person ${i + 1}`,
-      maxBet: 100,
+      maxBet: new Decimal(100),
     }))
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -97,7 +98,7 @@ describe('ParticipantsList', () => {
   it('adds a new participant when add button is clicked', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
-    const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: 100 }]
+    const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(100) }]
 
     render(<ParticipantsList participants={participants} onChange={onChange} stakes="usd" />)
 
@@ -105,17 +106,17 @@ describe('ParticipantsList', () => {
 
     expect(onChange).toHaveBeenCalledWith(
       expect.arrayContaining([
-        { id: '1', name: 'Alice', maxBet: 100 },
-        expect.objectContaining({ name: '', maxBet: 0 }),
+        { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+        expect.objectContaining({ name: '', maxBet: new Decimal(0) }),
       ])
     )
   })
 
   it('shows remove button for each participant', () => {
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '2', name: 'Bob', maxBet: 50 },
-      { id: '3', name: 'Charlie', maxBet: 75 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
     ]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -125,8 +126,8 @@ describe('ParticipantsList', () => {
 
   it('disables remove buttons when exactly 2 participants', () => {
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '2', name: 'Bob', maxBet: 50 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -139,9 +140,9 @@ describe('ParticipantsList', () => {
 
   it('enables remove buttons when more than 2 participants', () => {
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '2', name: 'Bob', maxBet: 50 },
-      { id: '3', name: 'Charlie', maxBet: 75 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
     ]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -155,9 +156,9 @@ describe('ParticipantsList', () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '2', name: 'Bob', maxBet: 50 },
-      { id: '3', name: 'Charlie', maxBet: 75 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
     ]
 
     render(<ParticipantsList participants={participants} onChange={onChange} stakes="usd" />)
@@ -166,15 +167,15 @@ describe('ParticipantsList', () => {
     await user.click(removeButtons[1]) // Remove Bob
 
     expect(onChange).toHaveBeenCalledWith([
-      { id: '1', name: 'Alice', maxBet: 100 },
-      { id: '3', name: 'Charlie', maxBet: 75 },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
     ])
   })
 
   it('renders default placeholder names "Artem" and "Baani"', () => {
     const participants: Participant[] = [
-      { id: '1', name: 'Artem', maxBet: 0 },
-      { id: '2', name: 'Baani', maxBet: 0 },
+      { id: '1', name: 'Artem', maxBet: new Decimal(0) },
+      { id: '2', name: 'Baani', maxBet: new Decimal(0) },
     ]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
@@ -185,7 +186,7 @@ describe('ParticipantsList', () => {
   it('clears placeholder name on first input', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
-    const participants: Participant[] = [{ id: '1', name: 'Artem', maxBet: 0 }]
+    const participants: Participant[] = [{ id: '1', name: 'Artem', maxBet: new Decimal(0) }]
 
     render(<ParticipantsList participants={participants} onChange={onChange} stakes="usd" />)
 
@@ -193,18 +194,18 @@ describe('ParticipantsList', () => {
     await user.click(nameInput)
     await user.type(nameInput, 'A')
 
-    expect(onChange).toHaveBeenLastCalledWith([{ id: '1', name: 'A', maxBet: 0 }])
+    expect(onChange).toHaveBeenLastCalledWith([{ id: '1', name: 'A', maxBet: new Decimal(0) }])
   })
 
   it('displays currency symbol for monetary stakes', () => {
-    const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: 100 }]
+    const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(100) }]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
 
     expect(screen.getByText('$')).toBeInTheDocument()
   })
 
   it('displays unit label for non-monetary stakes', () => {
-    const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: 10 }]
+    const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(10) }]
     render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="cookies" />)
 
     expect(screen.getByText('cookies')).toBeInTheDocument()

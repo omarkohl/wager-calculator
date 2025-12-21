@@ -41,12 +41,12 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 7: Predictions Section
 
-- [ ] Grid/list of predictions per participant per outcome
-- [ ] Slider (1% increments) + text input (two decimal places, e.g., 33.33%)
-- [ ] Track which fields user has touched
-- [ ] Auto-distribute on blur: only when total < 100%, only to untouched fields
-- [ ] Warning when probabilities don't sum to 100%
-- [ ] "Normalize" button to scale probabilities to 100%
+- [x] Grid/list of predictions per participant per outcome
+- [x] Slider (1% increments) + text input (two decimal places, e.g., 33.33%)
+- [x] Track which fields user has touched
+- [x] Auto-distribute on blur: only when total < 100%, only to untouched fields
+- [x] Warning when probabilities don't sum to 100%
+- [x] "Normalize" button to scale probabilities to 100%
 
 ## Phase 8: Resolution Section
 

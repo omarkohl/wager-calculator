@@ -1,7 +1,9 @@
+import type Decimal from 'decimal.js'
+
 export interface Participant {
   id: string
   name: string
-  maxBet: number
+  maxBet: Decimal
 }
 
 export interface Outcome {
@@ -12,7 +14,7 @@ export interface Outcome {
 export interface Prediction {
   participantId: string
   outcomeId: string
-  probability: number
+  probability: Decimal
   touched: boolean
 }
 
@@ -28,18 +30,18 @@ export interface Wager {
 
 export interface BrierScore {
   participantId: string
-  score: number
+  score: Decimal
 }
 
 export interface Payout {
   participantId: string
-  amount: number
+  amount: Decimal
 }
 
 export interface Settlement {
   fromParticipantId: string
   toParticipantId: string
-  amount: number
+  amount: Decimal
 }
 
 export interface CalculationResult {

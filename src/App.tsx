@@ -1,22 +1,71 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Decimal from 'decimal.js'
 import InlineEdit from './components/InlineEdit'
 import StakesSelector from './components/StakesSelector'
 import ParticipantsList from './components/ParticipantsList'
 import OutcomesList from './components/OutcomesList'
-import type { Participant, Outcome } from './types/wager'
+import PredictionsGrid from './components/PredictionsGrid'
+import type { Participant, Outcome, Prediction } from './types/wager'
 
 function App() {
   const [claim, setClaim] = useState('')
   const [details, setDetails] = useState('')
   const [stakes, setStakes] = useState('usd')
   const [participants, setParticipants] = useState<Participant[]>([
-    { id: crypto.randomUUID(), name: 'Artem', maxBet: 0 },
-    { id: crypto.randomUUID(), name: 'Baani', maxBet: 0 },
+    { id: crypto.randomUUID(), name: 'Artem', maxBet: new Decimal(0) },
+    { id: crypto.randomUUID(), name: 'Baani', maxBet: new Decimal(0) },
   ])
   const [outcomes, setOutcomes] = useState<Outcome[]>([
     { id: crypto.randomUUID(), label: 'Yes' },
     { id: crypto.randomUUID(), label: 'No' },
   ])
+  const [predictions, setPredictions] = useState<Prediction[]>([])
+  const previousParticipantsRef = useRef<Participant[]>([])
+  const previousOutcomesRef = useRef<Outcome[]>([])
+
+  // Initialize predictions with even distribution when participants or outcomes change
+  useEffect(() => {
+    if (participants.length === 0 || outcomes.length === 0) return
+
+    // Check if participants or outcomes actually changed
+    const participantsChanged =
+      participants.length !== previousParticipantsRef.current.length ||
+      participants.some((p, i) => p.id !== previousParticipantsRef.current[i]?.id)
+    const outcomesChanged =
+      outcomes.length !== previousOutcomesRef.current.length ||
+      outcomes.some((o, i) => o.id !== previousOutcomesRef.current[i]?.id)
+
+    if (!participantsChanged && !outcomesChanged) return
+
+    previousParticipantsRef.current = participants
+    previousOutcomesRef.current = outcomes
+
+    const evenProbability = new Decimal(100).div(outcomes.length)
+
+    // Create predictions for all participant-outcome combinations
+    const newPredictions: Prediction[] = []
+    participants.forEach(participant => {
+      outcomes.forEach(outcome => {
+        // Only add if doesn't exist
+        const exists = predictions.find(
+          p => p.participantId === participant.id && p.outcomeId === outcome.id
+        )
+        if (!exists) {
+          newPredictions.push({
+            participantId: participant.id,
+            outcomeId: outcome.id,
+            probability: evenProbability,
+            touched: false,
+          })
+        }
+      })
+    })
+
+    if (newPredictions.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPredictions(prev => [...prev, ...newPredictions])
+    }
+  }, [participants, outcomes, predictions])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -88,6 +137,16 @@ function App() {
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Outcomes</label>
               <OutcomesList outcomes={outcomes} onChange={setOutcomes} />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Predictions</label>
+              <PredictionsGrid
+                participants={participants}
+                outcomes={outcomes}
+                predictions={predictions}
+                onChange={setPredictions}
+              />
             </div>
           </div>
         </main>
