@@ -18,8 +18,8 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 3: Claim & Details Section
 
-- [ ] Inline-editable Claim field (text that becomes input on click/focus)
-- [ ] Inline-editable Details textarea (optional, multi-line)
+- [x] Inline-editable Claim field (text that becomes input on click/focus)
+- [x] Inline-editable Details textarea (optional, multi-line)
 
 ## Phase 4: Stakes Selector
 

@@ -1,4 +1,10 @@
+import { useState } from 'react'
+import InlineEdit from './components/InlineEdit'
+
 function App() {
+  const [claim, setClaim] = useState('')
+  const [details, setDetails] = useState('')
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -25,8 +31,31 @@ function App() {
             </button>
           </div>
 
-          {/* Form content will go here */}
-          <div className="text-center text-gray-500">Form coming soon...</div>
+          {/* Claim & Details Section */}
+          <div className="space-y-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Claim</label>
+              <InlineEdit
+                value={claim}
+                onChange={setClaim}
+                placeholder="What are you betting on?"
+                displayClassName="text-lg font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Details <span className="text-gray-400">(Optional)</span>
+              </label>
+              <InlineEdit
+                value={details}
+                onChange={setDetails}
+                placeholder="Add resolution criteria or context..."
+                multiline
+                displayClassName="text-sm"
+              />
+            </div>
+          </div>
         </main>
       </div>
     </div>
