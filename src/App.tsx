@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import InlineEdit from './components/InlineEdit'
+import StakesSelector from './components/StakesSelector'
 
 function App() {
   const [claim, setClaim] = useState('')
   const [details, setDetails] = useState('')
+  const [stakes, setStakes] = useState('usd')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,6 +56,11 @@ function App() {
                 multiline
                 displayClassName="text-sm"
               />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Stakes</label>
+              <StakesSelector value={stakes} onChange={value => value && setStakes(value)} />
             </div>
           </div>
         </main>

@@ -23,8 +23,8 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 4: Stakes Selector
 
-- [ ] Searchable Headless UI Combobox for stakes selection
-- [ ] Grouped options: common currencies (USD, EUR, GBP, CAD, AUD, JPY, CHF, CNY by frequency), fun options (Cookies, Hugs, "I was wrong"), then "Other"
+- [x] Searchable Headless UI Combobox for stakes selection
+- [x] Grouped options: common currencies (USD, EUR, GBP, CAD, AUD, JPY, CHF, CNY by frequency), fun options (Cookies, Hugs, "I was wrong"), then "Other"
 
 ## Phase 5: Participants Section
 
