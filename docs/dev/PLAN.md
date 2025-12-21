@@ -35,9 +35,9 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 6: Outcomes Section
 
-- [ ] List of outcomes with inline-editable labels
-- [ ] Add/remove outcome buttons (min 2, max 8)
-- [ ] Default outcomes: "Yes" and "No"
+- [x] List of outcomes with inline-editable labels
+- [x] Add/remove outcome buttons (min 2, max 8)
+- [x] Default outcomes: "Yes" and "No"
 
 ## Phase 7: Predictions Section
 

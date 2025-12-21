@@ -2,7 +2,8 @@ import { useState } from 'react'
 import InlineEdit from './components/InlineEdit'
 import StakesSelector from './components/StakesSelector'
 import ParticipantsList from './components/ParticipantsList'
-import type { Participant } from './types/wager'
+import OutcomesList from './components/OutcomesList'
+import type { Participant, Outcome } from './types/wager'
 
 function App() {
   const [claim, setClaim] = useState('')
@@ -11,6 +12,10 @@ function App() {
   const [participants, setParticipants] = useState<Participant[]>([
     { id: crypto.randomUUID(), name: 'Artem', maxBet: 0 },
     { id: crypto.randomUUID(), name: 'Baani', maxBet: 0 },
+  ])
+  const [outcomes, setOutcomes] = useState<Outcome[]>([
+    { id: crypto.randomUUID(), label: 'Yes' },
+    { id: crypto.randomUUID(), label: 'No' },
   ])
 
   return (
@@ -78,6 +83,11 @@ function App() {
                 onChange={setParticipants}
                 stakes={stakes}
               />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Outcomes</label>
+              <OutcomesList outcomes={outcomes} onChange={setOutcomes} />
             </div>
           </div>
         </main>
