@@ -1,6 +1,7 @@
 # 🎯 Wager Calculator
 
-> Calculate fair betting odds for friendly wagers using Brier scoring. Put your money where your mouth is on confident predictions. As the saying goes: "Betting is a tax on bullshit".
+> Calculate fair betting odds for friendly wagers using Brier scoring. Put your
+> money where your mouth is. As the saying goes: "Betting is a tax on bullshit".
 
 [![Build Status](https://github.com/omarkohl/wager-calculator/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/omarkohl/wager-calculator/actions)
 [![Coverage Status](https://codecov.io/gh/omarkohl/wager-calculator/branch/main/graph/badge.svg)](https://codecov.io/gh/omarkohl/wager-calculator)
@@ -19,16 +20,9 @@
 
 ## 🎮 Try It Live
 
-**[🔗 Live Demo](https://your-demo-url.netlify.app)** _(Coming soon)_
+**[🔗 Live Demo](https://example.com)** _(Coming soon)_
 
 ## 📖 Quick Start
-
-### For Users
-1. Visit the live demo link above
-2. Add participants (2-8 people)
-3. Enter probability assessments for each participant
-4. Set maximum contributions
-5. Share the calculated payouts and settlements!
 
 ### For Developers
 
@@ -57,7 +51,7 @@ npm run build
 The Wager Calculator uses **Brier scoring** to ensure fair betting:
 
 ```
-Brier Score = (1/N) × Σ(predicted_probability - actual_outcome)²
+Brier Score = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
 Payout = (amount_in_play) × (avg_others_brier - my_brier) / 2
 ```
 
@@ -67,27 +61,29 @@ This rewards accurate predictions and ensures zero-sum payouts across all partic
 
 **Scenario**: "Will it rain tomorrow?"
 - Alice: 70% chance of rain, max bet $50
-- Bob: 30% chance of rain, max bet $40  
+- Bob: 30% chance of rain, max bet $40
 - Carol: 50% chance of rain, max bet $60
 - Amount in play: $40 (minimum of max bets)
 
-**If it rains**: Alice wins, Bob and Carol pay based on their Brier scores relative to the group average.
+**Outcome: It rains (actual = 1)**
+
+**Calculations:**
+- Alice's Brier: (0.70 - 1)² + (0.30 - 0)² = 0.18
+- Bob's Brier: (0.30 - 1)² + (0.70 - 0)² = 0.98
+- Carol's Brier: (0.50 - 1)² + (0.50 - 0)² = 0.50
+
+**Payouts:**
+- Alice: $40 × ((0.98 + 0.50) / 2 - 0.18) / 2 = +$11.20
+- Bob: $40 × ((0.18 + 0.50) / 2 - 0.98) / 2 = -$12.80
+- Carol: $40 × ((0.18 + 0.98) / 2 - 0.50) / 2 = +$1.60
+
+So Bob has to give $1.60 to Carol and $11.20 to Alice.
 
 ## 🛠️ Tech Stack
 
 - **TypeScript + Vite**: Modern build tooling
 - **Jest + Playwright**: Comprehensive testing
 - **PWA**: Service worker + manifest
-- **Static hosting**: Netlify/Vercel
-
-## 📊 Project Status
-
-- [x] Project specification complete
-- [x] Development plan created
-- [ ] Core calculation engine (In Progress)
-- [ ] UI components development
-- [ ] PWA implementation
-- [ ] Production deployment
 
 ## 🤝 Contributing
 
@@ -96,12 +92,6 @@ See [Contributing Guide](./.github/CONTRIBUTING.md) for details. We especially w
 - UI/UX enhancements
 - Test coverage expansion
 - Documentation improvements
-
-## 📚 Documentation
-
-- [📋 Development Plan](./PLAN.md) - Complete roadmap
-- [🏗️ Architecture](./docs/ARCHITECTURE.md) _(Coming soon)_
-- [🧮 Mathematics](./docs/MATH.md) _(Coming soon)_
 
 ## 🔒 Security & Privacy
 
@@ -112,12 +102,3 @@ See [Contributing Guide](./.github/CONTRIBUTING.md) for details. We especially w
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built on Brier scoring research and proper scoring rules
-- Inspired by the need for fair multi-participant betting
-
----
-
-**Fair betting calculations for everyone** ❤️
