@@ -12,17 +12,17 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ### 2. User Interface Components
 
 #### Input Section
-- **Claim**: Text field for the main claim/question
-- **Details** (Optional): Multi-line text field for resolution criteria and additional context
+- **Claim**: Inline-editable text field for the main claim/question (appears as static text until clicked or focused)
+- **Details** (Optional): Inline-editable multi-line text field for resolution criteria and additional context
 - **Participants**:
   - Default: 2 participants with placeholder names ("Artem" and "Baani") that are cleared on first input
   - Support for 2-8 participants with add/remove participant buttons
-  - Editable text fields for custom names
+  - Inline-editable text fields for custom names (seamless view/edit experience)
   - Maximum Bet: Numerical input for each participant
-- **Currency Selection**: Dropdown with common currencies (USD, EUR, GBP, CAD, etc.) plus other options like "I was wrong", "Cookies", "Hugs" or "Other" (specify in "Details").
-- **Outcomes**: Add or remove outcomes
+- **Currency Selection**: Headless UI Listbox/Dropdown with common currencies (USD, EUR, GBP, CAD, etc.) plus other options like "I was wrong", "Cookies", "Hugs" or "Other" (specify in "Details")
+- **Outcomes**: Add or remove outcomes with inline-editable labels
 - **Predictions**: For each participant and outcome, specify their personal prediction (0-100%). When a participant moves focus away from a prediction field (on blur), remaining probability is automatically distributed evenly across outcomes they haven't yet assigned.
-- **Resolution**: Dropdown or buttons to select which outcome occurred. Option to un-resolve and change the selected outcome. Display a summary showing who has to pay whom and how much. If all participants have identical predictions, explain that payouts are zero.
+- **Resolution**: Headless UI Listbox/RadioGroup to select which outcome occurred. Option to un-resolve and change the selected outcome. Display a summary showing who has to pay whom and how much. If all participants have identical predictions, explain that payouts are zero.
 
 #### Validation & Warnings
 - **Probability Sum Check**: Warning if total probabilities ≠ 100% for any participant
@@ -48,7 +48,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - Settlement: Simplify payments between participants to minimize number of transactions while achieving net payouts. For small participant counts (≤8), brute force enumeration of transaction sets is acceptable.
 
 #### Mathematical Display
-- Provide a help/info section (e.g., collapsible panel or separate page) explaining the Brier scoring calculation with a worked example
+- Provide a help/info section using Headless UI Disclosure component (collapsible panel) explaining the Brier scoring calculation with a worked example
 
 ### 4. Sharing Features
 - **Visual Design**: Clean, professional layout suitable for screenshots
@@ -64,10 +64,12 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - **Installable**: Can be added to home screen/desktop
 
 #### Technology Stack
-- **Frontend**: HTML5, CSS3, TypeScript (ES2020+ target), React
-- **Build System**: Vite for development and bundling
-- **Testing**: Jest + Testing Library for unit/integration tests
-- **PWA Features**: Service worker, web app manifest
+- **Frontend**: React 18+ with TypeScript (ES2020+ target)
+- **UI Components**: Headless UI for accessible primitives (dialogs, dropdowns, transitions)
+- **Styling**: Tailwind CSS for utility-first responsive design
+- **Build System**: Vite with React plugin for development and bundling
+- **Testing**: Vitest + React Testing Library for unit/integration tests
+- **PWA Features**: Service worker, web app manifest via vite-plugin-pwa
 - **Type Checking**: Strict TypeScript configuration
 - **Arithmetic**: decimal.js for high-precision decimal arithmetic to avoid floating-point errors
 - **URL Encoding**: lz-string for JSON compression in shareable URLs
@@ -158,27 +160,27 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 
 ### Development Environment
 - **Package Manager**: npm or yarn
-- **Build Tool**: Vite (TypeScript + PWA plugins)
-- **Development Server**: Vite dev server with HMR
-- **TypeScript Configuration**: Strict mode with comprehensive type checking
+- **Build Tool**: Vite with React and PWA plugins
+- **Development Server**: Vite dev server with HMR and Fast Refresh
+- **TypeScript Configuration**: Strict mode with comprehensive type checking and JSX support
 
 ### Testing Strategy
-- **Unit Tests**: Jest for mathematical calculation modules (Brier scoring, settlement calculations)
-- **Integration Tests**: Testing Library for component interactions
+- **Unit Tests**: Vitest for mathematical calculation modules (Brier scoring, settlement calculations)
+- **Component Tests**: Vitest + React Testing Library for React component interactions and behavior
 - **E2E Tests**: Playwright for full user workflow testing
 - **Test Coverage**: Minimum 90% branch coverage for calculation logic
 - **Test Types**:
   - Mathematical accuracy tests (Brier scoring calculations, decimal.js arithmetic)
   - Payout and settlement calculation tests (including edge cases)
-  - UI component behavior tests
+  - React component behavior and interaction tests
   - Input validation tests
   - PWA functionality tests
   - Cross-browser compatibility tests
 - **Test Data**: Use exact scenarios from data generation scripts to verify calculations
 
 ### Code Quality Tools
-- **Linting**: ESLint with TypeScript rules
-- **Formatting**: Prettier for consistent code style
+- **Linting**: ESLint with TypeScript and React rules
+- **Formatting**: Prettier with Tailwind CSS plugin for class sorting
 - **Type Checking**: TypeScript compiler with strict configuration
 - **Pre-commit Hooks**: Husky + lint-staged for automated quality checks
 
@@ -189,28 +191,44 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - **Bundle Analysis**: Bundle size optimization and analysis
 
 ### Deployment Options
-- **Static Hosting**: Netlify, Vercel, or GitHub Pages
-- **CDN**: Automatic global distribution
-- **HTTPS**: Required for PWA features
-- **Continuous Deployment**: Automated deployment on git push
+- **Static Hosting**: GitHub Pages, Netlify, Vercel, or Cloudflare Pages
+- **Build Output**: Static files in `dist/` directory after `npm run build`
+- **Base Path Configuration**: Vite `base` option set to `'./'` for relative paths (GitHub Pages compatibility)
+- **CDN**: Automatic global distribution via hosting provider
+- **HTTPS**: Required for PWA features (all providers support HTTPS by default)
+- **Continuous Deployment**: Automated deployment on git push via GitHub Actions or provider integrations
+- **GitHub Pages Deployment**:
+  - Build command: `npm run build`
+  - Publish directory: `dist`
+  - Service worker requires HTTPS (automatically provided by GitHub Pages)
+  - PWA installability works on GitHub Pages with proper manifest and HTTPS
 
 ### Recommended Project Structure
 ```
 wager-calculator/
 ├── src/
-│   ├── components/          # UI components
+│   ├── components/          # React UI components
 │   ├── modules/            # Calculation logic (Brier scoring, settlements)
 │   ├── types/              # TypeScript interfaces
 │   ├── utils/              # Utility functions
-│   ├── styles/             # CSS/SCSS files
-│   └── main.ts             # Application entry point
-├── public/                 # Static assets
-├── tests/                  # Test files
+│   ├── hooks/              # Custom React hooks
+│   ├── App.tsx             # Root React component
+│   ├── main.tsx            # Application entry point
+│   └── index.css           # Tailwind CSS imports and global styles
+├── public/                 # Static assets (favicon, manifest icons, robots.txt)
+├── tests/
+│   ├── unit/               # Unit tests for modules and utilities
+│   ├── components/         # Component tests
+│   ├── e2e/                # Playwright E2E tests
+│   └── setup.ts            # Test environment setup
+├── dist/                   # Production build output (generated, git-ignored)
 ├── docs/                   # Documentation
 ├── data/                   # Test scenarios and generation scripts
-├── vite.config.ts          # Vite configuration
-├── tsconfig.json           # TypeScript configuration
-├── jest.config.js          # Jest configuration
+├── vite.config.ts          # Vite configuration with React plugin
+├── vitest.config.ts        # Vitest configuration (extends Vite config)
+├── tsconfig.json           # TypeScript configuration with JSX
+├── tailwind.config.js      # Tailwind CSS configuration
+├── postcss.config.js       # PostCSS configuration for Tailwind
 ├── playwright.config.ts    # E2E test configuration
 └── package.json            # Dependencies and scripts
 ```
