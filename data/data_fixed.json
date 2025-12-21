@@ -2,24 +2,15 @@
   {
     "scenario_id": "binary_weather_2p",
     "description": "Binary Case - Weather Prediction (2 Players)",
-    "categories": [
-      "Rain",
-      "No Rain"
-    ],
+    "categories": ["Rain", "No Rain"],
     "players": {
       "A": {
         "max_bet": 50,
-        "predictions": [
-          0.7,
-          0.3
-        ]
+        "predictions": [0.7, 0.3]
       },
       "B": {
         "max_bet": 40,
-        "predictions": [
-          0.4,
-          0.6
-        ]
+        "predictions": [0.4, 0.6]
       }
     },
     "amount_in_play": 40,
@@ -71,35 +62,19 @@
   {
     "scenario_id": "market_direction_3p",
     "description": "Three Categories - Market Direction (3 Players)",
-    "categories": [
-      "Up",
-      "Flat",
-      "Down"
-    ],
+    "categories": ["Up", "Flat", "Down"],
     "players": {
       "A": {
         "max_bet": 100,
-        "predictions": [
-          0.5,
-          0.3,
-          0.2
-        ]
+        "predictions": [0.5, 0.3, 0.2]
       },
       "B": {
         "max_bet": 80,
-        "predictions": [
-          0.6,
-          0.3,
-          0.1
-        ]
+        "predictions": [0.6, 0.3, 0.1]
       },
       "C": {
         "max_bet": 120,
-        "predictions": [
-          0.2,
-          0.5,
-          0.3
-        ]
+        "predictions": [0.2, 0.5, 0.3]
       }
     },
     "amount_in_play": 80,
@@ -138,53 +113,23 @@
   {
     "scenario_id": "restaurant_rating_4p",
     "description": "Complex Multi-Category - Restaurant Rating (4 Players, 5 Categories)",
-    "categories": [
-      "1-star",
-      "2-star",
-      "3-star",
-      "4-star",
-      "5-star"
-    ],
+    "categories": ["1-star", "2-star", "3-star", "4-star", "5-star"],
     "players": {
       "A": {
         "max_bet": 50,
-        "predictions": [
-          0.1,
-          0.2,
-          0.4,
-          0.2,
-          0.1
-        ]
+        "predictions": [0.1, 0.2, 0.4, 0.2, 0.1]
       },
       "B": {
         "max_bet": 60,
-        "predictions": [
-          0.05,
-          0.15,
-          0.3,
-          0.35,
-          0.15
-        ]
+        "predictions": [0.05, 0.15, 0.3, 0.35, 0.15]
       },
       "C": {
         "max_bet": 45,
-        "predictions": [
-          0.2,
-          0.3,
-          0.3,
-          0.15,
-          0.05
-        ]
+        "predictions": [0.2, 0.3, 0.3, 0.15, 0.05]
       },
       "D": {
         "max_bet": 55,
-        "predictions": [
-          0.1,
-          0.1,
-          0.2,
-          0.3,
-          0.3
-        ]
+        "predictions": [0.1, 0.1, 0.2, 0.3, 0.3]
       }
     },
     "amount_in_play": 45,
@@ -231,31 +176,19 @@
   {
     "scenario_id": "coin_flip_unanimous_3p",
     "description": "Edge Case - Unanimous Predictions (3 Players)",
-    "categories": [
-      "Heads",
-      "Tails"
-    ],
+    "categories": ["Heads", "Tails"],
     "players": {
       "A": {
         "max_bet": 100,
-        "predictions": [
-          0.6,
-          0.4
-        ]
+        "predictions": [0.6, 0.4]
       },
       "B": {
         "max_bet": 100,
-        "predictions": [
-          0.6,
-          0.4
-        ]
+        "predictions": [0.6, 0.4]
       },
       "C": {
         "max_bet": 100,
-        "predictions": [
-          0.6,
-          0.4
-        ]
+        "predictions": [0.6, 0.4]
       }
     },
     "amount_in_play": 100,

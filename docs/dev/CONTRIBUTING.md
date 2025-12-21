@@ -3,6 +3,7 @@
 Thank you for your interest in contributing to the Wager Calculator! This document provides guidelines and information for contributors.
 
 ## Table of Contents
+
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Process](#development-process)
@@ -10,6 +11,7 @@ Thank you for your interest in contributing to the Wager Calculator! This docume
 ## Code of Conduct
 
 By participating in this project, you agree to abide by our Code of Conduct:
+
 - Be respectful and inclusive
 - Focus on constructive feedback
 - Prioritize user experience
@@ -18,11 +20,13 @@ By participating in this project, you agree to abide by our Code of Conduct:
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18 or higher
 - npm or yarn package manager
 - Git for version control
 
 ### Development Setup
+
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/omarkohl/wager-calculator.git`
 3. Install dependencies: `npm install`
@@ -30,6 +34,7 @@ By participating in this project, you agree to abide by our Code of Conduct:
 5. Run tests: `npm test`
 
 ### Project Structure
+
 ```
 src/
 ├── components/     # UI components
@@ -42,9 +47,11 @@ src/
 ## Development Process
 
 ### Branching Strategy
+
 Trunk-based development, meaning that `main` should always be deployable.
 
 ### Workflow
+
 1. Create a feature branch from `main`
 2. Make your changes with tests
 3. Ensure all tests pass

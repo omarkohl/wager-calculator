@@ -1,10 +1,7 @@
 [
   {
     "amount_in_play": 40,
-    "categories": [
-      "Rain",
-      "No Rain"
-    ],
+    "categories": ["Rain", "No Rain"],
     "description": "Binary Case - Weather Prediction (2 Players)",
     "outcomes": {
       "No Rain": {
@@ -53,30 +50,18 @@
     "players": {
       "A": {
         "max_bet": 50,
-        "predictions": [
-          0.7,
-          0.3
-        ]
+        "predictions": [0.7, 0.3]
       },
       "B": {
         "max_bet": 40,
-        "predictions": [
-          0.4,
-          0.6
-        ]
+        "predictions": [0.4, 0.6]
       }
     },
     "scenario_id": "binary_weather_2p"
   },
   {
     "amount_in_play": 45,
-    "categories": [
-      "1-star",
-      "2-star",
-      "3-star",
-      "4-star",
-      "5-star"
-    ],
+    "categories": ["1-star", "2-star", "3-star", "4-star", "5-star"],
     "description": "Complex Multi-Category - Restaurant Rating (4 Players, 5 Categories)",
     "outcomes": {
       "1-star": {
@@ -268,53 +253,26 @@
     "players": {
       "A": {
         "max_bet": 50,
-        "predictions": [
-          0.1,
-          0.2,
-          0.4,
-          0.2,
-          0.1
-        ]
+        "predictions": [0.1, 0.2, 0.4, 0.2, 0.1]
       },
       "B": {
         "max_bet": 60,
-        "predictions": [
-          0.05,
-          0.15,
-          0.3,
-          0.35,
-          0.15
-        ]
+        "predictions": [0.05, 0.15, 0.3, 0.35, 0.15]
       },
       "C": {
         "max_bet": 45,
-        "predictions": [
-          0.2,
-          0.3,
-          0.3,
-          0.15,
-          0.05
-        ]
+        "predictions": [0.2, 0.3, 0.3, 0.15, 0.05]
       },
       "D": {
         "max_bet": 55,
-        "predictions": [
-          0.1,
-          0.1,
-          0.2,
-          0.3,
-          0.3
-        ]
+        "predictions": [0.1, 0.1, 0.2, 0.3, 0.3]
       }
     },
     "scenario_id": "restaurant_rating_4p"
   },
   {
     "amount_in_play": 100,
-    "categories": [
-      "Heads",
-      "Tails"
-    ],
+    "categories": ["Heads", "Tails"],
     "description": "Edge Case - Unanimous Predictions (3 Players)",
     "outcomes": {
       "Heads": {
@@ -357,34 +315,22 @@
     "players": {
       "A": {
         "max_bet": 100,
-        "predictions": [
-          0.6,
-          0.4
-        ]
+        "predictions": [0.6, 0.4]
       },
       "B": {
         "max_bet": 100,
-        "predictions": [
-          0.6,
-          0.4
-        ]
+        "predictions": [0.6, 0.4]
       },
       "C": {
         "max_bet": 100,
-        "predictions": [
-          0.6,
-          0.4
-        ]
+        "predictions": [0.6, 0.4]
       }
     },
     "scenario_id": "coin_flip_unanimous_3p"
   },
   {
     "amount_in_play": 500,
-    "categories": [
-      "Success",
-      "Failure"
-    ],
+    "categories": ["Success", "Failure"],
     "description": "Edge Case - Extreme Confidence Levels (2 Players)",
     "outcomes": {
       "Failure": {
@@ -433,33 +379,18 @@
     "players": {
       "A": {
         "max_bet": 1000,
-        "predictions": [
-          0.99,
-          0.01
-        ]
+        "predictions": [0.99, 0.01]
       },
       "B": {
         "max_bet": 500,
-        "predictions": [
-          0.05,
-          0.95
-        ]
+        "predictions": [0.05, 0.95]
       }
     },
     "scenario_id": "extreme_confidence_2p"
   },
   {
     "amount_in_play": 140,
-    "categories": [
-      "Cat1",
-      "Cat2",
-      "Cat3",
-      "Cat4",
-      "Cat5",
-      "Cat6",
-      "Cat7",
-      "Cat8"
-    ],
+    "categories": ["Cat1", "Cat2", "Cat3", "Cat4", "Cat5", "Cat6", "Cat7", "Cat8"],
     "description": "Edge Case - Many Categories with Close Predictions (5 Players)",
     "outcomes": {
       "Cat1": {
@@ -826,79 +757,30 @@
     "players": {
       "A": {
         "max_bet": 200,
-        "predictions": [
-          0.15,
-          0.14,
-          0.13,
-          0.12,
-          0.11,
-          0.1,
-          0.15,
-          0.1
-        ]
+        "predictions": [0.15, 0.14, 0.13, 0.12, 0.11, 0.1, 0.15, 0.1]
       },
       "B": {
         "max_bet": 150,
-        "predictions": [
-          0.12,
-          0.13,
-          0.14,
-          0.15,
-          0.16,
-          0.12,
-          0.08,
-          0.1
-        ]
+        "predictions": [0.12, 0.13, 0.14, 0.15, 0.16, 0.12, 0.08, 0.1]
       },
       "C": {
         "max_bet": 180,
-        "predictions": [
-          0.1,
-          0.15,
-          0.12,
-          0.13,
-          0.14,
-          0.16,
-          0.1,
-          0.1
-        ]
+        "predictions": [0.1, 0.15, 0.12, 0.13, 0.14, 0.16, 0.1, 0.1]
       },
       "D": {
         "max_bet": 160,
-        "predictions": [
-          0.13,
-          0.11,
-          0.15,
-          0.14,
-          0.12,
-          0.11,
-          0.12,
-          0.12
-        ]
+        "predictions": [0.13, 0.11, 0.15, 0.14, 0.12, 0.11, 0.12, 0.12]
       },
       "E": {
         "max_bet": 140,
-        "predictions": [
-          0.11,
-          0.12,
-          0.11,
-          0.16,
-          0.15,
-          0.13,
-          0.11,
-          0.11
-        ]
+        "predictions": [0.11, 0.12, 0.11, 0.16, 0.15, 0.13, 0.11, 0.11]
       }
     },
     "scenario_id": "many_categories_5p"
   },
   {
     "amount_in_play": 5,
-    "categories": [
-      "Win",
-      "Lose",
-      "Draw"
-    ],
+    "categories": ["Win", "Lose", "Draw"],
     "description": "Edge Case - Highly Unbalanced Betting Power (3 Players)",
     "outcomes": {
       "Draw": {
@@ -992,38 +874,22 @@
     "players": {
       "Minnow1": {
         "max_bet": 10,
-        "predictions": [
-          0.6,
-          0.3,
-          0.1
-        ]
+        "predictions": [0.6, 0.3, 0.1]
       },
       "Minnow2": {
         "max_bet": 5,
-        "predictions": [
-          0.2,
-          0.5,
-          0.3
-        ]
+        "predictions": [0.2, 0.5, 0.3]
       },
       "Whale": {
         "max_bet": 10000,
-        "predictions": [
-          0.4,
-          0.4,
-          0.2
-        ]
+        "predictions": [0.4, 0.4, 0.2]
       }
     },
     "scenario_id": "unbalanced_betting_power_3p"
   },
   {
     "amount_in_play": 250,
-    "categories": [
-      "Alpha",
-      "Beta",
-      "Gamma"
-    ],
+    "categories": ["Alpha", "Beta", "Gamma"],
     "description": "Edge Case - Complex Fractional Predictions (3 Players)",
     "outcomes": {
       "Alpha": {
@@ -1117,27 +983,15 @@
     "players": {
       "A": {
         "max_bet": 333,
-        "predictions": [
-          0.333333,
-          0.333334,
-          0.333333
-        ]
+        "predictions": [0.333333, 0.333334, 0.333333]
       },
       "B": {
         "max_bet": 250,
-        "predictions": [
-          0.142857,
-          0.428571,
-          0.428572
-        ]
+        "predictions": [0.142857, 0.428571, 0.428572]
       },
       "C": {
         "max_bet": 300,
-        "predictions": [
-          0.666667,
-          0.166666,
-          0.166667
-        ]
+        "predictions": [0.666667, 0.166666, 0.166667]
       }
     },
     "scenario_id": "fractional_predictions_3p"

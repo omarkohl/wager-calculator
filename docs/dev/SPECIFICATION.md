@@ -1,6 +1,7 @@
 # Wager Calculator Application Specification
 
 ## Overview
+
 A client-side Progressive Web App (PWA) that calculates fair betting odds for friendly wagers using Brier scoring rules. The application functions as a calculator without user accounts or data storage, focusing on binary and multi-categorical betting scenarios.
 
 ## Core Features
@@ -12,6 +13,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ### 2. User Interface Components
 
 #### Input Section
+
 - **Claim**: Inline-editable text field for the main claim/question (appears as static text until clicked or focused)
 - **Details** (Optional): Inline-editable multi-line text field for resolution criteria and additional context
 - **Participants**:
@@ -31,6 +33,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - **Resolution**: Headless UI Listbox/RadioGroup to select which outcome occurred. Option to un-resolve and change the selected outcome. Display a summary showing who has to pay whom and how much. If all participants have identical predictions, explain that payouts are zero.
 
 #### Validation & Warnings
+
 - **Probability Sum Check**: Warning if total probabilities ≠ 100% for any participant
   - Offer button to normalize/scale probabilities to sum to 100%
   - Show this warning even when sum < 100% (e.g., 40% + 30% + 20% = 90%)
@@ -39,6 +42,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ### 3. Calculation Engine
 
 #### Brier Scoring Rule Implementation
+
 - Calculate fair odds using Brier's original scoring formula for multi-categorical outcomes
 - For each participant, calculate their Brier score using: BS = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
   - Where N = number of instances (for this application, N=1 since we have a single wager)
@@ -54,21 +58,25 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - Settlement: Simplify payments between participants to minimize number of transactions while achieving net payouts. For small participant counts (≤8), brute force enumeration of transaction sets is acceptable.
 
 #### Mathematical Display
+
 - Provide a help/info section using Headless UI Disclosure component (collapsible panel) explaining the Brier scoring calculation with a worked example
 
 ### 4. Sharing Features
+
 - **Visual Design**: Clean, professional layout suitable for screenshots
 - **Share the URL**: All data encoded as JSON, compressed with lz-string, and base64-encoded in URL hash/anchor. When opening such a URL, the form is populated with the decoded data.
 
 ### 5. Technical Requirements
 
 #### Platform
+
 - **Progressive Web App (PWA)**
 - **Cross-platform**: Mobile-first responsive design, desktop compatible
 - **Offline Capability**: Full functionality without internet connection
 - **Installable**: Can be added to home screen/desktop
 
 #### Technology Stack
+
 - **Frontend**: React 18+ with TypeScript (ES2020+ target)
 - **UI Components**: Headless UI for accessible primitives (dialogs, dropdowns, transitions)
 - **Styling**: Tailwind CSS for utility-first responsive design
@@ -82,23 +90,27 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - **No Data Storage**: No user accounts, history, or persistent client-side data (future: optional encrypted server-side storage)
 
 #### Browser Compatibility
+
 - **Modern Browsers**: Chrome, Firefox, Safari, Edge (last 2 versions)
 - **Mobile Browsers**: iOS Safari, Chrome Mobile, Samsung Internet
 
 ### 6. Design Principles
 
 #### Mobile-First Design
+
 - Touch-friendly interface elements
 - Optimized for portrait and landscape orientations
 - Thumb-friendly button sizes and spacing
 
 #### Accessibility
+
 - High contrast color scheme
 - Screen reader compatible
 - Keyboard navigation support
 - Clear, readable typography
 
 #### Visual Design
+
 - Clean, minimal interface
 - Clear visual hierarchy
 - Professional appearance suitable for sharing
@@ -107,9 +119,11 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ### 7. Error Handling & Edge Cases
 
 #### Input Validation
+
 - Handle invalid probability inputs gracefully
 
 #### Mathematical Edge Cases
+
 - Handle scenarios where participants have identical probability assessments (all payouts = 0)
 - Handle edge cases in settlement calculations (very small amounts)
 - Provide clear explanations when calculations produce warnings or edge cases occur
@@ -119,17 +133,20 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ### 8. Performance Requirements
 
 #### Load Time
+
 - Initial page load < 5 seconds on 3G connection
 - Instant calculations and UI updates
 - Smooth slider interactions
 
 #### Offline Functionality
+
 - Full feature set available without internet
 - Service worker caching for instant re-launches
 
 ### 9. Future Considerations
 
 #### Potential Enhancements
+
 - Additional proper scoring rules (logarithmic, quadratic)
 - Import/export of bet configurations
 - Integration with calendar apps for bet deadlines
@@ -138,16 +155,19 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - Optional encrypted server-side storage to track past wagers
 
 #### Scalability
+
 - Modular design for easy feature additions
 - Clean separation between calculation logic and UI
 
 ## Success Metrics
+
 - **Usability**: Users can create and share bets within 2 minutes
 - **Accuracy**: Mathematical calculations are precise and verifiable
 - **Accessibility**: App works across all target devices and browsers
 - **Adoption**: Friends can easily access and use the shared app without barriers
 
 ## Technical Architecture
+
 - **Calculation Module**: Separate TypeScript module for all Brier scoring operations using decimal.js
 - **UI Components**: Modular React component structure
 - **State Management**: Simple state management for form inputs and calculations
@@ -156,6 +176,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - **Settlement Algorithm**: Brute force transaction minimization (acceptable for ≤8 participants)
 
 ### Key Brier Scoring Properties
+
 - **Proper Scoring**: Participants maximize expected payout by reporting true beliefs
 - **Zero Sum**: Total payouts across all participants always equal zero
 - **Fair**: Expected payout is zero when probabilities match true frequencies
@@ -164,12 +185,14 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ## Development & Deployment Toolchain
 
 ### Development Environment
+
 - **Package Manager**: npm or yarn
 - **Build Tool**: Vite with React and PWA plugins
 - **Development Server**: Vite dev server with HMR and Fast Refresh
 - **TypeScript Configuration**: Strict mode with comprehensive type checking and JSX support
 
 ### Testing Strategy
+
 - **Unit Tests**: Vitest for mathematical calculation modules (Brier scoring, settlement calculations)
 - **Component Tests**: Vitest + React Testing Library for React component interactions and behavior
 - **E2E Tests**: Playwright for full user workflow testing
@@ -184,18 +207,21 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - **Test Data**: Use exact scenarios from data generation scripts to verify calculations
 
 ### Code Quality Tools
+
 - **Linting**: ESLint with TypeScript and React rules
 - **Formatting**: Prettier with Tailwind CSS plugin for class sorting
 - **Type Checking**: TypeScript compiler with strict configuration
 - **Pre-commit Hooks**: Husky + lint-staged for automated quality checks
 
 ### Build Process
+
 - **Development Build**: Fast compilation with source maps
 - **Production Build**: Optimized bundle with tree-shaking
 - **PWA Generation**: Automatic service worker and manifest generation
 - **Bundle Analysis**: Bundle size optimization and analysis
 
 ### Deployment Options
+
 - **Static Hosting**: GitHub Pages, Netlify, Vercel, or Cloudflare Pages
 - **Build Output**: Static files in `dist/` directory after `npm run build`
 - **Base Path Configuration**: Vite `base` option set to `'./'` for relative paths (GitHub Pages compatibility)
@@ -209,6 +235,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
   - PWA installability works on GitHub Pages with proper manifest and HTTPS
 
 ### Recommended Project Structure
+
 ```
 wager-calculator/
 ├── src/
@@ -239,6 +266,7 @@ wager-calculator/
 ```
 
 ### CI/CD Pipeline
+
 - **Pull Request Checks**: Automated testing, linting, and type checking
 - **Automated Testing**: Run full test suite on multiple browsers/devices
 - **Build Verification**: Ensure production build succeeds
