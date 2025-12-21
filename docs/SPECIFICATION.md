@@ -6,34 +6,23 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 ## Core Features
 
 ### 1. Bet Types
-- **Binary Bets**: Simple YES/NO outcomes (primary use case)
-- **Multi-categorical Bets**: Up to 8 custom-defined categories with disjoint ranges
+
+Bets can have up to 8 outcomes with the default being 2, Yes and No.
 
 ### 2. User Interface Components
 
 #### Input Section
-- **Bet Title**: Text field for the main claim/question
+- **Claim**: Text field for the main claim/question
 - **Details** (Optional): Multi-line text field for resolution criteria and additional context
-- **Deadline** (Optional): Date/time picker for bet resolution deadline
-- **Bet Type**: Toggle between Binary and Multi-categorical
 - **Participants**: 
-  - Default: 2 participants ("Person A" and "Person B")
+  - Default: 2 participants ("Artem" and "Baani")
   - Support for 2-8 participants with add/remove participant buttons
   - Editable text fields for custom names
   - Maximum Bet: Numerical input for each participant
-- **Currency Selection**: Dropdown with common currencies (USD, EUR, GBP, CAD, etc.)
-
-#### Binary Bet Inputs
-- **Claim Statement**: Text describing the binary outcome
-- **Probability Inputs**: For each participant (2-8):
-  - Slider (0-100%) + percentage input field for YES outcome probability
-  - NO probability automatically calculated as (100% - YES probability)
-
-#### Multi-categorical Bet Inputs
-- **Category Definition**: Up to 8 custom ranges/categories
-  - Text field for category name/range (e.g., "0-5 people", "6-10 people")
-  - Probability input for each participant (2-8) per category
-  - Add/Remove category buttons
+- **Currency Selection**: Dropdown with common currencies (USD, EUR, GBP, CAD, etc.) plus other options like "I was wrong", "Cookies", "Hugs" or "Other" (specify in "Details").
+- **Outcomes**: Add or remove outcomes
+- **Predictions**: For each participant and outcome, specify their personal prediction (0-100%). When a participant enters predictions for some outcomes, the remaining probability is automatically distributed evenly across the outcomes they haven't yet assigned.
+- **Resolution**: Dropdown or buttons to select which outcome occurred. Option to un-resolve and change the selected outcome. Display a summary showing who has to pay whom and how much.
 
 #### Validation & Warnings
 - **Probability Sum Check**: Warning if total probabilities ≠ 100%
@@ -43,43 +32,25 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 ### 3. Calculation Engine
 
 #### Brier Scoring Rule Implementation
-- Calculate fair odds using the original Brier scoring formula for multi-categorical outcomes
-- For each outcome, calculate individual Brier scores for each participant using: BS = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
-  - Where R = number of possible categories, N = number of instances (always 1 for single predictions)
-  - f_ti = predicted probability for category i, o_ti = 1 if category i occurs, 0 otherwise
+- Calculate fair odds using Brier's original scoring formula for multi-categorical outcomes
+- For each participant, calculate their Brier score using: BS = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
+  - Where N = number of instances (for this application, N=1 since we have a single wager)
+  - R = number of possible outcomes (e.g., R=2 for Yes/No, R=3 for Cold/Normal/Warm)
+  - f_ti = predicted probability for outcome i in instance t (as a decimal, e.g., 0.7 for 70%)
+  - o_ti = 1 if outcome i occurs in instance t, 0 otherwise
+  - Lower scores are better (0 = perfect prediction, 2 = worst possible)
 - Calculate average Brier score of other participants for comparison
 - Determine payouts based on performance relative to others: Payout = (amount_in_play) × (avg_others_brier - my_brier) / 2
 - Amount in play is determined by the minimum of all participants' maximum contributions
-- Ensure payouts sum to zero across all participants
+- Ensure payouts sum to zero across all participants. Round to nearest cent/unit. Use PRNG seeded with the claim text for tiebreaking if rounding adjustment is needed.
 
 #### Mathematical Display
-- **Default**: Hide mathematical formulas
-- **On Request**: Expandable section showing:
-  - Brier scoring formula and calculation steps
-  - Individual Brier scores for each participant
-  - Average Brier scores of others
-  - Payout calculations for each possible outcome
-  - Settlement structure between participants
+- Provide a help/info section (e.g., collapsible panel or separate page) explaining the Brier scoring calculation with a worked example
 
-### 4. Output Display
-
-#### Results Section
-- **Clear Payout Structure**:
-  - Binary: "If YES, [Participant names] pay/receive [amounts]. If NO, [Participant names] pay/receive [amounts]"
-  - Multi-categorical: Similar format showing all possible outcomes and corresponding payouts for all participants
-- **Settlement Details**: Show simplified payment structure (who pays whom and how much) for each possible outcome
-- **Bet Summary**: Include relevant input information:
-  - All participant names and their probability assessments
-  - Bet title and details
-  - Bet deadline (if specified)
-  - Maximum amount in play
-  - Amount in play (minimum of all max contributions)
-
-#### Sharing Features
+### 4. Sharing Features
 - **Visual Design**: Clean, professional layout suitable for screenshots
+- **Share the URL**: All data should be contained and compressed in the URL anchor so that the URL can be shared. When opening such a URL the form must be populated with the data.
 - **Text Export**: Plain text format for copy-paste sharing
-- **Built-in Sharing**: Web Share API for native sharing on mobile devices
-- **Screenshot Button**: Generate and save image of bet terms
 
 ### 5. Technical Requirements
 
@@ -90,7 +61,7 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - **Installable**: Can be added to home screen/desktop
 
 #### Technology Stack
-- **Frontend**: HTML5, CSS3, TypeScript (ES2020+ target)
+- **Frontend**: HTML5, CSS3, TypeScript (ES2020+ target), React
 - **Build System**: Vite for development and bundling
 - **Testing**: Jest + Testing Library for unit/integration tests
 - **PWA Features**: Service worker, web app manifest
@@ -102,35 +73,7 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - **Modern Browsers**: Chrome, Firefox, Safari, Edge (last 2 versions)
 - **Mobile Browsers**: iOS Safari, Chrome Mobile, Samsung Internet
 
-### 6. User Experience Flow
-
-#### Binary Bet Flow
-1. Adds participants (defaults to 2, can add up to 8 total)
-2. Inputs participant names (or uses defaults)
-3. Enters maximum contributions for each participant
-4. Selects currency
-5. User selects binary bet type
-6. Enters bet title and optional details
-7. Optionally sets bet deadline
-8. Sets probabilities for YES outcome via sliders or direct input for each participant
-9. Views validation warnings if any
-10. Sees calculated fair odds and payout structure for all participants
-11. Shares results via text or screenshot
-
-#### Multi-categorical Flow
-1. Adds participants (defaults to 2, can add up to 8 total)
-2. Inputs participant names (or uses defaults)
-3. Enters maximum contributions for each participant
-4. Selects currency
-5. User selects multi-categorical bet type
-6. Enters bet title and optional details
-7. Optionally sets bet deadline
-8. Sets probabilities per participant and category
-9. Views validation warnings if any
-10. Sees calculated fair odds and payout structure for all participants
-11. Shares results via text or screenshot
-
-### 7. Design Principles
+### 6. Design Principles
 
 #### Mobile-First Design
 - Touch-friendly interface elements
@@ -149,25 +92,22 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - Professional appearance suitable for sharing
 - Consistent color scheme and typography
 
-### 8. Error Handling & Edge Cases
+### 7. Error Handling & Edge Cases
 
 #### Input Validation
 - Handle invalid probability inputs gracefully
-- Prevent division by zero scenarios
-- Manage extreme probability values
 
 #### Mathematical Edge Cases
-- Handle cases where Brier scoring produces payouts close to the maximum
 - Manage scenarios where participants have identical probability assessments
 - Handle edge cases in settlement calculations (very small amounts)
 - Provide clear explanations when calculations produce warnings
 - Ensure numerical precision in Brier score and payout calculations
 - Handle rounding errors in payouts
 
-### 9. Performance Requirements
+### 8. Performance Requirements
 
 #### Load Time
-- Initial page load < 3 seconds on 3G connection
+- Initial page load < 5 seconds on 3G connection
 - Instant calculations and UI updates
 - Smooth slider interactions
 
@@ -175,16 +115,17 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 - Full feature set available without internet
 - Service worker caching for instant re-launches
 
-### 10. Future Considerations
+### 9. Future Considerations
 
 #### Potential Enhancements
 - Additional proper scoring rules (logarithmic, quadratic)
 - Import/export of bet configurations
 - Integration with calendar apps for bet deadlines
 - Multi-language support
+- Native mobile app
+- Implement data storage to keep track of past wagers
 
 #### Scalability
-- Architecture should support additional bet types
 - Modular design for easy feature additions
 - Clean separation between calculation logic and UI
 
@@ -205,13 +146,13 @@ A client-side Progressive Web App (PWA) that calculates fair betting odds for fr
 ### Brier Scoring Implementation Details
 The application uses Brier scoring, a proper scoring rule that rewards accuracy in probability predictions:
 
-#### Formula (Original Brier Definition for Multi-categorical Outcomes)
+#### Formula (Original Brier Definition)
 - **Brier Score**: BS = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
-  - R = number of possible categories (e.g., R=2 for Rain/No Rain, R=3 for Cold/Normal/Warm)
-  - N = number of instances (for single predictions, N=1)
-  - f_ti = predicted probability for category i in instance t
-  - o_ti = 1 if category i occurs in instance t, 0 otherwise
-  - Lower scores are better (0 = perfect prediction)
+  - N = number of instances (for single wagers, N=1, so the formula simplifies but we maintain the general form)
+  - R = number of possible outcomes (e.g., R=2 for Yes/No, R=3 for Cold/Normal/Warm)
+  - f_ti = predicted probability for outcome i in instance t (as decimal, e.g., 0.7 for 70%)
+  - o_ti = 1 if outcome i occurs in instance t, 0 otherwise
+  - Lower scores are better (0 = perfect prediction, 2 = worst possible)
 
 #### Payout Calculation
 - **Amount in Play**: Minimum of all participants' maximum contributions

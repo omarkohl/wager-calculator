@@ -87,7 +87,7 @@ So Bob has to give $1.60 to Carol and $11.20 to Alice.
 
 ## 🤝 Contributing
 
-See [Contributing Guide](./.github/CONTRIBUTING.md) for details. We especially welcome:
+See [Contributing Guide](./docs/dev/CONTRIBUTING.md) for details. We especially welcome:
 - Mathematical accuracy improvements
 - UI/UX enhancements
 - Test coverage expansion
@@ -97,7 +97,7 @@ See [Contributing Guide](./.github/CONTRIBUTING.md) for details. We especially w
 
 - No data collection or storage
 - Client-side calculations only
-- See [Security Policy](./.github/SECURITY.md) for details
+- See [Security Policy](./docs/dev/SECURITY.md) for details
 
 ## 📄 License
 

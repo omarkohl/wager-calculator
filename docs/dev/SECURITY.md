@@ -31,11 +31,6 @@ If you discover a security vulnerability in the Wager Calculator, please report 
 
 ## Security Considerations
 
-### Mathematical Security
-- All calculations use standard logarithmic scoring rules
-- No user data is stored or transmitted
-- All computations happen client-side
-
 ### Data Privacy
 - No personal information is collected
 - No bet data is stored or transmitted
@@ -64,18 +59,6 @@ If you discover a security vulnerability in the Wager Calculator, please report 
 2. Use Content Security Policy headers
 3. Keep dependencies updated
 4. Regular security audits
-
-## Known Limitations
-
-### Mathematical Limitations:
-- Extreme probability values may result in very large payouts
-- Floating-point precision limits apply to all calculations
-- No protection against unreasonable bet parameters
-
-### Technical Limitations:
-- Client-side only - no server-side validation
-- Dependent on browser security model
-- No rate limiting or abuse protection
 
 ## Disclosure Policy
 
