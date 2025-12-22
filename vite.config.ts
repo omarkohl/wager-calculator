@@ -43,5 +43,6 @@ export default defineConfig({
     __COMMIT_HASH__: JSON.stringify(getBuildInfo().commitHash),
     __COMMIT_DATE__: JSON.stringify(getBuildInfo().commitDate),
     __REPO_URL__: JSON.stringify(process.env.VITE_GITHUB_REPO_URL || ''),
+    __SITE_URL__: JSON.stringify(process.env.VITE_SITE_URL || ''),
   },
 })

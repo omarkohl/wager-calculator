@@ -48,6 +48,7 @@ jobs:
         run: npm run build
         env:
           VITE_GITHUB_REPO_URL: https://github.com/${{ github.repository }}
+          VITE_SITE_URL: ${{ vars.SITE_URL }}
 
       - name: Upload build artifacts
         uses: actions/upload-pages-artifact@v4
