@@ -64,9 +64,9 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 10: Wire Up Calculations
 
-- [ ] Connect predictions to calculation engine
-- [ ] Display calculated payouts in Resolution section
-- [ ] Display simplified settlements ("X pays Y amount")
+- [x] Connect predictions to calculation engine
+- [x] Display calculated payouts in Resolution section
+- [x] Display simplified settlements ("X pays Y amount")
 
 ## Phase 11: Sharing Features
 

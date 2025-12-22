@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Decimal from 'decimal.js'
 import InlineEdit from './components/InlineEdit'
 import StakesSelector from './components/StakesSelector'
@@ -6,7 +6,8 @@ import ParticipantsList from './components/ParticipantsList'
 import OutcomesList from './components/OutcomesList'
 import PredictionsGrid from './components/PredictionsGrid'
 import Resolution from './components/Resolution'
-import type { Participant, Outcome, Prediction } from './types/wager'
+import { calculateResults } from './modules/brier'
+import type { Participant, Outcome, Prediction, CalculationResult } from './types/wager'
 
 function App() {
   const [claim, setClaim] = useState('')
@@ -24,6 +25,20 @@ function App() {
   const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(null)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
+
+  // Calculate results when wager is resolved
+  const calculationResults = useMemo<CalculationResult | null>(() => {
+    if (!resolvedOutcomeId || participants.length === 0 || outcomes.length === 0) {
+      return null
+    }
+
+    try {
+      return calculateResults(participants, predictions, outcomes, resolvedOutcomeId, claim)
+    } catch (error) {
+      console.error('Error calculating results:', error)
+      return null
+    }
+  }, [resolvedOutcomeId, participants, predictions, outcomes, claim])
 
   // Initialize predictions with even distribution when participants or outcomes change
   useEffect(() => {
@@ -157,7 +172,9 @@ function App() {
                 outcomes={outcomes}
                 participants={participants}
                 predictions={predictions}
+                stakes={stakes}
                 resolvedOutcomeId={resolvedOutcomeId}
+                calculationResults={calculationResults}
                 onChange={setResolvedOutcomeId}
               />
             </div>

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Decimal from 'decimal.js'
 import Resolution from './Resolution'
+import { calculateResults } from '../modules/brier'
 import type { Outcome, Participant, Prediction } from '../types/wager'
 
 describe('Resolution', () => {
@@ -29,7 +30,9 @@ describe('Resolution', () => {
         outcomes={mockOutcomes}
         participants={mockParticipants}
         predictions={mockPredictions}
+        stakes="usd"
         resolvedOutcomeId={null}
+        calculationResults={null}
         onChange={vi.fn()}
       />
     )
@@ -46,7 +49,9 @@ describe('Resolution', () => {
         outcomes={mockOutcomes}
         participants={mockParticipants}
         predictions={mockPredictions}
+        stakes="usd"
         resolvedOutcomeId={null}
+        calculationResults={null}
         onChange={onChange}
       />
     )
@@ -61,12 +66,22 @@ describe('Resolution', () => {
   })
 
   it('displays selected outcome', () => {
+    const calculationResults = calculateResults(
+      mockParticipants,
+      mockPredictions,
+      mockOutcomes,
+      '1',
+      'Test claim'
+    )
+
     render(
       <Resolution
         outcomes={mockOutcomes}
         participants={mockParticipants}
         predictions={mockPredictions}
+        stakes="usd"
         resolvedOutcomeId="1"
+        calculationResults={calculationResults}
         onChange={vi.fn()}
       />
     )
@@ -77,13 +92,22 @@ describe('Resolution', () => {
   it('allows changing selection back to unresolved', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
+    const calculationResults = calculateResults(
+      mockParticipants,
+      mockPredictions,
+      mockOutcomes,
+      '1',
+      'Test claim'
+    )
 
     render(
       <Resolution
         outcomes={mockOutcomes}
         participants={mockParticipants}
         predictions={mockPredictions}
+        stakes="usd"
         resolvedOutcomeId="1"
+        calculationResults={calculationResults}
         onChange={onChange}
       />
     )
@@ -94,19 +118,33 @@ describe('Resolution', () => {
     expect(onChange).toHaveBeenCalledWith(null)
   })
 
-  it('displays placeholder payout summary when resolved', () => {
+  it('displays payout summary with calculations when resolved', () => {
+    const calculationResults = calculateResults(
+      mockParticipants,
+      mockPredictions,
+      mockOutcomes,
+      '1',
+      'Test claim'
+    )
+
     render(
       <Resolution
         outcomes={mockOutcomes}
         participants={mockParticipants}
         predictions={mockPredictions}
+        stakes="usd"
         resolvedOutcomeId="1"
+        calculationResults={calculationResults}
         onChange={vi.fn()}
       />
     )
 
     expect(screen.getByText(/Payout Summary/i)).toBeInTheDocument()
-    expect(screen.getByText(/calculations will be shown here/i)).toBeInTheDocument()
+    expect(screen.getByText(/Net Payouts/i)).toBeInTheDocument()
+    expect(screen.getByText(/Simplified Settlements/i)).toBeInTheDocument()
+    // Check that participant names appear (multiple times is fine)
+    expect(screen.getAllByText('Alice').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Bob').length).toBeGreaterThan(0)
   })
 
   it('does not display payout summary when unresolved', () => {
@@ -115,7 +153,9 @@ describe('Resolution', () => {
         outcomes={mockOutcomes}
         participants={mockParticipants}
         predictions={mockPredictions}
+        stakes="usd"
         resolvedOutcomeId={null}
+        calculationResults={null}
         onChange={vi.fn()}
       />
     )
@@ -136,7 +176,9 @@ describe('Resolution', () => {
         outcomes={mockOutcomes}
         participants={mockParticipants}
         predictions={identicalPredictions}
+        stakes="usd"
         resolvedOutcomeId="1"
+        calculationResults={null}
         onChange={vi.fn()}
       />
     )

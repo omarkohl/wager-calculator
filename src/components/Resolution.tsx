@@ -1,12 +1,14 @@
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-import type { Outcome, Participant, Prediction } from '../types/wager'
+import type { Outcome, Participant, Prediction, CalculationResult } from '../types/wager'
 
 interface ResolutionProps {
   outcomes: Outcome[]
   participants: Participant[]
   predictions: Prediction[]
+  stakes: string
   resolvedOutcomeId: string | null
+  calculationResults: CalculationResult | null
   onChange: (outcomeId: string | null) => void
 }
 
@@ -14,10 +16,43 @@ function Resolution({
   outcomes,
   participants,
   predictions,
+  stakes,
   resolvedOutcomeId,
+  calculationResults,
   onChange,
 }: ResolutionProps) {
   const selectedOutcome = outcomes.find(o => o.id === resolvedOutcomeId)
+
+  // Format currency/stakes display
+  const formatAmount = (amount: number): string => {
+    const stakeSymbols: Record<string, string> = {
+      usd: '$',
+      eur: '€',
+      gbp: '£',
+      cad: 'CA$',
+      aud: 'AU$',
+      jpy: '¥',
+      chf: 'CHF ',
+      cny: '¥',
+      cookies: '',
+      hugs: '',
+      'i-was-wrong': '',
+      other: '',
+    }
+
+    const stakeSuffixes: Record<string, string> = {
+      cookies: ' cookies',
+      hugs: ' hugs',
+      'i-was-wrong': ' "I was wrong"',
+      other: '',
+    }
+
+    const symbol = stakeSymbols[stakes] || ''
+    const suffix = stakeSuffixes[stakes] || ''
+    const formattedNum = Math.abs(amount).toFixed(2)
+
+    return `${symbol}${formattedNum}${suffix}`
+  }
 
   // Check if all participants have identical predictions
   const hasIdenticalPredictions = (): boolean => {
@@ -105,14 +140,74 @@ function Resolution({
 
       {resolvedOutcomeId && (
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <h3 className="mb-2 text-sm font-medium text-gray-900">Payout Summary</h3>
+          <h3 className="mb-3 text-sm font-medium text-gray-900">Payout Summary</h3>
           {showIdenticalPredictionsMessage ? (
             <p className="text-sm text-gray-600">
               All participants have identical predictions. Therefore, all payouts are zero.
             </p>
+          ) : calculationResults ? (
+            <div className="space-y-4">
+              {/* Net Payouts */}
+              <div>
+                <h4 className="mb-2 text-xs font-medium text-gray-700 uppercase">Net Payouts</h4>
+                <div className="space-y-1">
+                  {calculationResults.payouts.map(payout => {
+                    const participant = participants.find(p => p.id === payout.participantId)
+                    const amount = payout.amount.toNumber()
+                    const isPositive = amount > 0
+                    const isZero = amount === 0
+
+                    return (
+                      <div
+                        key={payout.participantId}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="text-gray-700">{participant?.name || 'Unknown'}</span>
+                        <span
+                          className={
+                            isZero
+                              ? 'text-gray-500'
+                              : isPositive
+                                ? 'font-medium text-green-600'
+                                : 'font-medium text-red-600'
+                          }
+                        >
+                          {isPositive && '+'}
+                          {formatAmount(amount)}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Simplified Settlements */}
+              {calculationResults.settlements.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-medium text-gray-700 uppercase">
+                    Simplified Settlements
+                  </h4>
+                  <div className="space-y-1">
+                    {calculationResults.settlements.map((settlement, idx) => {
+                      const from = participants.find(p => p.id === settlement.fromParticipantId)
+                      const to = participants.find(p => p.id === settlement.toParticipantId)
+                      const amount = settlement.amount.toNumber()
+
+                      return (
+                        <div key={idx} className="text-sm text-gray-700">
+                          <span className="font-medium">{from?.name || 'Unknown'}</span> pays{' '}
+                          <span className="font-medium">{to?.name || 'Unknown'}</span>{' '}
+                          <span className="font-semibold">{formatAmount(amount)}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <p className="text-sm text-gray-600 italic">
-              Detailed calculations will be shown here once the calculation engine is implemented.
+              Error calculating payouts. Please check your inputs.
             </p>
           )}
         </div>
