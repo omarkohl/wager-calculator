@@ -5,6 +5,7 @@ import StakesSelector from './components/StakesSelector'
 import ParticipantsList from './components/ParticipantsList'
 import OutcomesList from './components/OutcomesList'
 import PredictionsGrid from './components/PredictionsGrid'
+import Resolution from './components/Resolution'
 import type { Participant, Outcome, Prediction } from './types/wager'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
     { id: crypto.randomUUID(), label: 'No' },
   ])
   const [predictions, setPredictions] = useState<Prediction[]>([])
+  const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(null)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
 
@@ -146,6 +148,17 @@ function App() {
                 outcomes={outcomes}
                 predictions={predictions}
                 onChange={setPredictions}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Resolution</label>
+              <Resolution
+                outcomes={outcomes}
+                participants={participants}
+                predictions={predictions}
+                resolvedOutcomeId={resolvedOutcomeId}
+                onChange={setResolvedOutcomeId}
               />
             </div>
           </div>

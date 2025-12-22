@@ -50,9 +50,9 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 8: Resolution Section
 
-- [ ] Headless UI Listbox to select which outcome occurred (or "Unresolved")
-- [ ] Display payout summary when resolved (placeholder text for now)
-- [ ] Handle edge case: identical predictions → explain zero payouts
+- [x] Headless UI Listbox to select which outcome occurred (or "Unresolved")
+- [x] Display payout summary when resolved (placeholder text for now)
+- [x] Handle edge case: identical predictions → explain zero payouts
 
 ## Phase 9: Brier Scoring Engine
 
