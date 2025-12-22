@@ -45,6 +45,43 @@ npm test
 npm run build
 ```
 
+### Deployment
+
+When deploying, you can configure the following environment variables:
+
+#### `VITE_SITE_URL`
+
+The public URL where your app is deployed. Used for Open Graph and Twitter Card meta tags.
+
+**GitHub Actions Setup:**
+
+1. Go to your repository **Settings** → **Secrets and variables** → **Actions**
+2. Click the **Variables** tab
+3. Click **New repository variable**
+4. Name: `SITE_URL`
+5. Value: `https://yourdomain.com` (your deployment URL)
+6. Click **Add variable**
+
+The workflow will automatically use `${{ vars.SITE_URL }}` during builds.
+
+**Local Build Example:**
+
+```bash
+VITE_SITE_URL=https://yourdomain.com npm run build
+```
+
+If not set, meta tags will have empty URLs (local development is unaffected).
+
+#### `VITE_GITHUB_REPO_URL`
+
+The GitHub repository URL. Automatically set in CI to display repository information.
+
+**Example:**
+
+```bash
+VITE_GITHUB_REPO_URL=https://github.com/yourusername/wager-calculator npm run build
+```
+
 ## 🧮 How It Works
 
 The Wager Calculator uses **Brier scoring** to ensure fair betting:
