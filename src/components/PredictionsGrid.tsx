@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import Decimal from 'decimal.js'
+import { Input } from '@headlessui/react'
 import type { Participant, Outcome, Prediction } from '../types/wager'
 import { autoDistribute } from '../utils/autoDistribute'
 
@@ -156,8 +157,10 @@ export default function PredictionsGrid({
                 const prediction = getPrediction(participant.id, outcome.id)
 
                 return (
-                  <div key={outcome.id} className="flex items-center gap-4">
-                    <label className="w-20 text-sm text-gray-700">{outcome.label}</label>
+                  <div key={outcome.id} className="flex items-center gap-1.5 sm:gap-4">
+                    <label className="w-10 shrink-0 text-xs text-gray-700 sm:w-16 sm:text-sm">
+                      {outcome.label}
+                    </label>
 
                     <input
                       type="range"
@@ -173,8 +176,8 @@ export default function PredictionsGrid({
                       className={`flex-1 ${!prediction.touched ? 'opacity-40' : ''}`}
                     />
 
-                    <div className="flex items-center gap-1">
-                      <input
+                    <div className="flex shrink-0 items-center gap-0.5">
+                      <Input
                         type="number"
                         min="0"
                         max="100"
@@ -187,9 +190,9 @@ export default function PredictionsGrid({
                             parseFloat(e.target.value) || 0
                           )
                         }
-                        className={`w-20 rounded-md border border-gray-300 px-2 py-1 text-right text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!prediction.touched ? 'text-gray-400' : ''}`}
+                        className={`w-12 rounded-md border border-gray-300 px-1 py-1 text-sm focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500 sm:w-16 sm:px-1.5 ${!prediction.touched ? 'text-gray-400' : ''}`}
                       />
-                      <span className="text-sm text-gray-600">%</span>
+                      <span className="text-xs text-gray-600 sm:text-sm">%</span>
                     </div>
                   </div>
                 )
