@@ -193,7 +193,7 @@ export default function PredictionsGrid({
                             parseFloat(e.target.value) || 0
                           )
                         }
-                        className={`w-12 rounded-md border border-gray-300 px-1 py-1 text-sm focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500 sm:w-16 sm:px-1.5 ${!prediction.touched ? 'text-gray-400' : ''}`}
+                        className={`w-12 rounded-md border border-gray-300 px-1 py-1 text-sm focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500 sm:w-24 sm:px-2 ${!prediction.touched ? 'text-gray-400' : ''}`}
                       />
                       <span className="text-xs text-gray-600 sm:text-sm">%</span>
                     </div>
