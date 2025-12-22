@@ -142,3 +142,7 @@ See [Contributing Guide](./docs/dev/CONTRIBUTING.md) for details. We especially 
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Attribution
+
+Icon by [Freepik](https://www.freepik.com/icon/handshake_1006657)

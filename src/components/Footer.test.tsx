@@ -63,6 +63,8 @@ describe('Footer', () => {
 
     expect(container.querySelector('footer')).toBeInTheDocument()
     expect(screen.queryByText(/Version:/)).not.toBeInTheDocument()
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Report a bug/ })).not.toBeInTheDocument()
+    // Attribution link should always be present
+    expect(screen.getByRole('link', { name: /Freepik/ })).toBeInTheDocument()
   })
 })
