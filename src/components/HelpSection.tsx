@@ -324,6 +324,18 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             to both of them.
                           </p>
                         </div>
+                        <div>
+                          <p className="pt-2">
+                            See this example in action{' '}
+                            <a
+                              href="#N4IgbiBcCMA0IGMA2BDAlgWyiAEgewHcACDFAOwE8iAHAUz2qVqILSSSITw2YBc8ivABbNqKAE68KAfhDwAJrV7okAZ2xyQq5QGta6yCACuq+ZrGS0CNGLK8DAbVBozhgKwAWAMwAzBAloADgBaAHYULy9gjzcANgBOYPjoDwAmYIAGWlDaDPDYty9An00yFB5sAEFJWix4UgAPACElbDcMzX4jBBFXXnEjWgBfWGdXEB8fePjYlHjQ4IRU+PlozwAjYLmUaGDoeR91nyCl9aPS8tpsJpRyNE1Glt5sDw74Lp7aPoHh0ZAXbAZVKxBCBQIeHzBWJ+BDRbweYJglC0KHrWhuFBogKzDwXCqGADCQhQRgeKGarUMXjeIA+vSg-UGQwAuvA8EZeFweI4xthoPzAhsUMF5FlVh55KkooKEAj5G5QrEPIEMoEvB54ghNKg0UhsAAZfSqQTEshENyddmfb5Mv4AwzQBDxDwoeSBFHrZKbDzQeKbTEoWEIaHKryhaBeWK0aDazG0PWGJ4EWi0M1uIjkeREaA0ulfBk-Ea8wxOp2i1JuYLUqbRDIurbLELrZEoWKhTxS5Gx3XYACyeHEfFN2dzVvpkEZw1ZIGog-kVl4aDwZB5M4ki+stl4AElxp5fP4gmEIlEYgkkil0lkcnlW4Vipp2ZzuLRd3yBUKRWLopLpW5ZSKCpKiqaoalq8CzngzbrGwaBSNgoSjt046TkWa6WJu5A7nu3gwke4SRGs57JGkmTZLk+T3iUbIclyr7jI6zquu6wSetA3q+v6zZBiGarhpG0bmOIUGYrB8GGKkSHWgWtqgBYG42Fhb6GJM0yzPMizLOKGxbPEOx7AcRwnKkZzUSAT50cpID8tAgoeM2X5fD+UqIv+cpAcqqrqpqQkiTBSBwRQfJSShhZ-PJViKXYVmqTMcwLEsKxrPZun6fshzHIEpznDRz48FZjEum6HpetEnFbNxiy8WGEZRjGEHCdBYlBYYKqWsh+YTmFcnrpFW5WUCIJghCUIwnC6qIoEyKouicbYiguK5ZZDEfvZwqik5EouTK7mKp5oE+Q1fnNdgkntdJXWyehCn9eMg2guCkLQv440IkiKKxGiGJYrQOKPrRL4FU6RUsWxHF+hVgZVT4ob8XVvlNQF4kgLEIWdah4W9Zh0U4QeAQhARp5xIkJFXuRt4FEUZkWYD4ylisQKVtWiSvPWKCNqxLZth2XhdkdiOBcF52hVdEXY9h2CxepCVacl-p6bs6VGVlJk5eZAP5XTmoMxWVYZDWrPCuz8RNlz7ZpLzVz86JSMtdZaM2r8PUYVFEuGPdw1PWNHjwpN02fbNP1-UttPYPT5ZM-rLN1kbHPNrQrbm52Vszo1NuCxJDsyVO8CDqoeBIGAXwAPIa-RfLA8xJXsWVEMBjxMN8bVglDEAA"
+                              target="_blank"
+                            >
+                              here
+                            </a>
+                            .
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </DisclosurePanel>
