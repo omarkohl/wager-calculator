@@ -56,11 +56,11 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 9: Brier Scoring Engine
 
-- [ ] Implement Brier score calculation using decimal.js
-- [ ] Implement payout calculation: (avg_others_brier - my_brier) / 2 × amount_in_play
-- [ ] Implement settlement minimization (brute force for ≤8 participants)
-- [ ] Handle rounding with seeded PRNG (claim text as seed)
-- [ ] Unit tests against `data/test_output.json`
+- [x] Implement Brier score calculation using decimal.js
+- [x] Implement payout calculation: (avg_others_brier - my_brier) / 2 × amount_in_play
+- [x] Implement settlement minimization (brute force for ≤8 participants)
+- [x] Handle rounding with seeded PRNG (claim text as seed)
+- [x] Unit tests against `data/test_output.json`
 
 ## Phase 10: Wire Up Calculations
 
