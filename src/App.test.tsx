@@ -6,7 +6,7 @@ describe('App', () => {
   it('renders the header', () => {
     render(<App />)
     expect(screen.getByText('Wager')).toBeInTheDocument()
-    expect(screen.getByText('Calculate fair betting odds using Brier scoring')).toBeInTheDocument()
+    expect(screen.getByText('Betting is a tax on bullshit')).toBeInTheDocument()
   })
 
   it('renders action buttons', () => {

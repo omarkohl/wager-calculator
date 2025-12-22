@@ -154,7 +154,7 @@ function App() {
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Wager</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Calculate fair betting odds using Brier scoring
+            Betting is a tax on bullshit
           </p>
         </header>
 
