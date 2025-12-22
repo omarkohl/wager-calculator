@@ -152,7 +152,7 @@ function App() {
     <div className="flex min-h-screen flex-col bg-gray-50">
       <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Wager</h1>
+          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Wager Calculator</h1>
           <p className="mt-2 text-sm text-gray-600">Betting is a tax on bullshit</p>
         </header>
 

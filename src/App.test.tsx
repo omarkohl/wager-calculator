@@ -5,7 +5,7 @@ import App from './App'
 describe('App', () => {
   it('renders the header', () => {
     render(<App />)
-    expect(screen.getByText('Wager')).toBeInTheDocument()
+    expect(screen.getByText('Wager Calculator')).toBeInTheDocument()
     expect(screen.getByText('Betting is a tax on bullshit')).toBeInTheDocument()
   })
 
