@@ -207,6 +207,26 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
+                    <span>How does sharing work?</span>
+                    <ChevronDownIcon
+                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
+                    />
+                  </DisclosureButton>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    All data is compressed and stored in the URL anchor (the part after #), which
+                    never leaves your browser or gets sent to any server. When you share the URL
+                    (e.g. via a messenger app), others see exactly what you see. If they make
+                    changes, they'll have a new URL to share back with you—nothing is synced
+                    automatically since there's no server storage.
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure>
+              {({ open }) => (
+                <>
+                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
                     <span>How exactly is everything calculated?</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
