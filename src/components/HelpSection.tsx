@@ -65,8 +65,8 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     <p className="mb-3">
                       No. Gambling is an addiction that destroys lives, and that's not what this app
                       is about. The purpose here is accountability: helping people reflect on the
-                      confidence behind their claims and predictions. When there's even a small stake
-                      involved, people tend to moderate outlandish predictions and think more
+                      confidence behind their claims and predictions. When there's even a small
+                      stake involved, people tend to moderate outlandish predictions and think more
                       carefully about what they actually believe.
                     </p>
                     <p>
