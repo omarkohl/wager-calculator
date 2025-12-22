@@ -17,6 +17,7 @@ import {
   serializeState,
   deserializeState,
   decodeStateFromURL,
+  encodeStateToURL,
   getShareableURL,
 } from './utils/urlState'
 
@@ -48,6 +49,25 @@ function App() {
   const [showToast, setShowToast] = useState(false)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
+
+  // Auto-sync state to URL with debouncing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const state = serializeState(
+        claim,
+        details,
+        stakes,
+        participants,
+        outcomes,
+        predictions,
+        resolvedOutcomeId
+      )
+      const hash = encodeStateToURL(state)
+      window.history.replaceState(null, '', hash)
+    }, 400)
+
+    return () => clearTimeout(timer)
+  }, [claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId])
 
   // Calculate results when wager is resolved
   const calculationResults = useMemo<CalculationResult | null>(() => {
