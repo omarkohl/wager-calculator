@@ -164,7 +164,7 @@ function App() {
               className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
               <QuestionMarkCircleIcon className="h-5 w-5" />
-              Help
+              FAQ
             </button>
             <button
               type="button"
