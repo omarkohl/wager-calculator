@@ -3,9 +3,15 @@ import Decimal from 'decimal.js'
 import type { Participant, Outcome, Prediction } from '../types/wager'
 
 /**
+ * Current state version for backwards compatibility
+ */
+export const STATE_VERSION = 1
+
+/**
  * Serializable state that can be encoded in URL
  */
 export interface WagerState {
+  v: number // Version number for backwards compatibility
   claim: string
   details: string
   stakes: string
@@ -34,6 +40,7 @@ export interface WagerState {
  */
 export function getDefaultState(): WagerState {
   return {
+    v: STATE_VERSION,
     claim: '',
     details: '',
     stakes: 'usd',
@@ -63,6 +70,7 @@ export function serializeState(
   resolvedOutcomeId: string | null
 ): WagerState {
   return {
+    v: STATE_VERSION,
     claim,
     details,
     stakes,
@@ -151,6 +159,12 @@ export function decodeStateFromURL(hash: string): WagerState | null {
     }
 
     const state = JSON.parse(json) as WagerState
+
+    // Handle old URLs without version number (treat as v1)
+    if (state.v === undefined) {
+      state.v = 1
+    }
+
     return state
   } catch (error) {
     console.error('Failed to decode state from URL:', error)
