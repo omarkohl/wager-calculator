@@ -160,7 +160,7 @@ export default function PredictionsGrid({
                 const prediction = getPrediction(participant.id, outcome.id)
 
                 return (
-                  <div key={outcome.id} className="flex items-center gap-1.5 sm:gap-4">
+                  <div key={outcome.id} className="flex min-w-0 items-center gap-1.5 sm:gap-4">
                     <label className="w-10 shrink-0 text-xs text-gray-700 sm:w-16 sm:text-sm">
                       {outcome.label}
                     </label>
@@ -176,7 +176,7 @@ export default function PredictionsGrid({
                       }
                       onMouseUp={handleSliderMouseUp}
                       onClick={handleSliderMouseUp}
-                      className={`flex-1 ${!prediction.touched ? 'opacity-40' : ''}`}
+                      className={`min-w-0 flex-1 ${!prediction.touched ? 'opacity-40' : ''}`}
                     />
 
                     <div className="flex shrink-0 items-center gap-0.5">
