@@ -38,8 +38,8 @@ export function getDefaultState(): WagerState {
     details: '',
     stakes: 'usd',
     participants: [
-      { id: crypto.randomUUID(), name: 'Artem', maxBet: '50', touched: false },
-      { id: crypto.randomUUID(), name: 'Baani', maxBet: '50', touched: false },
+      { id: crypto.randomUUID(), name: 'Artem', maxBet: '0', touched: false },
+      { id: crypto.randomUUID(), name: 'Baani', maxBet: '0', touched: false },
     ],
     outcomes: [
       { id: crypto.randomUUID(), label: 'Yes', touched: false },
