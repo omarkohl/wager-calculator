@@ -8,6 +8,7 @@ interface ParticipantsListProps {
   participants: Participant[]
   predictions: Prediction[]
   onChange: (participants: Participant[]) => void
+  onPredictionsChange?: (predictions: Prediction[]) => void
   stakes: string
 }
 
@@ -17,6 +18,7 @@ export default function ParticipantsList({
   participants,
   predictions,
   onChange,
+  onPredictionsChange,
   stakes,
 }: ParticipantsListProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ index: number; name: string } | null>(null)
@@ -69,7 +71,14 @@ export default function ParticipantsList({
   }
 
   const confirmRemoveParticipant = (index: number) => {
+    const participantId = participants[index].id
     onChange(participants.filter((_, i) => i !== index))
+
+    // Clean up predictions for the deleted participant
+    if (onPredictionsChange) {
+      onPredictionsChange(predictions.filter(p => p.participantId !== participantId))
+    }
+
     setDeleteConfirm(null)
   }
 

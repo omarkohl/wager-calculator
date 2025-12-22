@@ -222,13 +222,19 @@ function App() {
                 participants={participants}
                 predictions={predictions}
                 onChange={setParticipants}
+                onPredictionsChange={setPredictions}
                 stakes={stakes}
               />
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Outcomes</label>
-              <OutcomesList outcomes={outcomes} predictions={predictions} onChange={setOutcomes} />
+              <OutcomesList
+                outcomes={outcomes}
+                predictions={predictions}
+                onChange={setOutcomes}
+                onPredictionsChange={setPredictions}
+              />
             </div>
 
             <div>

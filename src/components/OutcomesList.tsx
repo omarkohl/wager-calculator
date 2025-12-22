@@ -6,11 +6,17 @@ interface OutcomesListProps {
   outcomes: Outcome[]
   predictions: Prediction[]
   onChange: (outcomes: Outcome[]) => void
+  onPredictionsChange?: (predictions: Prediction[]) => void
 }
 
 const PLACEHOLDER_LABELS = ['Yes', 'No']
 
-export default function OutcomesList({ outcomes, predictions, onChange }: OutcomesListProps) {
+export default function OutcomesList({
+  outcomes,
+  predictions,
+  onChange,
+  onPredictionsChange,
+}: OutcomesListProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ index: number; label: string } | null>(null)
   const handleLabelChange = (index: number, label: string, previousValue: string) => {
     const updated = [...outcomes]
@@ -54,7 +60,14 @@ export default function OutcomesList({ outcomes, predictions, onChange }: Outcom
   }
 
   const confirmRemoveOutcome = (index: number) => {
+    const outcomeId = outcomes[index].id
     onChange(outcomes.filter((_, i) => i !== index))
+
+    // Clean up predictions for the deleted outcome
+    if (onPredictionsChange) {
+      onPredictionsChange(predictions.filter(p => p.outcomeId !== outcomeId))
+    }
+
     setDeleteConfirm(null)
   }
 

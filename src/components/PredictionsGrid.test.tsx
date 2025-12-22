@@ -330,4 +330,129 @@ describe('PredictionsGrid', () => {
     const finalPredictions = onChange.mock.calls[onChange.mock.calls.length - 1][0]
     expect(finalPredictions[1].probability.equals(50)).toBe(true) // Unchanged
   })
+
+  it('calculates correct total after outcome is deleted', () => {
+    const threeOutcomes: Outcome[] = [
+      { id: 'o1', label: 'Yes' },
+      { id: 'o2', label: 'No' },
+      { id: 'o3', label: 'Maybe' },
+    ]
+
+    // Initial predictions with 3 outcomes (33.33% each)
+    const initialPredictions: Prediction[] = [
+      { participantId: 'p1', outcomeId: 'o1', probability: new Decimal(33.33), touched: false },
+      { participantId: 'p1', outcomeId: 'o2', probability: new Decimal(33.33), touched: false },
+      { participantId: 'p1', outcomeId: 'o3', probability: new Decimal(33.34), touched: false },
+    ]
+
+    const { rerender } = render(
+      <PredictionsGrid
+        participants={[participants[0]]}
+        outcomes={threeOutcomes}
+        predictions={initialPredictions}
+        onChange={vi.fn()}
+      />
+    )
+
+    // Check that total is 100%
+    expect(screen.getByText(/Total:/)).toBeInTheDocument()
+    expect(screen.getByText('100%')).toBeInTheDocument()
+
+    // Now simulate deleting the third outcome
+    // In the real app, predictions would be cleaned up by OutcomesList
+    const twoOutcomes: Outcome[] = [
+      { id: 'o1', label: 'Yes' },
+      { id: 'o2', label: 'No' },
+    ]
+    const cleanedPredictions = initialPredictions.filter(p => p.outcomeId !== 'o3')
+
+    rerender(
+      <PredictionsGrid
+        participants={[participants[0]]}
+        outcomes={twoOutcomes}
+        predictions={cleanedPredictions}
+        onChange={vi.fn()}
+      />
+    )
+
+    // Total should be 66.66% for the remaining predictions
+    expect(screen.queryByText('100%')).not.toBeInTheDocument()
+    expect(screen.getByText('66.66%')).toBeInTheDocument()
+  })
+
+  it('normalizes only existing outcomes after outcome is deleted', async () => {
+    const user = userEvent.setup()
+    const threeOutcomes: Outcome[] = [
+      { id: 'o1', label: 'Yes' },
+      { id: 'o2', label: 'No' },
+      { id: 'o3', label: 'Maybe' },
+    ]
+
+    // Initial predictions with 3 outcomes (33.33% each)
+    const initialPredictions: Prediction[] = [
+      { participantId: 'p1', outcomeId: 'o1', probability: new Decimal(33.33), touched: false },
+      { participantId: 'p1', outcomeId: 'o2', probability: new Decimal(33.33), touched: false },
+      { participantId: 'p1', outcomeId: 'o3', probability: new Decimal(33.34), touched: false },
+    ]
+
+    let currentPredictions = initialPredictions
+
+    const onChange = vi.fn(newPredictions => {
+      currentPredictions = newPredictions
+    })
+
+    const { rerender } = render(
+      <PredictionsGrid
+        participants={[participants[0]]}
+        outcomes={threeOutcomes}
+        predictions={currentPredictions}
+        onChange={onChange}
+      />
+    )
+
+    // Now simulate deleting the third outcome
+    // In the real app, OutcomesList would clean up predictions
+    const twoOutcomes: Outcome[] = [
+      { id: 'o1', label: 'Yes' },
+      { id: 'o2', label: 'No' },
+    ]
+    currentPredictions = initialPredictions.filter(p => p.outcomeId !== 'o3')
+
+    rerender(
+      <PredictionsGrid
+        participants={[participants[0]]}
+        outcomes={twoOutcomes}
+        predictions={currentPredictions}
+        onChange={onChange}
+      />
+    )
+
+    // Total should be 66.66%, showing warning
+    expect(screen.getByText('66.66%')).toBeInTheDocument()
+    expect(screen.getByText(/must sum to 100%/i)).toBeInTheDocument()
+
+    // Click normalize
+    const normalizeButton = screen.getByRole('button', { name: /normalize/i })
+    await user.click(normalizeButton)
+
+    // Should have been called
+    expect(onChange).toHaveBeenCalled()
+    const normalizedPredictions = onChange.mock.calls[onChange.mock.calls.length - 1][0]
+
+    // Calculate total for the existing outcomes (o1 and o2)
+    const validPredictions = normalizedPredictions.filter(
+      (p: Prediction) => p.outcomeId === 'o1' || p.outcomeId === 'o2'
+    )
+    const total = validPredictions.reduce(
+      (sum: Decimal, p: Prediction) => sum.plus(p.probability),
+      new Decimal(0)
+    )
+
+    // Total should be exactly 100 for the visible outcomes
+    expect(total.toNumber()).toBeCloseTo(100, 2)
+
+    // The deleted outcome's prediction should not exist
+    const deletedPrediction = normalizedPredictions.find((p: Prediction) => p.outcomeId === 'o3')
+    expect(deletedPrediction).toBeUndefined()
+  })
 })

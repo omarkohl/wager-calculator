@@ -102,7 +102,10 @@ export default function PredictionsGrid({
   }
 
   const handleNormalize = (participantId: string) => {
-    const participantPredictions = predictions.filter(p => p.participantId === participantId)
+    const validOutcomeIds = new Set(outcomes.map(o => o.id))
+    const participantPredictions = predictions.filter(
+      p => p.participantId === participantId && validOutcomeIds.has(p.outcomeId)
+    )
     const total = participantPredictions.reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
 
     if (total.isZero()) return
