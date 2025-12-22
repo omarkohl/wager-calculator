@@ -194,7 +194,9 @@ describe('ParticipantsList', () => {
     await user.click(nameInput)
     await user.type(nameInput, 'A')
 
-    expect(onChange).toHaveBeenLastCalledWith([{ id: '1', name: 'A', maxBet: new Decimal(0) }])
+    expect(onChange).toHaveBeenLastCalledWith([
+      { id: '1', name: 'A', maxBet: new Decimal(0), touched: true },
+    ])
   })
 
   it('displays currency symbol for monetary stakes', () => {

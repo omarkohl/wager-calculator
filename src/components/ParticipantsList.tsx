@@ -17,13 +17,20 @@ export default function ParticipantsList({
 }: ParticipantsListProps) {
   const handleNameChange = (index: number, name: string, previousValue: string) => {
     const updated = [...participants]
-    // Clear placeholder name on first input - only for default placeholder names
-    if (PLACEHOLDER_NAMES.includes(previousValue) && name.length > 0 && name !== previousValue) {
+    const participant = updated[index]
+
+    // Clear placeholder name on first input - only for untouched default placeholder names
+    if (
+      !participant.touched &&
+      PLACEHOLDER_NAMES.includes(previousValue) &&
+      name.length > 0 &&
+      name !== previousValue
+    ) {
       // User is typing into a placeholder name, replace it with just the new character
       const newChar = name.replace(previousValue, '')
-      updated[index] = { ...updated[index], name: newChar }
+      updated[index] = { ...updated[index], name: newChar, touched: true }
     } else {
-      updated[index] = { ...updated[index], name }
+      updated[index] = { ...updated[index], name, touched: true }
     }
     onChange(updated)
   }
@@ -39,6 +46,7 @@ export default function ParticipantsList({
       id: crypto.randomUUID(),
       name: '',
       maxBet: new Decimal(0),
+      touched: true, // New participants are considered touched
     }
     onChange([...participants, newParticipant])
   }
@@ -46,8 +54,6 @@ export default function ParticipantsList({
   const handleRemoveParticipant = (index: number) => {
     onChange(participants.filter((_, i) => i !== index))
   }
-
-  const isPlaceholderName = (name: string) => PLACEHOLDER_NAMES.includes(name)
 
   return (
     <div className="space-y-4">
@@ -60,12 +66,12 @@ export default function ParticipantsList({
                 value={participant.name}
                 onChange={e => handleNameChange(index, e.target.value, participant.name)}
                 onFocus={e => {
-                  if (isPlaceholderName(participant.name)) {
+                  if (!participant.touched && PLACEHOLDER_NAMES.includes(participant.name)) {
                     e.target.select()
                   }
                 }}
                 placeholder="Participant name"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!participant.touched ? 'text-gray-400' : ''}`}
               />
             </div>
             <div className="flex w-40 items-center gap-2">

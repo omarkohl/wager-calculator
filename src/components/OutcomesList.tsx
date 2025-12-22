@@ -5,10 +5,26 @@ interface OutcomesListProps {
   onChange: (outcomes: Outcome[]) => void
 }
 
+const PLACEHOLDER_LABELS = ['Yes', 'No']
+
 export default function OutcomesList({ outcomes, onChange }: OutcomesListProps) {
-  const handleLabelChange = (index: number, label: string) => {
+  const handleLabelChange = (index: number, label: string, previousValue: string) => {
     const updated = [...outcomes]
-    updated[index] = { ...updated[index], label }
+    const outcome = updated[index]
+
+    // Clear placeholder label on first input - only for untouched default placeholder labels
+    if (
+      !outcome.touched &&
+      PLACEHOLDER_LABELS.includes(previousValue) &&
+      label.length > 0 &&
+      label !== previousValue
+    ) {
+      // User is typing into a placeholder label, replace it with just the new character
+      const newChar = label.replace(previousValue, '')
+      updated[index] = { ...updated[index], label: newChar, touched: true }
+    } else {
+      updated[index] = { ...updated[index], label, touched: true }
+    }
     onChange(updated)
   }
 
@@ -16,6 +32,7 @@ export default function OutcomesList({ outcomes, onChange }: OutcomesListProps) 
     const newOutcome: Outcome = {
       id: crypto.randomUUID(),
       label: '',
+      touched: true, // New outcomes are considered touched
     }
     onChange([...outcomes, newOutcome])
   }
@@ -33,9 +50,14 @@ export default function OutcomesList({ outcomes, onChange }: OutcomesListProps) 
               <input
                 type="text"
                 value={outcome.label}
-                onChange={e => handleLabelChange(index, e.target.value)}
+                onChange={e => handleLabelChange(index, e.target.value, outcome.label)}
+                onFocus={e => {
+                  if (!outcome.touched && PLACEHOLDER_LABELS.includes(outcome.label)) {
+                    e.target.select()
+                  }
+                }}
                 placeholder="Outcome label"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!outcome.touched ? 'text-gray-400' : ''}`}
               />
             </div>
             <button

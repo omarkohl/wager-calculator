@@ -4,11 +4,13 @@ export interface Participant {
   id: string
   name: string
   maxBet: Decimal
+  touched?: boolean
 }
 
 export interface Outcome {
   id: string
   label: string
+  touched?: boolean
 }
 
 export interface Prediction {
