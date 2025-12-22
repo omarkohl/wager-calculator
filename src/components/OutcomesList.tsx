@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Outcome, Prediction } from '../types/wager'
 import ConfirmDialog from './ConfirmDialog'
 
@@ -120,8 +121,9 @@ export default function OutcomesList({
         <button
           type="button"
           onClick={handleAddOutcome}
-          className="w-full rounded-md border border-dashed border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
         >
+          <PlusIcon className="h-5 w-5" />
           Add Outcome
         </button>
       )}
