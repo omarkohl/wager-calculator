@@ -11,6 +11,14 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 }
 
+// Mock build-time globals for tests
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(globalThis as any).__COMMIT_DATE__ = 'unknown'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(globalThis as any).__COMMIT_HASH__ = 'unknown'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(globalThis as any).__REPO_URL__ = ''
+
 afterEach(() => {
   cleanup()
 })

@@ -6,6 +6,7 @@ import ParticipantsList from './components/ParticipantsList'
 import OutcomesList from './components/OutcomesList'
 import PredictionsGrid from './components/PredictionsGrid'
 import Resolution from './components/Resolution'
+import Footer from './components/Footer'
 import { calculateResults } from './modules/brier'
 import type { Participant, Outcome, Prediction, CalculationResult } from './types/wager'
 import {
@@ -139,8 +140,8 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Wager</h1>
           <p className="mt-2 text-sm text-gray-600">
@@ -237,6 +238,7 @@ function App() {
           </div>
         </main>
       </div>
+      <Footer commitDate={__COMMIT_DATE__} commitHash={__COMMIT_HASH__} repoUrl={__REPO_URL__} />
     </div>
   )
 }
