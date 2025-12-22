@@ -70,4 +70,16 @@ describe('InlineEdit', () => {
     expect(onChange).not.toHaveBeenCalled()
     expect(screen.getByText('Original')).toBeInTheDocument()
   })
+
+  it('focuses display element when autoFocus is true', () => {
+    render(<InlineEdit value="" onChange={vi.fn()} placeholder="Test" autoFocus />)
+    const displayElement = screen.getByRole('button', { name: 'Test' })
+    expect(displayElement).toHaveFocus()
+  })
+
+  it('does not focus when autoFocus is false', () => {
+    render(<InlineEdit value="" onChange={vi.fn()} placeholder="Test" />)
+    const displayElement = screen.getByRole('button', { name: 'Test' })
+    expect(displayElement).not.toHaveFocus()
+  })
 })

@@ -17,4 +17,13 @@ describe('App', () => {
     expect(resetButtons.length).toBeGreaterThanOrEqual(1)
     expect(shareButtons.length).toBeGreaterThanOrEqual(1)
   })
+
+  it('autofocuses claim field when loading without URL state', () => {
+    // Explicitly ensure no hash
+    window.history.replaceState(null, '', window.location.pathname)
+
+    render(<App />)
+    const claimField = screen.getByRole('button', { name: 'What are you betting on?' })
+    expect(claimField).toHaveFocus()
+  })
 })

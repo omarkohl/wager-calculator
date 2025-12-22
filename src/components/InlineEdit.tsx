@@ -7,6 +7,7 @@ interface InlineEditProps {
   multiline?: boolean
   className?: string
   displayClassName?: string
+  autoFocus?: boolean
 }
 
 export default function InlineEdit({
@@ -16,10 +17,12 @@ export default function InlineEdit({
   multiline = false,
   className = '',
   displayClassName = '',
+  autoFocus = false,
 }: InlineEditProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(value)
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
+  const displayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -29,6 +32,12 @@ export default function InlineEdit({
       }
     }
   }, [isEditing, multiline])
+
+  useEffect(() => {
+    if (autoFocus && displayRef.current) {
+      displayRef.current.focus()
+    }
+  }, [autoFocus])
 
   const handleClick = () => {
     setEditValue(value)
@@ -89,6 +98,7 @@ export default function InlineEdit({
 
   return (
     <div
+      ref={displayRef}
       onClick={handleClick}
       onKeyDown={handleDisplayKeyDown}
       tabIndex={0}

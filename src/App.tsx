@@ -27,13 +27,15 @@ function App() {
   const getInitialStateOnce = () => {
     const urlState = decodeStateFromURL(window.location.hash)
     if (urlState) {
-      return deserializeState(urlState)
+      return { state: deserializeState(urlState), isFromURL: true }
     }
     const defaultState = getDefaultState()
-    return deserializeState(defaultState)
+    return { state: deserializeState(defaultState), isFromURL: false }
   }
 
-  const initialState = getInitialStateOnce()
+  const initialStateData = useMemo(() => getInitialStateOnce(), [])
+  const initialState = initialStateData.state
+  const shouldAutoFocusClaim = !initialStateData.isFromURL
 
   const [claim, setClaim] = useState(initialState.claim)
   const [details, setDetails] = useState(initialState.details)
@@ -220,6 +222,7 @@ function App() {
                 onChange={setClaim}
                 placeholder="What are you betting on?"
                 displayClassName="text-lg font-semibold"
+                autoFocus={shouldAutoFocusClaim}
               />
             </div>
 
