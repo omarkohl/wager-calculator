@@ -207,7 +207,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>How does Brier scoring work?</span>
+                    <span>How exactly is everything calculated?</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
