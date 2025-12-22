@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ConfirmDialog from './ConfirmDialog'
 
 describe('ConfirmDialog', () => {
-  it('renders when open', () => {
+  it('renders when open', async () => {
     render(
       <ConfirmDialog
         isOpen={true}
@@ -15,7 +15,9 @@ describe('ConfirmDialog', () => {
       />
     )
 
-    expect(screen.getByText('Test Title')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Test Title')).toBeInTheDocument()
+    })
     expect(screen.getByText('Test message')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Confirm' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
@@ -77,7 +79,7 @@ describe('ConfirmDialog', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('uses custom button labels', () => {
+  it('uses custom button labels', async () => {
     render(
       <ConfirmDialog
         isOpen={true}
@@ -90,7 +92,9 @@ describe('ConfirmDialog', () => {
       />
     )
 
-    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+    })
     expect(screen.getByRole('button', { name: 'No thanks' })).toBeInTheDocument()
   })
 })
