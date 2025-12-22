@@ -44,7 +44,7 @@ export default function ParticipantsList({
 
   const handleMaxBetChange = (index: number, maxBet: number) => {
     const updated = [...participants]
-    updated[index] = { ...updated[index], maxBet: new Decimal(maxBet) }
+    updated[index] = { ...updated[index], maxBet: new Decimal(maxBet), touched: true }
     onChange(updated)
   }
 
