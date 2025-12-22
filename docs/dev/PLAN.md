@@ -70,10 +70,10 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 11: Sharing Features
 
-- [ ] Implement URL state encoding (JSON → lz-string → base64 → URL hash)
-- [ ] Implement URL state decoding on page load
-- [ ] "Share Wager" button copies URL to clipboard
-- [ ] "Reset Form" clears all fields to defaults
+- [x] Implement URL state encoding (JSON → lz-string → base64 → URL hash)
+- [x] Implement URL state decoding on page load
+- [x] "Share Wager" button copies URL to clipboard
+- [x] "Reset Form" clears all fields to defaults
 
 ## Phase 12: Help/Info Section
 

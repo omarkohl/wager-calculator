@@ -8,21 +8,37 @@ import PredictionsGrid from './components/PredictionsGrid'
 import Resolution from './components/Resolution'
 import { calculateResults } from './modules/brier'
 import type { Participant, Outcome, Prediction, CalculationResult } from './types/wager'
+import {
+  getDefaultState,
+  serializeState,
+  deserializeState,
+  decodeStateFromURL,
+  getShareableURL,
+} from './utils/urlState'
 
 function App() {
-  const [claim, setClaim] = useState('')
-  const [details, setDetails] = useState('')
-  const [stakes, setStakes] = useState('usd')
-  const [participants, setParticipants] = useState<Participant[]>([
-    { id: crypto.randomUUID(), name: 'Artem', maxBet: new Decimal(0) },
-    { id: crypto.randomUUID(), name: 'Baani', maxBet: new Decimal(0) },
-  ])
-  const [outcomes, setOutcomes] = useState<Outcome[]>([
-    { id: crypto.randomUUID(), label: 'Yes' },
-    { id: crypto.randomUUID(), label: 'No' },
-  ])
-  const [predictions, setPredictions] = useState<Prediction[]>([])
-  const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(null)
+  // Initialize state from URL if available, otherwise use defaults
+  // Compute once and store in a ref-like pattern using lazy initialization
+  const getInitialStateOnce = () => {
+    const urlState = decodeStateFromURL(window.location.hash)
+    if (urlState) {
+      return deserializeState(urlState)
+    }
+    const defaultState = getDefaultState()
+    return deserializeState(defaultState)
+  }
+
+  const initialState = getInitialStateOnce()
+
+  const [claim, setClaim] = useState(initialState.claim)
+  const [details, setDetails] = useState(initialState.details)
+  const [stakes, setStakes] = useState(initialState.stakes)
+  const [participants, setParticipants] = useState<Participant[]>(initialState.participants)
+  const [outcomes, setOutcomes] = useState<Outcome[]>(initialState.outcomes)
+  const [predictions, setPredictions] = useState<Prediction[]>(initialState.predictions)
+  const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(
+    initialState.resolvedOutcomeId
+  )
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
 
@@ -84,6 +100,44 @@ function App() {
     }
   }, [participants, outcomes, predictions])
 
+  // Reset form to defaults
+  const handleReset = () => {
+    const defaultState = getDefaultState()
+    const deserialized = deserializeState(defaultState)
+    setClaim(deserialized.claim)
+    setDetails(deserialized.details)
+    setStakes(deserialized.stakes)
+    setParticipants(deserialized.participants)
+    setOutcomes(deserialized.outcomes)
+    setPredictions(deserialized.predictions)
+    setResolvedOutcomeId(deserialized.resolvedOutcomeId)
+    window.location.hash = ''
+  }
+
+  // Share wager by copying URL to clipboard
+  const handleShare = async () => {
+    const state = serializeState(
+      claim,
+      details,
+      stakes,
+      participants,
+      outcomes,
+      predictions,
+      resolvedOutcomeId
+    )
+    const url = getShareableURL(state)
+
+    try {
+      await navigator.clipboard.writeText(url)
+      // Update URL hash without reloading
+      window.history.replaceState(null, '', url)
+    } catch (error) {
+      console.error('Failed to copy URL to clipboard:', error)
+      // Fallback: just update the URL
+      window.history.replaceState(null, '', url)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -98,12 +152,14 @@ function App() {
           <div className="mb-6 flex justify-end gap-3">
             <button
               type="button"
+              onClick={handleReset}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
               Reset Form
             </button>
             <button
               type="button"
+              onClick={handleShare}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
               Share Wager
