@@ -11,7 +11,10 @@ describe('App', () => {
 
   it('renders action buttons', () => {
     render(<App />)
-    expect(screen.getByText('Reset')).toBeInTheDocument()
-    expect(screen.getByText('Share')).toBeInTheDocument()
+    // Buttons appear twice (top and bottom of form)
+    const resetButtons = screen.getAllByRole('button', { name: /Reset/ })
+    const shareButtons = screen.getAllByRole('button', { name: /Share/ })
+    expect(resetButtons.length).toBeGreaterThanOrEqual(1)
+    expect(shareButtons.length).toBeGreaterThanOrEqual(1)
   })
 })
