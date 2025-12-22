@@ -77,9 +77,9 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 12: Help/Info Section
 
-- [ ] Headless UI Disclosure (collapsible) explaining Brier scoring
-- [ ] Include worked example
-- [ ] Add FAQ
+- [x] Headless UI Disclosure (collapsible) explaining Brier scoring
+- [x] Include worked example
+- [x] Add FAQ
 
 ## Phase 13: PWA Setup
 

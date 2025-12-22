@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Decimal from 'decimal.js'
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import InlineEdit from './components/InlineEdit'
 import StakesSelector from './components/StakesSelector'
 import ParticipantsList from './components/ParticipantsList'
 import OutcomesList from './components/OutcomesList'
 import PredictionsGrid from './components/PredictionsGrid'
 import Resolution from './components/Resolution'
+import HelpModal from './components/HelpSection'
 import Footer from './components/Footer'
 import { calculateResults } from './modules/brier'
 import type { Participant, Outcome, Prediction, CalculationResult } from './types/wager'
@@ -40,6 +42,7 @@ function App() {
   const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(
     initialState.resolvedOutcomeId
   )
+  const [isHelpOpen, setIsHelpOpen] = useState(false)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
 
@@ -153,6 +156,14 @@ function App() {
           <div className="mb-6 flex justify-end gap-3">
             <button
               type="button"
+              onClick={() => setIsHelpOpen(true)}
+              className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+            >
+              <QuestionMarkCircleIcon className="h-5 w-5" />
+              Help
+            </button>
+            <button
+              type="button"
               onClick={handleReset}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
@@ -238,6 +249,9 @@ function App() {
           </div>
         </main>
       </div>
+
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
       <Footer commitDate={__COMMIT_DATE__} commitHash={__COMMIT_HASH__} repoUrl={__REPO_URL__} />
     </div>
   )
