@@ -150,7 +150,14 @@ describe('ParticipantsList', () => {
     const onChange = vi.fn()
     const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(100) }]
 
-    render(<ParticipantsList participants={participants} onChange={onChange} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
 
     await user.click(screen.getByRole('button', { name: /add participant/i }))
 
@@ -273,7 +280,14 @@ describe('ParticipantsList', () => {
     const onChange = vi.fn()
     const participants: Participant[] = [{ id: '1', name: 'Artem', maxBet: new Decimal(0) }]
 
-    render(<ParticipantsList participants={participants} onChange={onChange} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
 
     const nameInput = screen.getByDisplayValue('Artem')
     await user.click(nameInput)

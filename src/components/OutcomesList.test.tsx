@@ -71,7 +71,7 @@ describe('OutcomesList', () => {
     const onChange = vi.fn()
     const outcomes: Outcome[] = [{ id: '1', label: 'Yes' }]
 
-    render(<OutcomesList outcomes={outcomes} onChange={onChange} />)
+    render(<OutcomesList outcomes={outcomes} predictions={emptyPredictions} onChange={onChange} />)
 
     await user.click(screen.getByRole('button', { name: /add outcome/i }))
 
