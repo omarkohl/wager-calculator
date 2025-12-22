@@ -261,40 +261,67 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       <div>
                         <h4 className="mb-2 text-sm font-semibold">Worked Example</h4>
                         <p className="mb-2 text-sm">
-                          Alice and Bob bet on a coin flip (Heads or Tails). Each bets $10.
+                          Artem, Baani and Chau are hosting a party and they disagree in their
+                          predictions how many people will attend.
+                        </p>
+                        <p className="mb-2 text-sm">
+                          Artem is willing to bet a max of $50, Baani $40 and Chau $30, therefore
+                          the amount that is used is $30 (the minimum of all participants).
+                        </p>
+                        <p className="mb-2 text-sm">
+                          They classify their prediction into three buckets "Less than 5 guests",
+                          "Between 5 and 10 guests" and "More than 10 guests".
                         </p>
                         <div className="space-y-2 text-sm">
                           <div>
                             <strong>Predictions:</strong>
                             <ul className="ml-6 list-disc">
-                              <li>Alice: 60% Heads, 40% Tails</li>
-                              <li>Bob: 50% Heads, 50% Tails</li>
+                              <li>
+                                Artem: 70% less than 5 guests, 20% 5-10 guests and 10% more than 10
+                                guests.
+                              </li>
+                              <li>
+                                Baani: 10% less than 5 guests, 80% 5-10 guests and 10% more than 10
+                                guests.
+                              </li>
+                              <li>
+                                Chau: 20% less than 5 guests, 60% 5-10 guests and 20% more than 10
+                                guests.
+                              </li>
                             </ul>
                           </div>
                           <div>
-                            <strong>Outcome:</strong> Heads occurs
+                            <strong>Outcome:</strong> 9 people come to the party.
                           </div>
                           <div>
                             <strong>Brier Scores:</strong>
                             <ul className="ml-6 list-disc">
                               <li>
-                                Alice: (0.6 - 1)² + (0.4 - 0)² = 0.16 + 0.16 = <strong>0.32</strong>
+                                Artem: (0.70 - 0)² + (0.20 - 1)² + (0.10 - 0)² = 0.49 + 0.64 + 0.01
+                                = <strong>1.14</strong>
                               </li>
                               <li>
-                                Bob: (0.5 - 1)² + (0.5 - 0)² = 0.25 + 0.25 = <strong>0.50</strong>
+                                Baani: (0.10 - 0)² + (0.80 - 1)² + (0.10 - 0)² = 0.01 + 0.04 + 0.01
+                                = <strong>0.06</strong>
+                              </li>
+                              <li>
+                                Chau: (0.20 - 0)² + (0.60 - 1)² + (0.20 - 0)² = 0.04 + 0.16 + 0.04 ={' '}
+                                <strong>0.24</strong>
                               </li>
                             </ul>
                           </div>
                           <div>
                             <strong>Payouts:</strong>
                             <ul className="ml-6 list-disc">
-                              <li>Alice: $10 × (0.50 - 0.32) / 2 = $10 × 0.09 = $0.90</li>
-                              <li>Bob: $10 × (0.32 - 0.50) / 2 = $10 × -0.09 = -$0.90</li>
+                              <li>Artem: $30 × (0.15 - 1.14) / 2 = $30 × -0.495 = -$14.85</li>
+                              <li>Baani: $30 × (0.69 - 0.06) / 2 = $30 × 0.315 = $9.45</li>
+                              <li>Chau: $30 × (0.60 - 0.24) / 2 = $30 × 0.18 = $5.40</li>
                             </ul>
                           </div>
                           <p className="pt-2">
-                            Alice predicted Heads with higher confidence and wins $0.90. Bob pays
-                            $0.90. The payouts sum to zero.
+                            Baani had the best (lowest) Brier score and receives $9.45; Chau
+                            receives $5.40. Artem had the worst (highest) Brier score and pays out
+                            to both of them.
                           </p>
                         </div>
                       </div>
