@@ -40,7 +40,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Traditional even-odds betting (e.g., "loser pays winner $10") only works well
                     for binary outcomes with two participants who strongly disagree. This app
                     handles nuanced situations: multiple participants and outcomes, close
@@ -56,12 +56,40 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
+                    <span>Are you promoting gambling?</span>
+                    <ChevronDownIcon
+                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
+                    />
+                  </DisclosureButton>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p className="mb-3">
+                      No. Gambling is an addiction that destroys lives, and that's not what this app
+                      is about. The purpose here is accountability: helping people reflect on the
+                      confidence behind their claims and predictions. When there's even a small stake
+                      involved, people tend to moderate outlandish predictions and think more
+                      carefully about what they actually believe.
+                    </p>
+                    <p>
+                      That being said, you don't have to bet money. This app supports stakes like
+                      "cookies," "hugs," or "I was wrong" (meaning the loser must tell the winner "I
+                      was wrong!" several times). You can even specify something custom using
+                      "other" and explain it in the wager details.
+                    </p>
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure>
+              {({ open }) => (
+                <>
+                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
                     <span>Why use Brier scoring?</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Brier scoring is a "proper scoring rule," meaning participants maximize their
                     expected payout by reporting their true beliefs. This makes wagers fair and
                     incentivizes honesty.
@@ -79,7 +107,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     If all participants have identical predictions, everyone gets the same Brier
                     score. Since payouts are based on differences in scores, all payouts will be
                     zero.
@@ -97,7 +125,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     The amount in play is the minimum of all participants' maximum bets. If Alice
                     bets up to $10, Bob up to $15, and Carol up to $20, the amount in play is $10.
                   </DisclosurePanel>
@@ -114,7 +142,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Probabilities represent your belief about which outcome will occur. Since
                     exactly one outcome must occur, your probabilities should sum to 100%. The app
                     can normalize them for you if needed.
@@ -132,7 +160,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     After calculating payouts, the app minimizes the number of transactions needed
                     to achieve everyone's net payout. For example, if Alice owes Bob $5 and Bob owes
                     Carol $5, the app simplifies it to Alice pays Carol $5 directly.
@@ -150,7 +178,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Yes! Brier scoring works for any number of mutually exclusive outcomes. Add up
                     to 8 outcomes using the "Add Outcome" button.
                   </DisclosurePanel>
@@ -167,7 +195,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
-                  <DisclosurePanel className="px-4 pt-3 pb-3 text-xs text-gray-700">
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     No data is stored on any server. All calculations happen in your browser. When
                     you share a wager, all the data is encoded in the URL itself.
                   </DisclosurePanel>
@@ -186,20 +214,20 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   </DisclosureButton>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     <div className="space-y-4">
-                      <p className="text-xs">
+                      <p className="text-sm">
                         Brier scoring is a proper scoring rule that incentivizes honest probability
                         assessments. Lower scores are better (0 = perfect, 2 = worst possible).
                       </p>
 
                       <div>
-                        <h4 className="mb-2 text-xs font-semibold">The Formula</h4>
-                        <p className="mb-2 text-xs">
+                        <h4 className="mb-2 text-sm font-semibold">The Formula</h4>
+                        <p className="mb-2 text-sm">
                           For each participant, we calculate their Brier score:
                         </p>
                         <div className="rounded bg-gray-100 p-3 font-mono text-xs">
                           BS = (1/N) × Σ(t=1 to N) Σ(i=1 to R) (f_ti - o_ti)²
                         </div>
-                        <ul className="mt-2 ml-6 list-disc space-y-1 text-xs">
+                        <ul className="mt-2 ml-6 list-disc space-y-1 text-sm">
                           <li>
                             <strong>N</strong> = number of instances (always 1 for a single wager)
                           </li>
@@ -217,25 +245,25 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                       </div>
 
                       <div>
-                        <h4 className="mb-2 text-xs font-semibold">Calculating Payouts</h4>
-                        <p className="mb-2 text-xs">
+                        <h4 className="mb-2 text-sm font-semibold">Calculating Payouts</h4>
+                        <p className="mb-2 text-sm">
                           Payouts reward better predictions relative to other participants:
                         </p>
                         <div className="rounded bg-gray-100 p-3 font-mono text-xs">
                           Payout = (amount_in_play) × (avg_others_brier - my_brier) / 2
                         </div>
-                        <p className="mt-2 text-xs">
+                        <p className="mt-2 text-sm">
                           Division by 2 ensures the maximum payout cannot exceed your maximum bet
                           (since the worst possible Brier score is 2).
                         </p>
                       </div>
 
                       <div>
-                        <h4 className="mb-2 text-xs font-semibold">Worked Example</h4>
-                        <p className="mb-2 text-xs">
+                        <h4 className="mb-2 text-sm font-semibold">Worked Example</h4>
+                        <p className="mb-2 text-sm">
                           Alice and Bob bet on a coin flip (Heads or Tails). Each bets $10.
                         </p>
-                        <div className="space-y-2 text-xs">
+                        <div className="space-y-2 text-sm">
                           <div>
                             <strong>Predictions:</strong>
                             <ul className="ml-6 list-disc">
