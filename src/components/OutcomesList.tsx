@@ -1,13 +1,17 @@
-import type { Outcome } from '../types/wager'
+import { useState } from 'react'
+import type { Outcome, Prediction } from '../types/wager'
+import ConfirmDialog from './ConfirmDialog'
 
 interface OutcomesListProps {
   outcomes: Outcome[]
+  predictions: Prediction[]
   onChange: (outcomes: Outcome[]) => void
 }
 
 const PLACEHOLDER_LABELS = ['Yes', 'No']
 
-export default function OutcomesList({ outcomes, onChange }: OutcomesListProps) {
+export default function OutcomesList({ outcomes, predictions, onChange }: OutcomesListProps) {
+  const [deleteConfirm, setDeleteConfirm] = useState<{ index: number; label: string } | null>(null)
   const handleLabelChange = (index: number, label: string, previousValue: string) => {
     const updated = [...outcomes]
     const outcome = updated[index]
@@ -38,7 +42,20 @@ export default function OutcomesList({ outcomes, onChange }: OutcomesListProps) 
   }
 
   const handleRemoveOutcome = (index: number) => {
+    const outcome = outcomes[index]
+    const hasModifications =
+      outcome.touched || predictions.some(p => p.outcomeId === outcome.id && p.touched)
+
+    if (hasModifications) {
+      setDeleteConfirm({ index, label: outcome.label || 'this outcome' })
+    } else {
+      confirmRemoveOutcome(index)
+    }
+  }
+
+  const confirmRemoveOutcome = (index: number) => {
     onChange(outcomes.filter((_, i) => i !== index))
+    setDeleteConfirm(null)
   }
 
   return (
@@ -64,7 +81,7 @@ export default function OutcomesList({ outcomes, onChange }: OutcomesListProps) 
               type="button"
               onClick={() => handleRemoveOutcome(index)}
               disabled={outcomes.length <= 2}
-              className="rounded-md border border-gray-300 bg-white p-2 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+              className="rounded-md border p-2 focus:ring-2 focus:ring-offset-2 focus:outline-none enabled:border-red-300 enabled:bg-white enabled:text-red-600 enabled:hover:bg-red-50 enabled:focus:ring-red-500 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-white disabled:text-gray-400 disabled:hover:bg-white"
               aria-label={`Remove ${outcome.label || 'outcome'}`}
             >
               <svg
@@ -94,6 +111,17 @@ export default function OutcomesList({ outcomes, onChange }: OutcomesListProps) 
         >
           Add Outcome
         </button>
+      )}
+
+      {deleteConfirm && (
+        <ConfirmDialog
+          isOpen={true}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={() => confirmRemoveOutcome(deleteConfirm.index)}
+          title="Delete Outcome?"
+          message={`Are you sure you want to delete "${deleteConfirm.label}"? This will remove all predictions for this outcome.`}
+          confirmLabel="Delete"
+        />
       )}
     </div>
   )

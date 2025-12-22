@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import Decimal from 'decimal.js'
-import type { Participant } from '../types/wager'
+import type { Participant, Prediction } from '../types/wager'
 import { getStakesSymbol } from '../utils/stakes'
+import ConfirmDialog from './ConfirmDialog'
 
 interface ParticipantsListProps {
   participants: Participant[]
+  predictions: Prediction[]
   onChange: (participants: Participant[]) => void
   stakes: string
 }
@@ -12,9 +15,11 @@ const PLACEHOLDER_NAMES = ['Artem', 'Baani']
 
 export default function ParticipantsList({
   participants,
+  predictions,
   onChange,
   stakes,
 }: ParticipantsListProps) {
+  const [deleteConfirm, setDeleteConfirm] = useState<{ index: number; name: string } | null>(null)
   const handleNameChange = (index: number, name: string, previousValue: string) => {
     const updated = [...participants]
     const participant = updated[index]
@@ -52,7 +57,20 @@ export default function ParticipantsList({
   }
 
   const handleRemoveParticipant = (index: number) => {
+    const participant = participants[index]
+    const hasModifications =
+      participant.touched || predictions.some(p => p.participantId === participant.id && p.touched)
+
+    if (hasModifications) {
+      setDeleteConfirm({ index, name: participant.name || 'this participant' })
+    } else {
+      confirmRemoveParticipant(index)
+    }
+  }
+
+  const confirmRemoveParticipant = (index: number) => {
     onChange(participants.filter((_, i) => i !== index))
+    setDeleteConfirm(null)
   }
 
   return (
@@ -90,7 +108,7 @@ export default function ParticipantsList({
               type="button"
               onClick={() => handleRemoveParticipant(index)}
               disabled={participants.length <= 2}
-              className="rounded-md border border-gray-300 bg-white p-2 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+              className="rounded-md border p-2 focus:ring-2 focus:ring-offset-2 focus:outline-none enabled:border-red-300 enabled:bg-white enabled:text-red-600 enabled:hover:bg-red-50 enabled:focus:ring-red-500 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-white disabled:text-gray-400 disabled:hover:bg-white"
               aria-label={`Remove ${participant.name || 'participant'}`}
             >
               <svg
@@ -120,6 +138,17 @@ export default function ParticipantsList({
         >
           Add Participant
         </button>
+      )}
+
+      {deleteConfirm && (
+        <ConfirmDialog
+          isOpen={true}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={() => confirmRemoveParticipant(deleteConfirm.index)}
+          title="Delete Participant?"
+          message={`Are you sure you want to delete ${deleteConfirm.name}? This will remove all their predictions.`}
+          confirmLabel="Delete"
+        />
       )}
     </div>
   )

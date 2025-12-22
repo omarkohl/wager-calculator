@@ -8,6 +8,7 @@ import OutcomesList from './components/OutcomesList'
 import PredictionsGrid from './components/PredictionsGrid'
 import Resolution from './components/Resolution'
 import HelpModal from './components/HelpSection'
+import ConfirmDialog from './components/ConfirmDialog'
 import Footer from './components/Footer'
 import { calculateResults } from './modules/brier'
 import type { Participant, Outcome, Prediction, CalculationResult } from './types/wager'
@@ -43,6 +44,7 @@ function App() {
     initialState.resolvedOutcomeId
   )
   const [isHelpOpen, setIsHelpOpen] = useState(false)
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
 
@@ -106,6 +108,10 @@ function App() {
 
   // Reset form to defaults
   const handleReset = () => {
+    setIsResetConfirmOpen(true)
+  }
+
+  const confirmReset = () => {
     const defaultState = getDefaultState()
     const deserialized = deserializeState(defaultState)
     setClaim(deserialized.claim)
@@ -165,7 +171,7 @@ function App() {
             <button
               type="button"
               onClick={handleReset}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
             >
               Reset Form
             </button>
@@ -214,6 +220,7 @@ function App() {
               </label>
               <ParticipantsList
                 participants={participants}
+                predictions={predictions}
                 onChange={setParticipants}
                 stakes={stakes}
               />
@@ -221,7 +228,7 @@ function App() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Outcomes</label>
-              <OutcomesList outcomes={outcomes} onChange={setOutcomes} />
+              <OutcomesList outcomes={outcomes} predictions={predictions} onChange={setOutcomes} />
             </div>
 
             <div>
@@ -251,6 +258,15 @@ function App() {
       </div>
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+      <ConfirmDialog
+        isOpen={isResetConfirmOpen}
+        onClose={() => setIsResetConfirmOpen(false)}
+        onConfirm={confirmReset}
+        title="Reset Form?"
+        message="This will clear all your data and return the form to its default state. This action cannot be undone."
+        confirmLabel="Reset"
+      />
 
       <Footer commitDate={__COMMIT_DATE__} commitHash={__COMMIT_HASH__} repoUrl={__REPO_URL__} />
     </div>

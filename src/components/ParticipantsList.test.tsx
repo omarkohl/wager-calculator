@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Decimal from 'decimal.js'
 import ParticipantsList from './ParticipantsList'
-import type { Participant } from '../types/wager'
+import type { Participant, Prediction } from '../types/wager'
+
+const emptyPredictions: Prediction[] = []
 
 describe('ParticipantsList', () => {
   it('renders all participants with their names', () => {
@@ -11,7 +13,14 @@ describe('ParticipantsList', () => {
       { id: '1', name: 'Alice', maxBet: new Decimal(100) },
       { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     expect(screen.getByDisplayValue('Alice')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Bob')).toBeInTheDocument()
@@ -22,7 +31,14 @@ describe('ParticipantsList', () => {
       { id: '1', name: 'Alice', maxBet: new Decimal(100) },
       { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     expect(screen.getByDisplayValue('100')).toBeInTheDocument()
     expect(screen.getByDisplayValue('50')).toBeInTheDocument()
@@ -36,7 +52,12 @@ describe('ParticipantsList', () => {
     })
 
     const { rerender } = render(
-      <ParticipantsList participants={currentParticipants} onChange={onChange} stakes="usd" />
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
     )
 
     const nameInput = screen.getByPlaceholderText('Participant name')
@@ -44,7 +65,12 @@ describe('ParticipantsList', () => {
     for (const char of 'Charlie') {
       await user.type(nameInput, char)
       rerender(
-        <ParticipantsList participants={currentParticipants} onChange={onChange} stakes="usd" />
+        <ParticipantsList
+          participants={currentParticipants}
+          predictions={emptyPredictions}
+          onChange={onChange}
+          stakes="usd"
+        />
       )
     }
 
@@ -59,7 +85,12 @@ describe('ParticipantsList', () => {
     })
 
     const { rerender } = render(
-      <ParticipantsList participants={currentParticipants} onChange={onChange} stakes="usd" />
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
     )
 
     const maxBetInputs = screen.getAllByPlaceholderText('0')
@@ -67,7 +98,12 @@ describe('ParticipantsList', () => {
     for (const char of '200') {
       await user.type(maxBetInputs[0], char)
       rerender(
-        <ParticipantsList participants={currentParticipants} onChange={onChange} stakes="usd" />
+        <ParticipantsList
+          participants={currentParticipants}
+          predictions={emptyPredictions}
+          onChange={onChange}
+          stakes="usd"
+        />
       )
     }
 
@@ -79,7 +115,14 @@ describe('ParticipantsList', () => {
       { id: '1', name: 'Alice', maxBet: new Decimal(100) },
       { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     expect(screen.getByRole('button', { name: /add participant/i })).toBeInTheDocument()
   })
@@ -90,7 +133,14 @@ describe('ParticipantsList', () => {
       name: `Person ${i + 1}`,
       maxBet: new Decimal(100),
     }))
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     expect(screen.queryByRole('button', { name: /add participant/i })).not.toBeInTheDocument()
   })
@@ -118,7 +168,14 @@ describe('ParticipantsList', () => {
       { id: '2', name: 'Bob', maxBet: new Decimal(50) },
       { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
     ]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     const removeButtons = screen.getAllByRole('button', { name: /remove/i })
     expect(removeButtons).toHaveLength(3)
@@ -129,7 +186,14 @@ describe('ParticipantsList', () => {
       { id: '1', name: 'Alice', maxBet: new Decimal(100) },
       { id: '2', name: 'Bob', maxBet: new Decimal(50) },
     ]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     const removeButtons = screen.getAllByRole('button', { name: /remove/i })
     expect(removeButtons).toHaveLength(2)
@@ -144,7 +208,14 @@ describe('ParticipantsList', () => {
       { id: '2', name: 'Bob', maxBet: new Decimal(50) },
       { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
     ]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     const removeButtons = screen.getAllByRole('button', { name: /remove/i })
     removeButtons.forEach(button => {
@@ -152,23 +223,30 @@ describe('ParticipantsList', () => {
     })
   })
 
-  it('removes a participant when remove button is clicked', async () => {
+  it('removes a participant when remove button is clicked (untouched)', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
     const participants: Participant[] = [
-      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
-      { id: '2', name: 'Bob', maxBet: new Decimal(50) },
-      { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: false },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
     ]
 
-    render(<ParticipantsList participants={participants} onChange={onChange} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
 
     const removeButtons = screen.getAllByRole('button', { name: /remove/i })
     await user.click(removeButtons[1]) // Remove Bob
 
     expect(onChange).toHaveBeenCalledWith([
-      { id: '1', name: 'Alice', maxBet: new Decimal(100) },
-      { id: '3', name: 'Charlie', maxBet: new Decimal(75) },
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
     ])
   })
 
@@ -177,7 +255,14 @@ describe('ParticipantsList', () => {
       { id: '1', name: 'Artem', maxBet: new Decimal(0) },
       { id: '2', name: 'Baani', maxBet: new Decimal(0) },
     ]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     expect(screen.getByDisplayValue('Artem')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Baani')).toBeInTheDocument()
@@ -201,15 +286,180 @@ describe('ParticipantsList', () => {
 
   it('displays currency symbol for monetary stakes', () => {
     const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(100) }]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="usd" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="usd"
+      />
+    )
 
     expect(screen.getByText('$')).toBeInTheDocument()
   })
 
   it('displays unit label for non-monetary stakes', () => {
     const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(10) }]
-    render(<ParticipantsList participants={participants} onChange={vi.fn()} stakes="cookies" />)
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={vi.fn()}
+        stakes="cookies"
+      />
+    )
 
     expect(screen.getByText('cookies')).toBeInTheDocument()
+  })
+
+  it('shows confirmation dialog when deleting touched participant', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const participants: Participant[] = [
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: true },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
+    ]
+
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    const removeButtons = screen.getAllByRole('button', { name: /remove/i })
+    await user.click(removeButtons[0]) // Try to remove Alice
+
+    expect(screen.getByText('Delete Participant?')).toBeInTheDocument()
+    expect(screen.getByText(/Are you sure you want to delete Alice/i)).toBeInTheDocument()
+  })
+
+  it('shows confirmation dialog when deleting participant with touched predictions', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const participants: Participant[] = [
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: false },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
+    ]
+    const predictions: Prediction[] = [
+      {
+        participantId: '1',
+        outcomeId: 'outcome1',
+        probability: new Decimal(50),
+        touched: true,
+      },
+    ]
+
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={predictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    const removeButtons = screen.getAllByRole('button', { name: /remove/i })
+    await user.click(removeButtons[0]) // Try to remove Alice
+
+    expect(screen.getByText('Delete Participant?')).toBeInTheDocument()
+  })
+
+  it('deletes participant without confirmation when untouched', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const participants: Participant[] = [
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: false },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
+    ]
+    const predictions: Prediction[] = [
+      {
+        participantId: '1',
+        outcomeId: 'outcome1',
+        probability: new Decimal(50),
+        touched: false,
+      },
+    ]
+
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={predictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    const removeButtons = screen.getAllByRole('button', { name: /remove/i })
+    await user.click(removeButtons[1]) // Remove Bob
+
+    expect(onChange).toHaveBeenCalledWith([
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
+    ])
+    expect(screen.queryByText('Delete Participant?')).not.toBeInTheDocument()
+  })
+
+  it('deletes participant after confirmation', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const participants: Participant[] = [
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: true },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
+    ]
+
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    const removeButtons = screen.getAllByRole('button', { name: /remove/i })
+    await user.click(removeButtons[0]) // Try to remove Alice
+
+    // Confirm deletion
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+
+    expect(onChange).toHaveBeenCalledWith([
+      { id: '2', name: 'Bob', maxBet: new Decimal(50), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
+    ])
+  })
+
+  it('cancels participant deletion when cancel is clicked', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const participants: Participant[] = [
+      { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: true },
+      { id: '2', name: 'Bob', maxBet: new Decimal(50), touched: false },
+      { id: '3', name: 'Charlie', maxBet: new Decimal(75), touched: false },
+    ]
+
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    const removeButtons = screen.getAllByRole('button', { name: /remove/i })
+    await user.click(removeButtons[0]) // Try to remove Alice
+
+    // Cancel deletion
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.queryByText('Delete Participant?')).not.toBeInTheDocument()
   })
 })
