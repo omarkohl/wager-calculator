@@ -172,7 +172,7 @@ function Resolution({
                                 : 'font-medium text-red-600'
                           }
                         >
-                          {isPositive && '+'}
+                          {isPositive ? '+' : '-'}
                           {formatAmount(amount)}
                         </span>
                       </div>
