@@ -19,7 +19,7 @@
 
 ## 🎮 Try It Live
 
-**[🔗 Live Demo](https://example.com)** _(Coming soon)_
+**[🔗 Live Demo](https://w.ratfr.de)**
 
 ## 📖 Quick Start
 
