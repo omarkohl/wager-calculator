@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Decimal from 'decimal.js'
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
+import { QuestionMarkCircleIcon, ArrowPathIcon, ShareIcon } from '@heroicons/react/24/outline'
 import InlineEdit from './components/InlineEdit'
 import StakesSelector from './components/StakesSelector'
 import ParticipantsList from './components/ParticipantsList'
@@ -45,6 +45,7 @@ function App() {
   )
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
+  const [showToast, setShowToast] = useState(false)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
 
@@ -141,6 +142,9 @@ function App() {
       await navigator.clipboard.writeText(url)
       // Update URL hash without reloading
       window.history.replaceState(null, '', url)
+      // Show toast
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 2000)
     } catch (error) {
       console.error('Failed to copy URL to clipboard:', error)
       // Fallback: just update the URL
@@ -172,16 +176,18 @@ function App() {
             <button
               type="button"
               onClick={handleReset}
-              className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
             >
-              Reset Form
+              <ArrowPathIcon className="h-5 w-5" />
+              Reset
             </button>
             <button
               type="button"
               onClick={handleShare}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
-              Share Wager
+              <ShareIcon className="h-5 w-5" />
+              Share
             </button>
           </div>
 
@@ -274,6 +280,12 @@ function App() {
         message="This will clear all your data and return the form to its default state. This action cannot be undone."
         confirmLabel="Reset"
       />
+
+      {showToast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+          URL copied to clipboard
+        </div>
+      )}
 
       <Footer commitDate={__COMMIT_DATE__} commitHash={__COMMIT_HASH__} repoUrl={__REPO_URL__} />
     </div>

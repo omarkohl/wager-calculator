@@ -11,7 +11,7 @@ describe('App', () => {
 
   it('renders action buttons', () => {
     render(<App />)
-    expect(screen.getByText('Reset Form')).toBeInTheDocument()
-    expect(screen.getByText('Share Wager')).toBeInTheDocument()
+    expect(screen.getByText('Reset')).toBeInTheDocument()
+    expect(screen.getByText('Share')).toBeInTheDocument()
   })
 })
