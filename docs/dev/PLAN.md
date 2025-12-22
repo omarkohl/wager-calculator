@@ -83,10 +83,10 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 13: PWA Setup
 
-- [ ] Configure vite-plugin-pwa
-- [ ] Create app icons and manifest
-- [ ] Test offline functionality
-- [ ] Test installability
+- [x] Configure vite-plugin-pwa
+- [x] Create app icons and manifest
+- [x] Test offline functionality
+- [x] Test installability
 
 ## Phase 14: Polish & Testing
 
