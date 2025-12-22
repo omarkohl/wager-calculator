@@ -108,7 +108,7 @@ export default function ParticipantsList({
                 value={participant.maxBet.toDecimalPlaces(2).toNumber()}
                 onChange={e => handleMaxBetChange(index, parseFloat(e.target.value) || 0)}
                 min="0"
-                step="0.01"
+                step="1"
                 placeholder="0"
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               />

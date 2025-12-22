@@ -184,7 +184,7 @@ export default function PredictionsGrid({
                         type="number"
                         min="0"
                         max="100"
-                        step="0.01"
+                        step="1"
                         value={prediction.probability.toDecimalPlaces(2).toNumber()}
                         onChange={e =>
                           handleInputChange(
