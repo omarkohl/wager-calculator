@@ -35,18 +35,18 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Why use this app instead of simple even-odds betting?</span>
+                    <span>Why use this app instead of simple 1:1 odds?</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
-                    Traditional even-odds betting (e.g., "loser pays winner $10") only works well
-                    for binary outcomes with two participants who strongly disagree. This app
-                    handles nuanced situations: multiple participants and outcomes, close
-                    predictions (like 60% vs 80% chance of rain), and ensures fair payouts through a
-                    proper scoring rule. This means honestly reporting your true belief maximizes
-                    your expected payout—no need to exaggerate or hedge your predictions.
+                    Simple 1:1 odds betting (e.g., "loser pays winner $10") only works well for
+                    binary outcomes with two participants who strongly disagree. This app handles
+                    nuanced situations: multiple participants and outcomes, close predictions (like
+                    60% vs 80% chance of rain), and ensures fair payouts through a proper scoring
+                    rule. This means honestly reporting your true belief maximizes your expected
+                    payout—no need to exaggerate or hedge your predictions.
                   </DisclosurePanel>
                 </>
               )}
@@ -56,16 +56,16 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Are you promoting gambling?</span>
+                    <span>Are you promoting gambling? No!</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     <p className="mb-3">
-                      No. Gambling is an addiction that destroys lives, and that's not what this app
-                      is about. The purpose here is accountability: helping people reflect on the
-                      confidence behind their claims and predictions. When there's even a small
+                      No. Gambling is an addiction that destroys lives, and encouraging that is not
+                      our intention. The purpose here is accountability: helping people reflect on
+                      the confidence behind their claims and predictions. When there's even a small
                       stake involved, people tend to moderate outlandish predictions and think more
                       carefully about what they actually believe.
                     </p>
@@ -84,6 +84,27 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
+                    <span>Do I have to bet money? No!</span>
+                    <ChevronDownIcon
+                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
+                    />
+                  </DisclosureButton>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p>
+                      No, you don't have to bet money. This app supports stakes like "cookies,"
+                      "hugs," or "I was wrong" (meaning the loser must tell the winner "I was
+                      wrong!" several times). You can even specify something custom using "other"
+                      and explain it in the wager details.
+                    </p>
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure>
+              {({ open }) => (
+                <>
+                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
                     <span>Why use Brier scoring?</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -92,7 +113,10 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Brier scoring is a "proper scoring rule," meaning participants maximize their
                     expected payout by reporting their true beliefs. This makes wagers fair and
-                    incentivizes honesty.
+                    incentivizes honesty. Note that we use the original definition by Brier (with
+                    results between 0 and 2) because it's suitable for multi-categorical oucomes
+                    whereas the most well known definition (with results between 0 and 1) is only
+                    applicable to binary outcomes.
                   </DisclosurePanel>
                 </>
               )}
@@ -144,8 +168,10 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   </DisclosureButton>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Probabilities represent your belief about which outcome will occur. Since
-                    exactly one outcome must occur, your probabilities should sum to 100%. The app
-                    can normalize them for you if needed.
+                    exactly one outcome must occur, your probabilities must sum to 100%. The
+                    outcomes must be exhaustive (i.e. cover all possibilities) and mutually
+                    exclusive (i.e. only one of them resolves as true). If in doubt you can always
+                    add one outcome "Other" for results you did not anticipate.
                   </DisclosurePanel>
                 </>
               )}
@@ -190,7 +216,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Is my data saved?</span>
+                    <span>Is my data stored on the server? No!</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
@@ -236,7 +262,11 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     <div className="space-y-4">
                       <p className="text-sm">
                         Brier scoring is a proper scoring rule that incentivizes honest probability
-                        assessments. Lower scores are better (0 = perfect, 2 = worst possible).
+                        assessments. Lower scores are better (0 = perfect, 2 = worst possible). Note
+                        that we use the original definition by Brier (with results between 0 and 2)
+                        because it's suitable for multi-categorical oucomes whereas the most well
+                        known definition (with results between 0 and 1) is only applicable to binary
+                        outcomes.
                       </p>
 
                       <div>
