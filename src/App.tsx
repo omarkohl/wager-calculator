@@ -176,8 +176,8 @@ function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <header className="mb-8 flex items-center gap-3 sm:gap-4">
+      <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-4 sm:px-6 lg:px-8">
+        <header className="mb-4 flex items-center gap-3 sm:gap-4">
           <img src="/icon-180.png" alt="" className="h-12 w-12 shrink-0 sm:h-16 sm:w-16" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900 sm:text-4xl">Wager Calculator</h1>
