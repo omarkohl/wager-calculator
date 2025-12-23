@@ -111,7 +111,7 @@ export default function ParticipantsList({
                 className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!participant.touched ? 'text-gray-400' : ''}`}
               />
             </div>
-            <div className="flex w-40 items-center gap-2">
+            <div className="flex w-25 items-center gap-2">
               <NumberInput
                 value={participant.maxBet}
                 onChange={value => handleMaxBetChange(index, value)}

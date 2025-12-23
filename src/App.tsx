@@ -186,29 +186,29 @@ function App() {
         </header>
 
         <main className="rounded-lg bg-white p-6 shadow-sm">
-          <div className="mb-6 flex justify-end gap-3">
+          <div className="mb-6 flex justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setIsHelpOpen(true)}
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <QuestionMarkCircleIcon className="h-5 w-5" />
+              <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               FAQ
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ArrowPathIcon className="h-5 w-5" />
+              <ArrowPathIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               Reset
             </button>
             <button
               type="button"
               onClick={handleShare}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ShareIcon className="h-5 w-5" />
+              <ShareIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               Share
             </button>
           </div>
@@ -290,29 +290,29 @@ function App() {
               />
             </div>
           </div>
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="mt-6 flex justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setIsHelpOpen(true)}
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <QuestionMarkCircleIcon className="h-5 w-5" />
+              <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               FAQ
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ArrowPathIcon className="h-5 w-5" />
+              <ArrowPathIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               Reset
             </button>
             <button
               type="button"
               onClick={handleShare}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ShareIcon className="h-5 w-5" />
+              <ShareIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               Share
             </button>
           </div>
