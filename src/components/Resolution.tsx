@@ -262,6 +262,11 @@ function Resolution({
                         )
                       })}
                     </div>
+                    <div className="mt-6">
+                      <p className="text-sm text-gray-600">
+                        <i>See the FAQ to understand how these numbers are calculated.</i>
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
