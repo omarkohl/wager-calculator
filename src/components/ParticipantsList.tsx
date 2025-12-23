@@ -4,6 +4,7 @@ import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Participant, Prediction } from '../types/wager'
 import { getStakesSymbol } from '../utils/stakes'
 import ConfirmDialog from './ConfirmDialog'
+import NumberInput from './NumberInput'
 
 interface ParticipantsListProps {
   participants: Participant[]
@@ -43,9 +44,9 @@ export default function ParticipantsList({
     onChange(updated)
   }
 
-  const handleMaxBetChange = (index: number, maxBet: number) => {
+  const handleMaxBetChange = (index: number, maxBet: Decimal) => {
     const updated = [...participants]
-    updated[index] = { ...updated[index], maxBet: new Decimal(maxBet), touched: true }
+    updated[index] = { ...updated[index], maxBet, touched: true }
     onChange(updated)
   }
 
@@ -103,14 +104,13 @@ export default function ParticipantsList({
               />
             </div>
             <div className="flex w-40 items-center gap-2">
-              <input
-                type="number"
-                value={participant.maxBet.toDecimalPlaces(2).toNumber()}
-                onChange={e => handleMaxBetChange(index, parseFloat(e.target.value) || 0)}
-                min="0"
-                step="1"
+              <NumberInput
+                value={participant.maxBet}
+                onChange={value => handleMaxBetChange(index, value)}
+                min={0}
+                step={1}
                 placeholder="0"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500"
               />
               <span className="text-sm text-gray-600">{getStakesSymbol(stakes)}</span>
             </div>

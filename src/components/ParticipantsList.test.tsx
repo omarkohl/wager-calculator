@@ -95,17 +95,17 @@ describe('ParticipantsList', () => {
 
     const maxBetInputs = screen.getAllByPlaceholderText('0')
 
-    for (const char of '200') {
-      await user.type(maxBetInputs[0], char)
-      rerender(
-        <ParticipantsList
-          participants={currentParticipants}
-          predictions={emptyPredictions}
-          onChange={onChange}
-          stakes="usd"
-        />
-      )
-    }
+    // Type value and blur to trigger onChange
+    await user.type(maxBetInputs[0], '200')
+    await user.tab()
+    rerender(
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
 
     expect(currentParticipants[0].maxBet.toNumber()).toBe(200)
   })
@@ -475,5 +475,41 @@ describe('ParticipantsList', () => {
 
     expect(onChange).not.toHaveBeenCalled()
     expect(screen.queryByText('Delete Participant?')).not.toBeInTheDocument()
+  })
+
+  it('allows clearing max bet field and defaults to 0 on blur', async () => {
+    const user = userEvent.setup()
+    let currentParticipants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(100) }]
+    const onChange = vi.fn(newParticipants => {
+      currentParticipants = newParticipants
+    })
+
+    const { rerender } = render(
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    const maxBetInput = screen.getByDisplayValue('100')
+    await user.clear(maxBetInput)
+
+    // Field should be clearable (empty)
+    expect(maxBetInput).toHaveValue(null)
+
+    // After blur, value should default to 0
+    await user.tab()
+    rerender(
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    expect(currentParticipants[0].maxBet.toNumber()).toBe(0)
   })
 })

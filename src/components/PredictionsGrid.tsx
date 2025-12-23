@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 import Decimal from 'decimal.js'
-import { Input } from '@headlessui/react'
 import type { Participant, Outcome, Prediction } from '../types/wager'
 import { autoDistribute } from '../utils/autoDistribute'
+import NumberInput from './NumberInput'
 
 interface PredictionsGridProps {
   participants: Participant[]
@@ -59,7 +59,7 @@ export default function PredictionsGrid({
     // Auto-distribute already handled in handleSliderChange
   }
 
-  const handleInputChange = (participantId: string, outcomeId: string, probability: number) => {
+  const handleInputChange = (participantId: string, outcomeId: string, probability: Decimal) => {
     const updated = [...predictions]
     const index = updated.findIndex(
       p => p.participantId === participantId && p.outcomeId === outcomeId
@@ -68,7 +68,7 @@ export default function PredictionsGrid({
     const newPrediction: Prediction = {
       participantId,
       outcomeId,
-      probability: new Decimal(probability),
+      probability,
       touched: true,
     }
 
@@ -180,19 +180,12 @@ export default function PredictionsGrid({
                     />
 
                     <div className="flex shrink-0 items-center gap-0.5">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={prediction.probability.toDecimalPlaces(2).toNumber()}
-                        onChange={e =>
-                          handleInputChange(
-                            participant.id,
-                            outcome.id,
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
+                      <NumberInput
+                        value={prediction.probability}
+                        onChange={value => handleInputChange(participant.id, outcome.id, value)}
+                        min={0}
+                        max={100}
+                        step={1}
                         className={`w-12 rounded-md border border-gray-300 px-1 py-1 text-sm focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500 sm:w-24 sm:px-2 ${!prediction.touched ? 'text-gray-400' : ''}`}
                       />
                       <span className="text-xs text-gray-600 sm:text-sm">%</span>
