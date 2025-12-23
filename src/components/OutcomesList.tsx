@@ -10,7 +10,7 @@ interface OutcomesListProps {
   onPredictionsChange?: (predictions: Prediction[]) => void
 }
 
-const PLACEHOLDER_LABELS = ['Yes', 'No']
+const PLACEHOLDER_LABELS = ['Yes', 'No', 'Sunny', 'Rainy', 'Cloudy', 'Windy', 'Snowy', 'Foggy']
 
 export default function OutcomesList({
   outcomes,
@@ -40,10 +40,13 @@ export default function OutcomesList({
   }
 
   const handleAddOutcome = () => {
+    const nextIndex = outcomes.length
+    const defaultLabel = nextIndex < PLACEHOLDER_LABELS.length ? PLACEHOLDER_LABELS[nextIndex] : ''
+
     const newOutcome: Outcome = {
       id: crypto.randomUUID(),
-      label: '',
-      touched: true, // New outcomes are considered touched
+      label: defaultLabel,
+      touched: false, // New outcomes with default labels are untouched
     }
     onChange([...outcomes, newOutcome])
   }

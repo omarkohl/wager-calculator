@@ -76,7 +76,10 @@ describe('OutcomesList', () => {
     await user.click(screen.getByRole('button', { name: /add outcome/i }))
 
     expect(onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([{ id: '1', label: 'Yes' }, expect.objectContaining({ label: '' })])
+      expect.arrayContaining([
+        { id: '1', label: 'Yes' },
+        expect.objectContaining({ label: 'No', touched: false }),
+      ])
     )
   })
 
@@ -265,5 +268,84 @@ describe('OutcomesList', () => {
 
     expect(onChange).not.toHaveBeenCalled()
     expect(screen.queryByText('Delete Outcome?')).not.toBeInTheDocument()
+  })
+
+  it('adds third outcome with default label "Sunny"', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const outcomes: Outcome[] = [
+      { id: '1', label: 'Yes' },
+      { id: '2', label: 'No' },
+    ]
+
+    render(<OutcomesList outcomes={outcomes} predictions={emptyPredictions} onChange={onChange} />)
+
+    await user.click(screen.getByRole('button', { name: /add outcome/i }))
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        { id: '1', label: 'Yes' },
+        { id: '2', label: 'No' },
+        expect.objectContaining({ label: 'Sunny', touched: false }),
+      ])
+    )
+  })
+
+  it('adds outcomes with weather-themed default labels in order', async () => {
+    const user = userEvent.setup()
+    let currentOutcomes: Outcome[] = [
+      { id: '1', label: 'Yes' },
+      { id: '2', label: 'No' },
+    ]
+    const onChange = vi.fn(newOutcomes => {
+      currentOutcomes = newOutcomes
+    })
+
+    const { rerender } = render(
+      <OutcomesList outcomes={currentOutcomes} predictions={emptyPredictions} onChange={onChange} />
+    )
+
+    // Add third outcome - should be Sunny
+    await user.click(screen.getByRole('button', { name: /add outcome/i }))
+    rerender(
+      <OutcomesList outcomes={currentOutcomes} predictions={emptyPredictions} onChange={onChange} />
+    )
+    expect(currentOutcomes[2].label).toBe('Sunny')
+
+    // Add fourth outcome - should be Rainy
+    await user.click(screen.getByRole('button', { name: /add outcome/i }))
+    rerender(
+      <OutcomesList outcomes={currentOutcomes} predictions={emptyPredictions} onChange={onChange} />
+    )
+    expect(currentOutcomes[3].label).toBe('Rainy')
+
+    // Add fifth outcome - should be Cloudy
+    await user.click(screen.getByRole('button', { name: /add outcome/i }))
+    rerender(
+      <OutcomesList outcomes={currentOutcomes} predictions={emptyPredictions} onChange={onChange} />
+    )
+    expect(currentOutcomes[4].label).toBe('Cloudy')
+  })
+
+  it('new outcomes with default labels should be clearable on first input', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const outcomes: Outcome[] = [
+      { id: '1', label: 'Yes' },
+      { id: '2', label: 'No' },
+      { id: '3', label: 'Sunny', touched: false },
+    ]
+
+    render(<OutcomesList outcomes={outcomes} predictions={emptyPredictions} onChange={onChange} />)
+
+    const sunnyInput = screen.getByDisplayValue('Sunny')
+    await user.click(sunnyInput)
+    await user.type(sunnyInput, 'X')
+
+    expect(onChange).toHaveBeenLastCalledWith([
+      { id: '1', label: 'Yes' },
+      { id: '2', label: 'No' },
+      { id: '3', label: 'X', touched: true },
+    ])
   })
 })
