@@ -56,18 +56,19 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Are you promoting gambling? No!</span>
+                    <span>Are you promoting gambling? No.</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     <p className="mb-3">
-                      No. Gambling is an addiction that destroys lives, and encouraging that is not
-                      our intention. The purpose here is accountability: helping people reflect on
-                      the confidence behind their claims and predictions. When there's even a small
-                      stake involved, people tend to moderate outlandish predictions and think more
-                      carefully about what they actually believe.
+                      Gambling addiction is something that can destroy lives and is therefore
+                      nothing we want to encourage! If you may have a compulsive gambling habit
+                      please do not use this app. The purpose of Wager Calculator is accountability:
+                      helping people reflect on the confidence behind their claims and predictions.
+                      When there's even a small stake involved, people tend to moderate outlandish
+                      predictions and think more carefully about what they actually believe.
                     </p>
                     <p>
                       That being said, you don't have to bet money. This app supports stakes like
@@ -84,7 +85,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Do I have to bet money? No!</span>
+                    <span>Do I have to bet money? No.</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
@@ -112,11 +113,21 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   </DisclosureButton>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Brier scoring is a "proper scoring rule," meaning participants maximize their
-                    expected payout by reporting their true beliefs. This makes wagers fair and
-                    incentivizes honesty. Note that we use the original definition by Brier (with
-                    results between 0 and 2) because it's suitable for multi-categorical oucomes
-                    whereas the most well known definition (with results between 0 and 1) is only
-                    applicable to binary outcomes.
+                    expected payout by reporting their true beliefs. They will always perform worse
+                    if they make a prediction that does not match their real belief. This makes
+                    wagers fair and incentivizes honesty. Note that we use the original definition
+                    by Brier (with results between 0 and 2) because it's suitable for
+                    multi-categorical oucomes whereas the most well known definition (with results
+                    between 0 and 1) is only applicable to binary outcomes. You can read more about
+                    scoring rules{' '}
+                    <a
+                      href="https://en.wikipedia.org/wiki/Scoring_rule"
+                      target="_blank"
+                      className="text-blue-600 underline hover:text-blue-800"
+                    >
+                      here
+                    </a>
+                    .
                   </DisclosurePanel>
                 </>
               )}
@@ -144,14 +155,18 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>How does the "amount in play" work?</span>
+                    <span>
+                      What happens if different participants choose different maximum bets?
+                    </span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
                     />
                   </DisclosureButton>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
-                    The amount in play is the minimum of all participants' maximum bets. If Alice
-                    bets up to $10, Bob up to $15, and Carol up to $20, the amount in play is $10.
+                    The amount used will be the minimum of all participants' maximum bets. If Alice
+                    bets up to $10, Bob up to $15, and Carol up to $20, the maximum amount any
+                    player could lose is $10. There are no automatic side bets between different
+                    players.
                   </DisclosurePanel>
                 </>
               )}
@@ -262,11 +277,19 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     <div className="space-y-4">
                       <p className="text-sm">
                         Brier scoring is a proper scoring rule that incentivizes honest probability
-                        assessments. Lower scores are better (0 = perfect, 2 = worst possible). Note
-                        that we use the original definition by Brier (with results between 0 and 2)
-                        because it's suitable for multi-categorical oucomes whereas the most well
-                        known definition (with results between 0 and 1) is only applicable to binary
-                        outcomes.
+                        assessments. Lower scores mean "better prediction" (0 = perfect, 2 = worst
+                        possible). Note that we use the original definition by Brier (with results
+                        between 0 and 2) because it's suitable for multi-categorical oucomes whereas
+                        the most well known definition (with results between 0 and 1) is only
+                        applicable to binary outcomes. You can read more about scoring rules{' '}
+                        <a
+                          href="https://en.wikipedia.org/wiki/Scoring_rule"
+                          target="_blank"
+                          className="text-blue-600 underline hover:text-blue-800"
+                        >
+                          here
+                        </a>
+                        .
                       </p>
 
                       <div>
