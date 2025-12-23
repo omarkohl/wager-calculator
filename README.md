@@ -17,6 +17,8 @@
 - **📤 Easy Sharing**: Screenshot, text export, native sharing
 - **🔒 Privacy-First**: No data storage, completely client-side
 
+<a href="docs/screenshot.png"><img src="docs/screenshot.png" width="50%" alt="Screenshot of Wager Calculator"></a>
+
 ## 🎮 Try It Live
 
 **[🔗 Live Demo](https://w.ratfr.de)**
