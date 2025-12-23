@@ -94,11 +94,7 @@ export default function ParticipantsList({
                 type="text"
                 value={participant.name}
                 onChange={e => handleNameChange(index, e.target.value, participant.name)}
-                onFocus={e => {
-                  if (!participant.touched && PLACEHOLDER_NAMES.includes(participant.name)) {
-                    e.target.select()
-                  }
-                }}
+                onFocus={e => e.target.select()}
                 placeholder="Participant name"
                 className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!participant.touched ? 'text-gray-400' : ''}`}
               />

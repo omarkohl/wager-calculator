@@ -82,11 +82,7 @@ export default function OutcomesList({
                 type="text"
                 value={outcome.label}
                 onChange={e => handleLabelChange(index, e.target.value, outcome.label)}
-                onFocus={e => {
-                  if (!outcome.touched && PLACEHOLDER_LABELS.includes(outcome.label)) {
-                    e.target.select()
-                  }
-                }}
+                onFocus={e => e.target.select()}
                 placeholder="Outcome label"
                 className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!outcome.touched ? 'text-gray-400' : ''}`}
               />
