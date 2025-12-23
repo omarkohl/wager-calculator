@@ -67,7 +67,7 @@ function Resolution({
         return {
           name: participant.name || 'Unknown',
           total: total.toNumber(),
-          isValid: total.equals(100),
+          isValid: total.minus(100).abs().lessThan(0.001),
         }
       })
       .filter(p => !p.isValid)

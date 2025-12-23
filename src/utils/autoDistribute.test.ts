@@ -300,4 +300,73 @@ describe('autoDistribute', () => {
 
     expect(result).toBe(predictions)
   })
+
+  it('distributes exactly to 100 with 8 outcomes (51% + 47% + 6 auto-distributed)', () => {
+    // This tests the scenario: 8 outcomes, 2 touched (51% and 47%), 6 untouched
+    // Remaining: 2%, divided by 6 = 0.333... repeating
+    // Without proper handling, this could cause sum != 100
+    const predictions: Prediction[] = [
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-1',
+        probability: new Decimal(51),
+        touched: true,
+      },
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-2',
+        probability: new Decimal(47),
+        touched: true,
+      },
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-3',
+        probability: new Decimal(0),
+        touched: false,
+      },
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-4',
+        probability: new Decimal(0),
+        touched: false,
+      },
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-5',
+        probability: new Decimal(0),
+        touched: false,
+      },
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-6',
+        probability: new Decimal(0),
+        touched: false,
+      },
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-7',
+        probability: new Decimal(0),
+        touched: false,
+      },
+      {
+        participantId: participant1,
+        outcomeId: 'outcome-8',
+        probability: new Decimal(0),
+        touched: false,
+      },
+    ]
+
+    const result = autoDistribute(predictions, participant1)
+
+    const total = result
+      .filter(p => p.participantId === participant1)
+      .reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
+
+    console.log('Total:', total.toString())
+    console.log(
+      'Result probabilities:',
+      result.map(r => r.probability.toString())
+    )
+    expect(total.minus(100).abs().lessThan(0.001)).toBe(true)
+  })
 })

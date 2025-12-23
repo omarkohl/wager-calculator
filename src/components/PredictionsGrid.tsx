@@ -98,7 +98,7 @@ export default function PredictionsGrid({
 
   const hasWarning = (participantId: string): boolean => {
     const total = getParticipantTotal(participantId)
-    return total.minus(100).abs().greaterThan(0.01) // Allow for floating point errors
+    return total.minus(100).abs().greaterThanOrEqualTo(0.001) // Allow for floating point errors
   }
 
   const handleNormalize = (participantId: string) => {
