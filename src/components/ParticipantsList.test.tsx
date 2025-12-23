@@ -164,7 +164,7 @@ describe('ParticipantsList', () => {
     expect(onChange).toHaveBeenCalledWith(
       expect.arrayContaining([
         { id: '1', name: 'Alice', maxBet: new Decimal(100) },
-        expect.objectContaining({ name: '', maxBet: new Decimal(0) }),
+        expect.objectContaining({ name: 'Baani', maxBet: new Decimal(0), touched: false }),
       ])
     )
   })
@@ -511,5 +511,118 @@ describe('ParticipantsList', () => {
     )
 
     expect(currentParticipants[0].maxBet.toNumber()).toBe(0)
+  })
+
+  it('adds third participant with default name "Chau"', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const participants: Participant[] = [
+      { id: '1', name: 'Artem', maxBet: new Decimal(0) },
+      { id: '2', name: 'Baani', maxBet: new Decimal(0) },
+    ]
+
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: /add participant/i }))
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        { id: '1', name: 'Artem', maxBet: new Decimal(0) },
+        { id: '2', name: 'Baani', maxBet: new Decimal(0) },
+        expect.objectContaining({ name: 'Chau', maxBet: new Decimal(0), touched: false }),
+      ])
+    )
+  })
+
+  it('adds participants with diverse international default names in order', async () => {
+    const user = userEvent.setup()
+    let currentParticipants: Participant[] = [
+      { id: '1', name: 'Artem', maxBet: new Decimal(0) },
+      { id: '2', name: 'Baani', maxBet: new Decimal(0) },
+    ]
+    const onChange = vi.fn(newParticipants => {
+      currentParticipants = newParticipants
+    })
+
+    const { rerender } = render(
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    // Add third participant - should be Chau
+    await user.click(screen.getByRole('button', { name: /add participant/i }))
+    rerender(
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+    expect(currentParticipants[2].name).toBe('Chau')
+
+    // Add fourth participant - should be Devi
+    await user.click(screen.getByRole('button', { name: /add participant/i }))
+    rerender(
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+    expect(currentParticipants[3].name).toBe('Devi')
+
+    // Add fifth participant - should be Elena
+    await user.click(screen.getByRole('button', { name: /add participant/i }))
+    rerender(
+      <ParticipantsList
+        participants={currentParticipants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+    expect(currentParticipants[4].name).toBe('Elena')
+  })
+
+  it('new participants with default names should be clearable on first input', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const participants: Participant[] = [
+      { id: '1', name: 'Artem', maxBet: new Decimal(0) },
+      { id: '2', name: 'Baani', maxBet: new Decimal(0) },
+      { id: '3', name: 'Chau', maxBet: new Decimal(0), touched: false },
+    ]
+
+    render(
+      <ParticipantsList
+        participants={participants}
+        predictions={emptyPredictions}
+        onChange={onChange}
+        stakes="usd"
+      />
+    )
+
+    const carlosInput = screen.getByDisplayValue('Chau')
+    await user.click(carlosInput)
+    await user.type(carlosInput, 'X')
+
+    expect(onChange).toHaveBeenLastCalledWith([
+      { id: '1', name: 'Artem', maxBet: new Decimal(0) },
+      { id: '2', name: 'Baani', maxBet: new Decimal(0) },
+      { id: '3', name: 'X', maxBet: new Decimal(0), touched: true },
+    ])
   })
 })

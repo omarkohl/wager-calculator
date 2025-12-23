@@ -14,7 +14,16 @@ interface ParticipantsListProps {
   stakes: string
 }
 
-const PLACEHOLDER_NAMES = ['Artem', 'Baani']
+const PLACEHOLDER_NAMES = [
+  'Artem',
+  'Baani',
+  'Chau',
+  'Devi',
+  'Elena',
+  'Fatima',
+  'Giovanni',
+  'Hassan',
+]
 
 export default function ParticipantsList({
   participants,
@@ -51,11 +60,14 @@ export default function ParticipantsList({
   }
 
   const handleAddParticipant = () => {
+    const nextIndex = participants.length
+    const defaultName = nextIndex < PLACEHOLDER_NAMES.length ? PLACEHOLDER_NAMES[nextIndex] : ''
+
     const newParticipant: Participant = {
       id: crypto.randomUUID(),
-      name: '',
+      name: defaultName,
       maxBet: new Decimal(0),
-      touched: true, // New participants are considered touched
+      touched: false, // New participants with default names are untouched
     }
     onChange([...participants, newParticipant])
   }
