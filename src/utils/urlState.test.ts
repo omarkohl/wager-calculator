@@ -126,6 +126,66 @@ describe('urlState', () => {
       expect(decoded!.claim).toBe('Old claim')
     })
 
+    it('decodes v1 compressed format with full data', () => {
+      // Simulate a complete v1 URL state with all fields
+      const v1State = {
+        v: 1,
+        claim: 'Will it rain?',
+        details: 'Weather prediction',
+        stakes: 'eur',
+        participants: [
+          { id: 'p1', name: 'Alice', maxBet: '100.50', touched: true },
+          { id: 'p2', name: 'Bob', maxBet: '75.25', touched: true },
+        ],
+        outcomes: [
+          { id: 'o1', label: 'Yes', touched: true },
+          { id: 'o2', label: 'No', touched: true },
+        ],
+        predictions: [
+          { participantId: 'p1', outcomeId: 'o1', probability: '0.6', touched: true },
+          { participantId: 'p1', outcomeId: 'o2', probability: '0.4', touched: true },
+          { participantId: 'p2', outcomeId: 'o1', probability: '0.3', touched: true },
+          { participantId: 'p2', outcomeId: 'o2', probability: '0.7', touched: true },
+        ],
+        resolvedOutcomeId: 'o1',
+      }
+
+      const json = JSON.stringify(v1State)
+      const compressed = compressToEncodedURIComponent(json)
+      const hash = `#${compressed}`
+
+      const decoded = decodeStateFromURL(hash)
+
+      expect(decoded).not.toBeNull()
+      expect(decoded!.v).toBe(1)
+      expect(decoded!.claim).toBe('Will it rain?')
+      expect(decoded!.details).toBe('Weather prediction')
+      expect(decoded!.stakes).toBe('eur')
+
+      // Verify participants with Decimal conversion
+      expect(decoded!.participants).toHaveLength(2)
+      expect(decoded!.participants[0].name).toBe('Alice')
+      expect(decoded!.participants[0].maxBet).toBeInstanceOf(Decimal)
+      expect(decoded!.participants[0].maxBet.toNumber()).toBe(100.5)
+      expect(decoded!.participants[1].maxBet.toNumber()).toBe(75.25)
+
+      // Verify outcomes
+      expect(decoded!.outcomes).toHaveLength(2)
+      expect(decoded!.outcomes[0].label).toBe('Yes')
+      expect(decoded!.outcomes[1].label).toBe('No')
+
+      // Verify predictions with Decimal conversion
+      expect(decoded!.predictions).toHaveLength(4)
+      expect(decoded!.predictions[0].probability).toBeInstanceOf(Decimal)
+      expect(decoded!.predictions[0].probability.toNumber()).toBe(0.6)
+      expect(decoded!.predictions[1].probability.toNumber()).toBe(0.4)
+      expect(decoded!.predictions[2].probability.toNumber()).toBe(0.3)
+      expect(decoded!.predictions[3].probability.toNumber()).toBe(0.7)
+
+      // Verify resolved outcome ID is preserved
+      expect(decoded!.resolvedOutcomeId).toBe('o1')
+    })
+
     it('returns null for empty hash', () => {
       expect(decodeStateFromURL('')).toBeNull()
       expect(decodeStateFromURL('#')).toBeNull()
