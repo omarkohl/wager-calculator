@@ -1,8 +1,10 @@
-<img src="public/icon-192.png" width="64" height="64" align="left" alt="Logo">
+<p align="center">
+  <img src="public/icon-192.png" width="96" height="96" alt="Logo">
+</p>
 
-# Wager Calculator
+<h1 align="center">Wager Calculator</h1>
 
-Calculate fair betting odds for friendly wagers using Brier scoring.
+<p align="center">Calculate fair betting odds for friendly wagers using Brier scoring.</p>
 
 [![CI](https://github.com/omarkohl/wager-calculator/workflows/CI/badge.svg)](https://github.com/omarkohl/wager-calculator/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
