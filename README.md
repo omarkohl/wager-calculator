@@ -11,7 +11,7 @@
 
 ## Use It
 
-**[w.ratfr.de](https://w.ratfr.de)** — works on any device, no installation needed. See the FAQ in the app for detailed explanations.
+**[w.ratfr.de](https://w.ratfr.de)** — works on any device, no installation needed. See the [FAQ](https://w.ratfr.de) in the app for detailed explanations.
 
 <a href="docs/screenshot.png"><img src="docs/screenshot.png" width="50%" alt="Screenshot"></a>
 
@@ -36,6 +36,8 @@ Each participant's prediction accuracy is measured with a Brier score (lower = b
 Alice predicted best, Bob worst. Result: Alice wins $11.20, Carol wins $1.60, Bob pays $12.80.
 
 The key property: reporting your true belief always maximizes your expected payout.
+
+You can find detailed calculation examples in the [FAQ](https://w.ratfr.de) in the app.
 
 ---
 
