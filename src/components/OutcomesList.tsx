@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Outcome, Prediction } from '../types/wager'
 import ConfirmDialog from './ConfirmDialog'
+import { DEFAULT_OUTCOME_LABELS } from '../utils/defaults'
 
 interface OutcomesListProps {
   outcomes: Outcome[]
@@ -9,8 +10,6 @@ interface OutcomesListProps {
   onChange: (outcomes: Outcome[]) => void
   onPredictionsChange?: (predictions: Prediction[]) => void
 }
-
-const PLACEHOLDER_LABELS = ['Yes', 'No', 'Sunny', 'Rainy', 'Cloudy', 'Windy', 'Snowy', 'Foggy']
 
 export default function OutcomesList({
   outcomes,
@@ -26,7 +25,7 @@ export default function OutcomesList({
     // Clear placeholder label on first input - only for untouched default placeholder labels
     if (
       !outcome.touched &&
-      PLACEHOLDER_LABELS.includes(previousValue) &&
+      DEFAULT_OUTCOME_LABELS.includes(previousValue) &&
       label.length > 0 &&
       label !== previousValue
     ) {
@@ -41,7 +40,8 @@ export default function OutcomesList({
 
   const handleAddOutcome = () => {
     const nextIndex = outcomes.length
-    const defaultLabel = nextIndex < PLACEHOLDER_LABELS.length ? PLACEHOLDER_LABELS[nextIndex] : ''
+    const defaultLabel =
+      nextIndex < DEFAULT_OUTCOME_LABELS.length ? DEFAULT_OUTCOME_LABELS[nextIndex] : ''
 
     const newOutcome: Outcome = {
       id: crypto.randomUUID(),

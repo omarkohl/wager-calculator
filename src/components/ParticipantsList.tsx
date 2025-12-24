@@ -5,6 +5,7 @@ import type { Participant, Prediction } from '../types/wager'
 import { getStakesSymbol } from '../utils/stakes'
 import ConfirmDialog from './ConfirmDialog'
 import NumberInput from './NumberInput'
+import { DEFAULT_PARTICIPANT_NAMES } from '../utils/defaults'
 
 interface ParticipantsListProps {
   participants: Participant[]
@@ -13,17 +14,6 @@ interface ParticipantsListProps {
   onPredictionsChange?: (predictions: Prediction[]) => void
   stakes: string
 }
-
-const PLACEHOLDER_NAMES = [
-  'Artem',
-  'Baani',
-  'Chau',
-  'Devi',
-  'Elena',
-  'Fatima',
-  'Giovanni',
-  'Hassan',
-]
 
 export default function ParticipantsList({
   participants,
@@ -40,7 +30,7 @@ export default function ParticipantsList({
     // Clear placeholder name on first input - only for untouched default placeholder names
     if (
       !participant.touched &&
-      PLACEHOLDER_NAMES.includes(previousValue) &&
+      DEFAULT_PARTICIPANT_NAMES.includes(previousValue) &&
       name.length > 0 &&
       name !== previousValue
     ) {
@@ -61,7 +51,8 @@ export default function ParticipantsList({
 
   const handleAddParticipant = () => {
     const nextIndex = participants.length
-    const defaultName = nextIndex < PLACEHOLDER_NAMES.length ? PLACEHOLDER_NAMES[nextIndex] : ''
+    const defaultName =
+      nextIndex < DEFAULT_PARTICIPANT_NAMES.length ? DEFAULT_PARTICIPANT_NAMES[nextIndex] : ''
 
     const newParticipant: Participant = {
       id: crypto.randomUUID(),
