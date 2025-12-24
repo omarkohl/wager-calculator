@@ -1,11 +1,11 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
+import { decompressFromEncodedURIComponent } from 'lz-string'
 import Decimal from 'decimal.js'
 import type { Participant, Outcome, Prediction } from '../types/wager'
 
 /**
  * Current state version for backwards compatibility
  */
-export const STATE_VERSION = 1
+export const STATE_VERSION = 2
 
 /**
  * Serializable state that can be encoded in URL
@@ -133,23 +133,153 @@ export function deserializeState(state: WagerState): {
 }
 
 /**
- * Encode state to URL hash
+ * Escape a string for CSV encoding (replaces comma with \c)
  */
-export function encodeStateToURL(state: WagerState): string {
-  const json = JSON.stringify(state)
-  const compressed = compressToEncodedURIComponent(json)
-  return `#${compressed}`
+function escapeCSV(str: string): string {
+  return str.replace(/\\/g, '\\\\').replace(/,/g, '\\c')
 }
 
 /**
- * Decode state from URL hash
+ * Unescape a CSV-encoded string (replaces \c with comma)
  */
-export function decodeStateFromURL(hash: string): WagerState | null {
+function unescapeCSV(str: string): string {
+  return str.replace(/\\c/g, ',').replace(/\\\\/g, '\\')
+}
+
+/**
+ * Truncate decimal number to at most 4 decimal places
+ */
+function truncateDecimal(value: string): string {
+  const num = parseFloat(value)
+  if (isNaN(num)) return value
+
+  // Round to 4 decimal places and remove trailing zeros
+  const truncated = Math.round(num * 10000) / 10000
+  return truncated.toString()
+}
+
+/**
+ * Encode state to URL hash using v2 plain text format
+ */
+function encodeStateToURLV2(state: WagerState): string {
+  const params = new URLSearchParams()
+
+  params.set('v', '2')
+  if (state.claim) params.set('c', state.claim)
+  if (state.details) params.set('d', state.details)
+  if (state.stakes) params.set('s', state.stakes)
+
+  // Participant names (CSV with escaping)
+  if (state.participants.length > 0) {
+    params.set('pn', state.participants.map(p => escapeCSV(p.name)).join(','))
+    params.set('pb', state.participants.map(p => truncateDecimal(p.maxBet)).join(','))
+  }
+
+  // Outcome labels (CSV with escaping)
+  if (state.outcomes.length > 0) {
+    params.set('ol', state.outcomes.map(o => escapeCSV(o.label)).join(','))
+  }
+
+  // Predictions (row-major order: p0o0, p0o1, ..., p1o0, p1o1, ...)
+  if (state.predictions.length > 0) {
+    params.set('pp', state.predictions.map(p => truncateDecimal(p.probability)).join(','))
+  }
+
+  // Resolved outcome (index)
+  if (state.resolvedOutcomeId !== null) {
+    const index = state.outcomes.findIndex(o => o.id === state.resolvedOutcomeId)
+    if (index >= 0) {
+      params.set('r', index.toString())
+    }
+  }
+
+  return `#${params.toString()}`
+}
+
+/**
+ * Encode state to URL hash (uses v2 plain text format)
+ */
+export function encodeStateToURL(state: WagerState): string {
+  return encodeStateToURLV2(state)
+}
+
+/**
+ * Decode state from URL hash using v2 plain text format
+ */
+function decodeStateFromURLV2(hash: string): WagerState | null {
   try {
-    if (!hash || hash.length <= 1) {
-      return null
+    // Remove leading '#'
+    const paramString = hash.substring(1)
+    const params = new URLSearchParams(paramString)
+
+    // Parse participants (with CSV unescaping)
+    const participantNames = params.get('pn')?.split(',').map(unescapeCSV) || []
+    const participantBets = params.get('pb')?.split(',') || []
+
+    const participants = participantNames.map((name, index) => ({
+      id: crypto.randomUUID(),
+      name,
+      maxBet: participantBets[index] || '0',
+      touched: true, // All URL values are touched
+    }))
+
+    // Parse outcomes (with CSV unescaping)
+    const outcomeLabels = params.get('ol')?.split(',').map(unescapeCSV) || []
+    const outcomes = outcomeLabels.map(label => ({
+      id: crypto.randomUUID(),
+      label,
+      touched: true, // All URL values are touched
+    }))
+
+    // Parse predictions (row-major order)
+    const predictionProbs = params.get('pp')?.split(',') || []
+    const predictions = []
+
+    for (let pIndex = 0; pIndex < participants.length; pIndex++) {
+      for (let oIndex = 0; oIndex < outcomes.length; oIndex++) {
+        const probIndex = pIndex * outcomes.length + oIndex
+        if (probIndex < predictionProbs.length) {
+          predictions.push({
+            participantId: participants[pIndex].id,
+            outcomeId: outcomes[oIndex].id,
+            probability: predictionProbs[probIndex],
+            touched: true, // All URL values are touched
+          })
+        }
+      }
     }
 
+    // Parse resolved outcome
+    const resolvedIndex = params.get('r')
+    let resolvedOutcomeId: string | null = null
+    if (resolvedIndex !== null && resolvedIndex !== '') {
+      const index = parseInt(resolvedIndex, 10)
+      if (index >= 0 && index < outcomes.length) {
+        resolvedOutcomeId = outcomes[index].id
+      }
+    }
+
+    return {
+      v: 2,
+      claim: params.get('c') || '',
+      details: params.get('d') || '',
+      stakes: params.get('s') || 'usd',
+      participants,
+      outcomes,
+      predictions,
+      resolvedOutcomeId,
+    }
+  } catch (error) {
+    console.error('Failed to decode v2 state from URL:', error)
+    return null
+  }
+}
+
+/**
+ * Decode state from URL hash using v1 compressed format
+ */
+function decodeStateFromURLV1(hash: string): WagerState | null {
+  try {
     // Remove leading '#'
     const compressed = hash.substring(1)
     const json = decompressFromEncodedURIComponent(compressed)
@@ -166,6 +296,28 @@ export function decodeStateFromURL(hash: string): WagerState | null {
     }
 
     return state
+  } catch (error) {
+    console.error('Failed to decode v1 state from URL:', error)
+    return null
+  }
+}
+
+/**
+ * Decode state from URL hash (handles both v1 and v2)
+ */
+export function decodeStateFromURL(hash: string): WagerState | null {
+  try {
+    if (!hash || hash.length <= 1) {
+      return null
+    }
+
+    // Check if it's v2 format (starts with #v=2)
+    if (hash.startsWith('#v=2')) {
+      return decodeStateFromURLV2(hash)
+    }
+
+    // Otherwise try v1 (compressed JSON)
+    return decodeStateFromURLV1(hash)
   } catch (error) {
     console.error('Failed to decode state from URL:', error)
     return null
