@@ -77,7 +77,7 @@ export function serializeState(
     participants: participants.map(p => ({
       id: p.id,
       name: p.name,
-      maxBet: p.maxBet.toString(),
+      maxBet: p.maxBet.toFixed(4),
       touched: p.touched,
     })),
     outcomes: outcomes.map(o => ({
@@ -88,7 +88,7 @@ export function serializeState(
     predictions: predictions.map(p => ({
       participantId: p.participantId,
       outcomeId: p.outcomeId,
-      probability: p.probability.toString(),
+      probability: p.probability.toFixed(4),
       touched: p.touched,
     })),
     resolvedOutcomeId,
@@ -147,18 +147,6 @@ function unescapeCSV(str: string): string {
 }
 
 /**
- * Truncate decimal number to at most 4 decimal places
- */
-function truncateDecimal(value: string): string {
-  const num = parseFloat(value)
-  if (isNaN(num)) return value
-
-  // Round to 4 decimal places and remove trailing zeros
-  const truncated = Math.round(num * 10000) / 10000
-  return truncated.toString()
-}
-
-/**
  * Encode state to URL hash using v2 plain text format
  */
 function encodeStateToURLV2(state: WagerState): string {
@@ -172,7 +160,7 @@ function encodeStateToURLV2(state: WagerState): string {
   // Participant names (CSV with escaping)
   if (state.participants.length > 0) {
     params.set('pn', state.participants.map(p => escapeCSV(p.name)).join(','))
-    params.set('pb', state.participants.map(p => truncateDecimal(p.maxBet)).join(','))
+    params.set('pb', state.participants.map(p => p.maxBet).join(','))
   }
 
   // Outcome labels (CSV with escaping)
@@ -182,7 +170,7 @@ function encodeStateToURLV2(state: WagerState): string {
 
   // Predictions (row-major order: p0o0, p0o1, ..., p1o0, p1o1, ...)
   if (state.predictions.length > 0) {
-    params.set('pp', state.predictions.map(p => truncateDecimal(p.probability)).join(','))
+    params.set('pp', state.predictions.map(p => p.probability).join(','))
   }
 
   // Resolved outcome (index)
