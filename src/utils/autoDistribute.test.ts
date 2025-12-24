@@ -362,11 +362,6 @@ describe('autoDistribute', () => {
       .filter(p => p.participantId === participant1)
       .reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
 
-    console.log('Total:', total.toString())
-    console.log(
-      'Result probabilities:',
-      result.map(r => r.probability.toString())
-    )
     expect(total.minus(100).abs().lessThan(0.001)).toBe(true)
   })
 })
