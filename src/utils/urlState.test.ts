@@ -52,8 +52,8 @@ describe('urlState', () => {
         null
       )
 
-      expect(state.participants[0].maxBet).toBe('100')
-      expect(state.predictions[0].probability).toBe('0.6')
+      expect(state.participants[0].maxBet).toBe('100.0000')
+      expect(state.predictions[0].probability).toBe('0.6000')
     })
   })
 
@@ -178,15 +178,15 @@ describe('urlState', () => {
       expect(decoded!.stakes).toBe('eur')
       expect(decoded!.participants).toHaveLength(2)
       expect(decoded!.participants[0].name).toBe('Alice')
-      expect(decoded!.participants[0].maxBet).toBe('100')
+      expect(decoded!.participants[0].maxBet).toBe('100.0000')
       expect(decoded!.participants[1].name).toBe('Bob')
-      expect(decoded!.participants[1].maxBet).toBe('50')
+      expect(decoded!.participants[1].maxBet).toBe('50.0000')
       expect(decoded!.outcomes).toHaveLength(2)
       expect(decoded!.outcomes[0].label).toBe('Yes')
       expect(decoded!.outcomes[1].label).toBe('No')
-      expect(decoded!.predictions).toHaveLength(2)
-      expect(decoded!.predictions[0].probability).toBe('0.6')
-      expect(decoded!.predictions[1].probability).toBe('0.4')
+      expect(decoded!.predictions).toHaveLength(4)
+      expect(decoded!.predictions[0].probability).toBe('0.6000')
+      expect(decoded!.predictions[1].probability).toBe('0.4000')
       // v2 uses indexes, so the first outcome should be the resolved one
       expect(decoded!.resolvedOutcomeId).toBe(decoded!.outcomes[0].id)
     })
@@ -235,7 +235,7 @@ describe('urlState', () => {
       // v2 generates new IDs, so check by index position
       expect(decoded!.predictions[0].participantId).toBe(decoded!.participants[0].id)
       expect(decoded!.predictions[0].outcomeId).toBe(decoded!.outcomes[0].id)
-      expect(decoded!.predictions[0].probability).toBe('0.6')
+      expect(decoded!.predictions[0].probability).toBe('0.6000')
       expect(decoded!.predictions[1].participantId).toBe(decoded!.participants[0].id)
       expect(decoded!.predictions[1].outcomeId).toBe(decoded!.outcomes[1].id)
       expect(decoded!.predictions[2].participantId).toBe(decoded!.participants[1].id)
@@ -456,7 +456,7 @@ describe('urlState', () => {
       const hash = encodeStateToURL(state)
 
       // URLSearchParams encodes commas as %2C
-      expect(hash).toContain('pb=100%2C50.5')
+      expect(hash).toContain('pb=100.0000%2C50.5000')
       expect(hash).toContain('pp=0.5')
     })
   })

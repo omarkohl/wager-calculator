@@ -170,7 +170,18 @@ function encodeStateToURLV2(state: WagerState): string {
 
   // Predictions (row-major order: p0o0, p0o1, ..., p1o0, p1o1, ...)
   if (state.predictions.length > 0) {
-    params.set('pp', state.predictions.map(p => p.probability).join(','))
+    const participantOutcomeArray = new Array<string>(
+      state.participants.length * state.outcomes.length
+    )
+    state.predictions.map(prediction => {
+      const participantIndex = state.participants.findIndex(
+        participant => participant.id === prediction.participantId
+      )
+      const outcomeIndex = state.outcomes.findIndex(outcome => outcome.id === prediction.outcomeId)
+      participantOutcomeArray[participantIndex * state.outcomes.length + outcomeIndex] =
+        prediction.probability
+    })
+    params.set('pp', participantOutcomeArray.join(','))
   }
 
   // Resolved outcome (index)
