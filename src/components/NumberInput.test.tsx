@@ -121,4 +121,38 @@ describe('NumberInput', () => {
     const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]
     expect(lastCall[0].toNumber()).toBe(12.5)
   })
+
+  it('enforces min constraint and clamps to min on blur', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<NumberInput value={new Decimal(10)} onChange={onChange} min={0} />)
+
+    const input = screen.getByRole('spinbutton')
+    await user.click(input)
+    await user.clear(input)
+    await user.type(input, '-10')
+    await user.tab()
+
+    // Should clamp to min value (0) on blur
+    expect(onChange).toHaveBeenCalled()
+    const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]
+    expect(lastCall[0].toNumber()).toBe(0)
+  })
+
+  it('enforces max constraint and clamps to max on blur', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<NumberInput value={new Decimal(50)} onChange={onChange} max={100} />)
+
+    const input = screen.getByRole('spinbutton')
+    await user.click(input)
+    await user.clear(input)
+    await user.type(input, '150')
+    await user.tab()
+
+    // Should clamp to max value (100) on blur
+    expect(onChange).toHaveBeenCalled()
+    const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]
+    expect(lastCall[0].toNumber()).toBe(100)
+  })
 })

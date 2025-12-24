@@ -45,9 +45,23 @@ export default function NumberInput({
 
   const handleBlur = () => {
     const parsed = parseFloat(editingValue ?? '')
+    let finalValue: number
+
     if (isNaN(parsed) || editingValue === '') {
-      onChange(new Decimal(0))
+      finalValue = 0
+    } else {
+      finalValue = parsed
     }
+
+    // Enforce min/max constraints
+    if (min !== undefined && finalValue < min) {
+      finalValue = min
+    }
+    if (max !== undefined && finalValue > max) {
+      finalValue = max
+    }
+
+    onChange(new Decimal(finalValue))
     setEditingValue(null)
   }
 
