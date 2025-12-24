@@ -37,90 +37,39 @@ function App() {
   const initialState = initialStateData.state
   const shouldAutoFocusClaim = !initialStateData.isFromURL
 
-  const [claim, setClaimInternal] = useState(initialState.claim)
-  const [details, setDetailsInternal] = useState(initialState.details)
-  const [stakes, setStakesInternal] = useState(initialState.stakes)
-  const [participants, setParticipantsInternal] = useState<Participant[]>(initialState.participants)
-  const [outcomes, setOutcomesInternal] = useState<Outcome[]>(initialState.outcomes)
-  const [predictions, setPredictionsInternal] = useState<Prediction[]>(initialState.predictions)
-  const [resolvedOutcomeId, setResolvedOutcomeIdInternal] = useState<string | null>(
+  const [claim, setClaim] = useState(initialState.claim)
+  const [details, setDetails] = useState(initialState.details)
+  const [stakes, setStakes] = useState(initialState.stakes)
+  const [participants, setParticipants] = useState<Participant[]>(initialState.participants)
+  const [outcomes, setOutcomes] = useState<Outcome[]>(initialState.outcomes)
+  const [predictions, setPredictions] = useState<Prediction[]>(initialState.predictions)
+  const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(
     initialState.resolvedOutcomeId
   )
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
   const [showToast, setShowToast] = useState(false)
-  const [isDefaultAppState, setIsDefaultAppState] = useState(!initialStateData.isFromURL)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
-
-  // Wrapper functions that mark state as modified
-  const setClaim = (value: string) => {
-    setClaimInternal(value)
-    setIsDefaultAppState(false)
-  }
-
-  const setDetails = (value: string) => {
-    setDetailsInternal(value)
-    setIsDefaultAppState(false)
-  }
-
-  const setStakes = (value: string) => {
-    setStakesInternal(value)
-    setIsDefaultAppState(false)
-  }
-
-  const setParticipants = (value: Participant[] | ((prev: Participant[]) => Participant[])) => {
-    setParticipantsInternal(value)
-    setIsDefaultAppState(false)
-  }
-
-  const setOutcomes = (value: Outcome[] | ((prev: Outcome[]) => Outcome[])) => {
-    setOutcomesInternal(value)
-    setIsDefaultAppState(false)
-  }
-
-  const setPredictions = (value: Prediction[] | ((prev: Prediction[]) => Prediction[])) => {
-    setPredictionsInternal(value)
-    setIsDefaultAppState(false)
-  }
-
-  const setResolvedOutcomeId = (value: string | null) => {
-    setResolvedOutcomeIdInternal(value)
-    setIsDefaultAppState(false)
-  }
 
   // Auto-sync state to URL with debouncing
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Clear hash if state is at defaults, otherwise encode it
-      if (isDefaultAppState) {
-        window.history.replaceState(null, '', '')
-      } else {
-        const state = serializeState(
-          claim,
-          details,
-          stakes,
-          participants,
-          outcomes,
-          predictions,
-          resolvedOutcomeId
-        )
-        const hash = encodeStateToURL(state)
-        window.history.replaceState(null, '', hash)
-      }
+      const state = serializeState(
+        claim,
+        details,
+        stakes,
+        participants,
+        outcomes,
+        predictions,
+        resolvedOutcomeId
+      )
+      const hash = encodeStateToURL(state)
+      window.history.replaceState(null, '', hash)
     }, 400)
 
     return () => clearTimeout(timer)
-  }, [
-    claim,
-    details,
-    stakes,
-    participants,
-    outcomes,
-    predictions,
-    resolvedOutcomeId,
-    isDefaultAppState,
-  ])
+  }, [claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId])
 
   // Calculate results when wager is resolved
   const calculationResults = useMemo<CalculationResult | null>(() => {
@@ -176,7 +125,7 @@ function App() {
 
     if (newPredictions.length > 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPredictionsInternal(prev => [...prev, ...newPredictions])
+      setPredictions(prev => [...prev, ...newPredictions])
     }
   }, [participants, outcomes, predictions])
 
@@ -188,14 +137,13 @@ function App() {
   const confirmReset = () => {
     const defaultState = getDefaultState()
     const deserialized = deserializeState(defaultState)
-    setClaimInternal(deserialized.claim)
-    setDetailsInternal(deserialized.details)
-    setStakesInternal(deserialized.stakes)
-    setParticipantsInternal(deserialized.participants)
-    setOutcomesInternal(deserialized.outcomes)
-    setPredictionsInternal(deserialized.predictions)
-    setResolvedOutcomeIdInternal(deserialized.resolvedOutcomeId)
-    setIsDefaultAppState(true)
+    setClaim(deserialized.claim)
+    setDetails(deserialized.details)
+    setStakes(deserialized.stakes)
+    setParticipants(deserialized.participants)
+    setOutcomes(deserialized.outcomes)
+    setPredictions(deserialized.predictions)
+    setResolvedOutcomeId(deserialized.resolvedOutcomeId)
     window.location.hash = ''
   }
 
