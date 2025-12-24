@@ -20,6 +20,7 @@ import {
   encodeStateToURL,
   getShareableURL,
 } from './utils/urlState'
+import { autoDistribute } from './utils/autoDistribute'
 
 function App() {
   // Initialize state from URL if available, otherwise use defaults
@@ -124,8 +125,16 @@ function App() {
     })
 
     if (newPredictions.length > 0) {
+      // Add new predictions and auto-distribute for each participant
+      let updatedPredictions = [...predictions, ...newPredictions]
+
+      // Auto-distribute for each participant to handle untouched predictions correctly
+      participants.forEach(participant => {
+        updatedPredictions = autoDistribute(updatedPredictions, participant.id)
+      })
+
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPredictions(prev => [...prev, ...newPredictions])
+      setPredictions(updatedPredictions)
     }
   }, [participants, outcomes, predictions])
 
