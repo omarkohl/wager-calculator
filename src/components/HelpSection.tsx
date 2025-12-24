@@ -401,7 +401,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                           <p className="pt-2">
                             See this example in action:{' '}
                             <a
-                              href="#v=2&c=How+many+people+will+come+to+the+party%3F&s=usd&pn=Artem%2CBaani%2CChau&pb=50%2C40%2C30&ol=Less+than+5%2CBetween+5+and+10%2CMore+than+10&pp=70%2C20%2C10%2C80%2C20%2C60%2C10%2C10%2C20&r=1"
+                              href="#v=2&c=How+many+people+will+come+to+the+party%3F&s=usd&pn=Artem%2CBaani%2CChau&pb=50%2C40%2C30&ol=Less+than+5%2CBetween+5+and+10%2CMore+than+10&pp=70%2C20%2C10%2C10%2C80%2C10%2C20%2C60%2C20&r=1"
                               target="_blank"
                               className="text-blue-600 underline hover:text-blue-800"
                             >
