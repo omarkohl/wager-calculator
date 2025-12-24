@@ -28,6 +28,7 @@
 Each participant's prediction accuracy is measured with a Brier score (lower = better). Payouts are based on how your score compares to others.
 
 **Example:** Alice, Bob, and Carol bet $40 on whether it rains tomorrow. Tomorrow comes and it does rain.
+
 - Alice: 70% rain → Brier score 0.18
 - Bob: 30% rain → Brier score 0.98
 - Carol: 50% rain → Brier score 0.50
