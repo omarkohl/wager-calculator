@@ -90,7 +90,7 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 ## Phase 14: Polish & Testing
 
-- [ ] Component tests with React Testing Library
+- [x] Component tests with React Testing Library
 - [ ] E2E tests with Playwright
 - [ ] Cross-browser testing
 - [ ] Accessibility audit (keyboard nav, screen reader)
