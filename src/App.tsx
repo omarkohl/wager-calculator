@@ -189,8 +189,12 @@ function App() {
         <header className="mb-4 flex items-center gap-3 sm:gap-4">
           <img src="/icon-180.png" alt="" className="h-12 w-12 shrink-0 sm:h-16 sm:w-16" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-4xl">Wager Calculator</h1>
-            <p className="text-xs text-gray-600 sm:text-sm">Betting is a tax on bullshit</p>
+            <h1 className="font-['Space_Grotesk'] text-2xl font-bold text-gray-900 sm:text-4xl">
+              Wager Calculator
+            </h1>
+            <p className="text-xs tracking-[0.25em] text-gray-600 sm:text-sm">
+              Betting is a tax on bullshit
+            </p>
           </div>
         </header>
 
