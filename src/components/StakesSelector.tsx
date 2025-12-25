@@ -46,13 +46,16 @@ export default function StakesSelector({ value, onChange }: StakesSelectorProps)
           placeholder="Select stakes..."
           aria-label="Stakes"
         />
-        <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+        <ComboboxButton
+          aria-label="Toggle stakes options"
+          className="absolute inset-y-0 right-0 flex items-center pr-2"
+        >
           <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </ComboboxButton>
         <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
           {Object.entries(groupedOptions).map(([group, options]) => (
             <div key={group}>
-              <div className="bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+              <div className="bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wide text-gray-700 uppercase">
                 {group}
               </div>
               {options.map(option => (
@@ -67,7 +70,7 @@ export default function StakesSelector({ value, onChange }: StakesSelectorProps)
             </div>
           ))}
           {filteredOptions.length === 0 && query !== '' && (
-            <div className="px-3 py-2 text-sm text-gray-500">No options found.</div>
+            <div className="px-3 py-2 text-sm text-gray-700">No options found.</div>
           )}
         </ComboboxOptions>
       </div>

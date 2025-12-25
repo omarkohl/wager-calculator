@@ -176,6 +176,7 @@ export default function PredictionsGrid({
                       }
                       onMouseUp={handleSliderMouseUp}
                       onClick={handleSliderMouseUp}
+                      aria-label={`${participant.name || 'Participant'} probability for ${outcome.label}`}
                       className={`min-w-0 flex-1 ${!prediction.touched ? 'opacity-40' : ''}`}
                     />
 
@@ -186,7 +187,8 @@ export default function PredictionsGrid({
                         min={0}
                         max={100}
                         step={1}
-                        className={`w-12 rounded-md border border-gray-300 px-1 py-1 text-sm focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500 sm:w-24 sm:px-2 ${!prediction.touched ? 'text-gray-400' : ''}`}
+                        aria-label={`${participant.name || 'Participant'} probability for ${outcome.label}`}
+                        className={`w-12 rounded-md border border-gray-300 px-1 py-1 text-sm placeholder:text-gray-600 focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500 sm:w-24 sm:px-2 ${!prediction.touched ? 'text-gray-500' : ''}`}
                       />
                       <span className="text-xs text-gray-600 sm:text-sm">%</span>
                     </div>

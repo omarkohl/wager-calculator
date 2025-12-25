@@ -93,5 +93,5 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 - [x] Component tests with React Testing Library
 - [x] E2E tests with Playwright
 - [ ] Cross-browser testing
-- [ ] Accessibility audit (keyboard nav, screen reader)
-- [ ] Performance check (bundle size, load time)
+- [x] Accessibility audit (keyboard nav, screen reader)
+- [x] Performance check (bundle size, load time)

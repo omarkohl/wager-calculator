@@ -87,9 +87,9 @@ test.describe('Complete Happy Path', () => {
     // Verify the wager data persists - check visible text
     await expect(page.getByText('Will it snow in Vancouver this December?')).toBeVisible()
     // Check participant names appear in their prediction cards (h3 headings)
-    await expect(page.getByRole('heading', { name: 'Alice' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Bob' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Charlie' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Alice', level: 3 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Bob', level: 3 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Charlie', level: 3 })).toBeVisible()
 
     // Verify Alice's Yes prediction shows 70% in her card
     const aliceCard = getParticipantCard(page, 'Alice')

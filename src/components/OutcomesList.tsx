@@ -87,14 +87,14 @@ export default function OutcomesList({
                 onChange={e => handleLabelChange(index, e.target.value, outcome.label)}
                 onFocus={e => e.target.select()}
                 placeholder="Outcome label"
-                className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!outcome.touched ? 'text-gray-400' : ''}`}
+                className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!outcome.touched ? 'text-gray-500' : ''}`}
               />
             </div>
             <button
               type="button"
               onClick={() => handleRemoveOutcome(index)}
               disabled={outcomes.length <= 2}
-              className="rounded-md border p-2 focus:ring-2 focus:ring-offset-2 focus:outline-none enabled:border-red-300 enabled:bg-white enabled:text-red-600 enabled:hover:bg-red-50 enabled:focus:ring-red-500 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-white disabled:text-gray-400 disabled:hover:bg-white"
+              className="rounded-md border p-2 focus:ring-2 focus:ring-offset-2 focus:outline-none enabled:border-red-300 enabled:bg-white enabled:text-red-600 enabled:hover:bg-red-50 enabled:focus:ring-red-500 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-white disabled:text-gray-500 disabled:hover:bg-white"
               aria-label={`Remove ${outcome.label || 'outcome'}`}
             >
               <svg

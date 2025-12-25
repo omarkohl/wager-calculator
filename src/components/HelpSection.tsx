@@ -24,9 +24,10 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              aria-label="Close help dialog"
+              className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
-              <XMarkIcon className="h-6 w-6" />
+              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
 

@@ -10,6 +10,7 @@ interface NumberInputProps {
   step?: number
   placeholder?: string
   className?: string
+  'aria-label'?: string
 }
 
 export default function NumberInput({
@@ -20,6 +21,7 @@ export default function NumberInput({
   step,
   placeholder,
   className,
+  'aria-label': ariaLabel,
 }: NumberInputProps) {
   const [editingValue, setEditingValue] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -77,6 +79,7 @@ export default function NumberInput({
       max={max}
       step={step}
       placeholder={placeholder}
+      aria-label={ariaLabel}
       className={className}
     />
   )

@@ -226,7 +226,7 @@ function Resolution({
                           <span
                             className={
                               isZero
-                                ? 'text-gray-500'
+                                ? 'text-gray-700'
                                 : isPositive
                                   ? 'font-medium text-green-600'
                                   : 'font-medium text-red-600'

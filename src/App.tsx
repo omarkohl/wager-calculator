@@ -203,25 +203,28 @@ function App() {
             <button
               type="button"
               onClick={() => setIsHelpOpen(true)}
+              aria-label="Open FAQ (top)"
               className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               FAQ
             </button>
             <button
               type="button"
               onClick={handleReset}
+              aria-label="Reset form (top)"
               className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ArrowPathIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ArrowPathIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               Reset
             </button>
             <button
               type="button"
               onClick={handleShare}
+              aria-label="Share wager (top)"
               className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ShareIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ShareIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               Share
             </button>
           </div>
@@ -241,7 +244,7 @@ function App() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                Details <span className="text-gray-400">(Optional)</span>
+                Details <span className="text-gray-500">(Optional)</span>
               </label>
               <InlineEdit
                 value={details}
@@ -281,7 +284,7 @@ function App() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Predictions</label>
+              <h2 className="mb-2 text-sm font-medium text-gray-700">Predictions</h2>
               <PredictionsGrid
                 participants={participants}
                 outcomes={outcomes}
@@ -307,25 +310,28 @@ function App() {
             <button
               type="button"
               onClick={() => setIsHelpOpen(true)}
+              aria-label="Open FAQ (bottom)"
               className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               FAQ
             </button>
             <button
               type="button"
               onClick={handleReset}
+              aria-label="Reset form (bottom)"
               className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ArrowPathIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ArrowPathIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               Reset
             </button>
             <button
               type="button"
               onClick={handleShare}
+              aria-label="Share wager (bottom)"
               className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ShareIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ShareIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               Share
             </button>
           </div>

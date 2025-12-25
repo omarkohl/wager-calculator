@@ -21,7 +21,7 @@ describe('HelpModal', () => {
     const onClose = vi.fn()
     render(<HelpModal isOpen={true} onClose={onClose} />)
 
-    const closeButton = screen.getByRole('button', { name: '' })
+    const closeButton = screen.getByRole('button', { name: /close help dialog/i })
     await user.click(closeButton)
 
     expect(onClose).toHaveBeenCalled()

@@ -105,7 +105,7 @@ export default function InlineEdit({
       role="button"
       aria-label={placeholder}
       className={`cursor-text rounded px-3 py-2 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none ${displayClassName} ${
-        isPlaceholder ? 'text-gray-400' : ''
+        isPlaceholder ? 'text-gray-500' : ''
       }`}
     >
       {displayText}
