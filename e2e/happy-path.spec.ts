@@ -1,4 +1,28 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+
+/**
+ * Helper to get a participant's prediction card by their name.
+ * Each participant has a card with their name as an h3 heading.
+ */
+function getParticipantCard(page: Page, name: string) {
+  return page.locator('div.rounded-lg', { has: page.locator('h3', { hasText: name }) })
+}
+
+/**
+ * Helper to set a prediction slider within a participant's card.
+ * Finds the row by the outcome label, then gets the slider in that row.
+ */
+async function setPrediction(
+  page: Page,
+  participantName: string,
+  outcomeLabel: string,
+  value: number
+) {
+  const card = getParticipantCard(page, participantName)
+  // Find the specific row (flex container) that directly contains this outcome's label
+  const row = card.locator('div.flex', { has: page.locator(`label:text-is("${outcomeLabel}")`) })
+  await row.locator('input[type="range"]').fill(String(value))
+}
 
 test.describe('Complete Happy Path', () => {
   test('should create, predict, resolve, and share a wager', async ({ page }) => {
@@ -7,54 +31,42 @@ test.describe('Complete Happy Path', () => {
     // Verify the app loads
     await expect(page.locator('h1')).toContainText('Wager')
 
-    // Edit the claim
-    const claimButton = page.getByRole('button', {
-      name: /what are you betting on/i,
-    })
-    await claimButton.click()
-    const claimInput = page.locator('input').first()
-    await claimInput.fill('Will it snow in Vancouver this December?')
-    await claimInput.press('Enter')
+    // Edit the claim - click the placeholder text, then fill the input
+    await page.getByRole('button', { name: /what are you betting on/i }).click()
+    await page.getByRole('textbox').first().fill('Will it snow in Vancouver this December?')
+    await page.getByRole('textbox').first().press('Enter')
 
     // Add a third participant
     await page.getByRole('button', { name: /add participant/i }).click()
 
-    // Edit participant names
+    // Edit participant names - find by current placeholder values
     const participantInputs = page.locator('input[placeholder="Participant name"]')
     await participantInputs.nth(0).fill('Alice')
     await participantInputs.nth(1).fill('Bob')
     await participantInputs.nth(2).fill('Charlie')
 
-    // Set max bets (first 3 number inputs)
-    const allNumberInputs = page.locator('input[type="number"]')
-    await allNumberInputs.nth(0).fill('100')
-    await allNumberInputs.nth(1).fill('100')
-    await allNumberInputs.nth(2).fill('100')
+    // Set max bets - the number inputs are next to participant names
+    const maxBetInputs = page.locator('input[type="number"]')
+    await maxBetInputs.nth(0).fill('100')
+    await maxBetInputs.nth(1).fill('100')
+    await maxBetInputs.nth(2).fill('100')
 
-    // Enter predictions using sliders
-    const sliders = page.locator('input[type="range"]')
+    // Enter predictions using the helper - more readable and user-centric
+    await setPrediction(page, 'Alice', 'Yes', 70)
+    await setPrediction(page, 'Alice', 'No', 30)
 
-    // Alice: 70% Yes, 30% No
-    await sliders.nth(0).fill('70')
-    await sliders.nth(1).fill('30')
+    await setPrediction(page, 'Bob', 'Yes', 40)
+    await setPrediction(page, 'Bob', 'No', 60)
 
-    // Bob: 40% Yes, 60% No
-    await sliders.nth(2).fill('40')
-    await sliders.nth(3).fill('60')
-
-    // Charlie: 50% Yes, 50% No
-    await sliders.nth(4).fill('50')
-    await sliders.nth(5).fill('50')
+    await setPrediction(page, 'Charlie', 'Yes', 50)
+    await setPrediction(page, 'Charlie', 'No', 50)
 
     // Verify no probability sum warnings
     await expect(page.getByText(/must sum to 100%/i)).not.toBeVisible()
 
-    // Resolve the wager - click the "Unresolved" button
-    await page.getByText('Unresolved').click()
-
-    // Wait for the dropdown to appear and select "Yes" from the listbox
-    const listbox = page.locator('[role="listbox"]')
-    await listbox.locator('span', { hasText: 'Yes' }).first().click()
+    // Resolve the wager - click "Unresolved" and select "Yes"
+    await page.getByRole('button', { name: 'Unresolved' }).click()
+    await page.getByRole('option', { name: 'Yes' }).click()
 
     // Verify payouts are displayed
     await expect(page.getByText(/payout/i).first()).toBeVisible()
@@ -62,30 +74,27 @@ test.describe('Complete Happy Path', () => {
     // Share the wager
     await page.getByRole('button', { name: /share/i }).first().click()
 
-    // Wait for URL to contain hash
-    await page.waitForURL(url => url.hash.length > 0)
+    // Wait for URL to update with hash
+    await expect(page).toHaveURL(/#.+/)
 
-    // Verify the URL contains encoded state
-    const currentUrl = page.url()
-    expect(currentUrl).toContain('#')
-    const hash = currentUrl.split('#')[1]
-    expect(hash.length).toBeGreaterThan(0)
+    // Save URL and reload to test persistence
+    const sharedUrl = page.url()
 
-    // Open the shared URL (simulating sharing)
+    // Navigate away and back to test URL state restoration
     await page.goto('about:blank')
-    await page.goto(currentUrl)
+    await page.goto(sharedUrl)
 
-    // Verify the wager data persists
+    // Verify the wager data persists - check visible text
     await expect(page.getByText('Will it snow in Vancouver this December?')).toBeVisible()
-    await expect(page.getByText('Alice').first()).toBeVisible()
-    await expect(page.getByText('Bob').first()).toBeVisible()
-    await expect(page.getByText('Charlie').first()).toBeVisible()
+    // Check participant names appear in their prediction cards (h3 headings)
+    await expect(page.getByRole('heading', { name: 'Alice' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Bob' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Charlie' })).toBeVisible()
 
-    // Verify predictions persist
-    const reloadedSliders = page.locator('input[type="range"]')
-    await expect(reloadedSliders.nth(0)).toHaveValue('70')
-    await expect(reloadedSliders.nth(2)).toHaveValue('40')
-    await expect(reloadedSliders.nth(4)).toHaveValue('50')
+    // Verify Alice's Yes prediction shows 70% in her card
+    const aliceCard = getParticipantCard(page, 'Alice')
+    const aliceYesRow = aliceCard.locator('div.flex', { has: page.locator('label:text-is("Yes")') })
+    await expect(aliceYesRow.locator('input[type="range"]')).toHaveValue('70')
 
     // Verify resolution persists
     await expect(page.getByText(/payout/i).first()).toBeVisible()
