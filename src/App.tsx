@@ -192,7 +192,7 @@ function App() {
             <h1 className="font-['Space_Grotesk'] text-2xl font-bold text-gray-900 sm:text-4xl">
               Wager Calculator
             </h1>
-            <p className="text-xs tracking-[0.25em] text-gray-600 sm:text-sm">
+            <p className="text-xs tracking-[0.12em] text-gray-600 sm:text-sm sm:tracking-[0.25em]">
               Betting is a tax on bullshit
             </p>
           </div>
