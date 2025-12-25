@@ -12,7 +12,6 @@ Brier scoring calculator for friendly wagers. PWA with React + TypeScript + Tail
 ## Key Docs
 
 - [Specification](docs/dev/SPECIFICATION.md) - Full requirements
-- [Plan](docs/dev/PLAN.md) - Implementation phases
 - [Test data](data/) - Expected calculation outputs for verification
 
 ## Architecture
