@@ -92,6 +92,9 @@ UI-first approach: build visual components with hardcoded/mock data, then wire u
 
 - [x] Component tests with React Testing Library
 - [x] E2E tests with Playwright
-- [ ] Cross-browser testing
+- [x] Playwright multi-browser configuration (Chromium, Firefox, WebKit)
 - [x] Accessibility audit (keyboard nav, screen reader)
 - [x] Performance check (bundle size, load time)
+- [x] Testing documentation (see [TESTING.md](TESTING.md))
+
+**Note:** Manual cross-browser testing should be performed before major releases. See [TESTING.md](TESTING.md) for checklist.
