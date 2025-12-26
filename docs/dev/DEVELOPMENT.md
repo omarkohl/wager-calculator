@@ -7,8 +7,11 @@ git clone https://github.com/omarkohl/wager-calculator.git
 cd wager-calculator
 npm install
 npm run dev      # Start dev server
-npm test         # Run tests
+npm test         # Run unit and integration tests
 npm run build    # Production build
+npm run lint     # Lint the code
+npm run format   # Format the code
+npm run test:e2e # Run end to end browser UI tests
 ```
 
 ## Deployment
