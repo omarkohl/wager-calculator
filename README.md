@@ -15,6 +15,8 @@
 
 <a href="docs/screenshot.png"><img src="docs/screenshot.png" width="50%" alt="Screenshot"></a>
 
+Wagers can easily be shared via the URL. [Here](https://w.ratfr.de/#v=2&c=Who+will+become+the+next+mayor+of+Gotham+City%3F&d=Elections+will+be+held+in+November+of+2025.+This+bet+will+resolve+on+November+25th+2025.&s=usd&pn=Bruce%2CAlfred%2CClark&pb=3000%2C45%2C50&ol=Brunette+Nella%2CRob+Bones%2CAntonia+De+Ireland%2COther&pp=58%2C26%2C15%2C1%2C27%2C43%2C23%2C7%2C58%2C34%2C2%2C6&r=1) you can see the wager of the screenshot above.
+
 ## What It Does
 
 - 2-8 participants, binary or multi-outcome bets (up to 8 outcomes)
