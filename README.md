@@ -25,6 +25,14 @@ Wagers can easily be shared via the URL. [Here](https://w.ratfr.de/#v=2&c=Who+wi
 - Share wagers via URL — all data stays in your browser, nothing stored on servers
 - PWA: installable, works offline
 
+## Progressive Web App (PWA)
+
+This app is a PWA — it can be installed on your device and works offline. Once installed, it behaves like a native app with its own icon and window. Most importantly, it will continue working without an internet connection.
+
+**To install:** Look for an install button in your browser's address bar or menu (often labeled "Install" or "Add to Home Screen") when you visit [w.ratfr.de](https://w.ratfr.de).
+
+[Learn more about PWAs](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable)
+
 ## How Brier Scoring Works
 
 Each participant's prediction accuracy is measured with a Brier score (lower = better). Payouts are based on how your score compares to others.
