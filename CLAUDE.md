@@ -22,6 +22,10 @@ Brier scoring calculator for friendly wagers. PWA with React + TypeScript + Tail
 - Headless UI for accessible primitives
 - lz-string for URL state compression
 
+## E2E Tests (Playwright)
+
+These tests MUST try to imitate real users and not rely on hidden test IDs and similar. Use accessibility information, labels and similar information.
+
 ## Important Details
 
 - Probabilities: slider = 1% steps, text input = 2 decimal places
