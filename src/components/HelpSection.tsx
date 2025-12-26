@@ -57,6 +57,33 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {({ open }) => (
                 <>
                   <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
+                    <span>Why should I bet on my beliefs?</span>
+                    <ChevronDownIcon
+                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
+                    />
+                  </DisclosureButton>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p className="mb-3">
+                      Talk is cheap. People often make confident claims not as a true expression of
+                      what they believe, but to impress others with their certainty. When being
+                      wrong costs nothing, there's little incentive to think carefully before
+                      speaking.
+                    </p>
+                    <p>
+                      Putting something at stake—even something small like cookies or bragging
+                      rights—encourages more honest and calibrated predictions. It helps us as
+                      individuals (and as a society) evolve toward thinking and saying more true
+                      things. As the saying goes: "Betting is a tax on bullshit."
+                    </p>
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure>
+              {({ open }) => (
+                <>
+                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
                     <span>Are you promoting gambling? No.</span>
                     <ChevronDownIcon
                       className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
