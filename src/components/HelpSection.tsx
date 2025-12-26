@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import {
   Dialog,
   DialogPanel,
@@ -6,21 +7,82 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from '@headlessui/react'
-import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline'
+
+/**
+ * FAQ question IDs for deep linking
+ */
+export const FAQ_IDS = [
+  'why-this-app',
+  'why-bet',
+  'not-gambling',
+  'no-money',
+  'brier-scoring',
+  'same-predictions',
+  'different-max-bets',
+  'sum-100',
+  'settlements',
+  'multiple-outcomes',
+  'data-storage',
+  'sharing',
+  'calculation',
+] as const
+
+export type FaqId = (typeof FAQ_IDS)[number]
 
 interface HelpModalProps {
   isOpen: boolean
   onClose: () => void
+  openFaqId?: FaqId | null
 }
 
-export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
+export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const questionRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const [copiedFaqId, setCopiedFaqId] = useState<FaqId | null>(null)
+
+  // Scroll to and focus the open FAQ question when modal opens with a specific question
+  useEffect(() => {
+    if (isOpen && openFaqId && questionRefs.current[openFaqId]) {
+      // Small delay to allow the modal and disclosure to render
+      const timer = setTimeout(() => {
+        questionRefs.current[openFaqId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen, openFaqId])
+
+  // Clear copied state after a delay
+  useEffect(() => {
+    if (copiedFaqId) {
+      const timer = setTimeout(() => setCopiedFaqId(null), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [copiedFaqId])
+
+  const handleCopyLink = async (faqId: FaqId, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent disclosure toggle
+    const url = `${window.location.origin}${window.location.pathname}#faq=${faqId}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedFaqId(faqId)
+    } catch (error) {
+      console.error('Failed to copy FAQ link:', error)
+    }
+  }
+
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="mx-auto max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+        <DialogPanel
+          ref={scrollRef}
+          className="mx-auto max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
+        >
           <div className="mb-4 flex items-start justify-between">
-            <DialogTitle className="text-2xl font-bold text-gray-900">How Wager Works</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              Frequently Asked Questions
+            </DialogTitle>
             <button
               type="button"
               onClick={onClose}
@@ -32,15 +94,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
           </div>
 
           <div className="space-y-3">
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'why-this-app'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Why use this app instead of simple 1:1 odds?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['why-this-app'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Why use this app instead of simple 1:1 odds?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('why-this-app', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'why-this-app' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Simple 1:1 odds betting (e.g., "loser pays winner $10") only works well for
                     binary outcomes with two participants who strongly disagree. This app handles
@@ -53,15 +131,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'why-bet'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Why should I bet on my beliefs?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['why-bet'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Why should I bet on my beliefs?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('why-bet', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'why-bet' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     <p className="mb-3">
                       Talk is cheap. People often make confident claims not as a true expression of
@@ -80,15 +174,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'not-gambling'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Are you promoting gambling? No.</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['not-gambling'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Are you promoting gambling? No.</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('not-gambling', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'not-gambling' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     <p className="mb-3">
                       Gambling addiction is something that can destroy lives and is therefore
@@ -109,15 +219,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'no-money'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Do I have to bet money? No.</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['no-money'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Do I have to bet money? No.</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('no-money', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'no-money' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     <p>
                       No, you don't have to bet money. This app supports stakes like "cookies,"
@@ -130,15 +256,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'brier-scoring'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Why use Brier scoring?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['brier-scoring'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Why use Brier scoring?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('brier-scoring', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'brier-scoring' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Brier scoring is a "proper scoring rule," meaning participants maximize their
                     expected payout by reporting their true beliefs. They will always perform worse
@@ -161,15 +303,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'same-predictions'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>What if we all predict the same thing?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['same-predictions'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>What if we all predict the same thing?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('same-predictions', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'same-predictions' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     If all participants have identical predictions, everyone gets the same Brier
                     score. Since payouts are based on differences in scores, all payouts will be
@@ -179,17 +337,33 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'different-max-bets'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>
-                      What happens if different participants choose different maximum bets?
-                    </span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['different-max-bets'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>
+                        What happens if different participants choose different maximum bets?
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('different-max-bets', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'different-max-bets' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     The amount used will be the minimum of all participants' maximum bets. If Alice
                     bets up to $10, Bob up to $15, and Carol up to $20, the maximum amount any
@@ -200,15 +374,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'sum-100'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Why do my probabilities need to sum to 100%?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['sum-100'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Why do my probabilities need to sum to 100%?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('sum-100', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'sum-100' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Probabilities represent your belief about which outcome will occur. Since
                     exactly one outcome must occur, your probabilities must sum to 100%. The
@@ -220,15 +410,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'settlements'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>How are settlements simplified?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['settlements'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>How are settlements simplified?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('settlements', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'settlements' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     After calculating payouts, the app minimizes the number of transactions needed
                     to achieve everyone's net payout. For example, if Alice owes Bob $5 and Bob owes
@@ -238,15 +444,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'multiple-outcomes'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Can I bet on more than two outcomes?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['multiple-outcomes'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Can I bet on more than two outcomes?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('multiple-outcomes', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'multiple-outcomes' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Yes! Brier scoring works for any number of mutually exclusive outcomes. Add up
                     to 8 outcomes using the "Add Outcome" button.
@@ -255,15 +477,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'data-storage'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>Is my data stored on the server? No.</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['data-storage'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>Is my data stored on the server? No.</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('data-storage', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'data-storage' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     No data is stored on any server. All calculations happen in your browser. When
                     you share a wager, all the data is encoded in the URL itself.
@@ -272,15 +510,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'sharing'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>How does sharing work?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['sharing'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>How does sharing work?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('sharing', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'sharing' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     All data is compressed and stored in the URL anchor (the part after #), which
                     never leaves your browser or gets sent to any server. When you share the URL
@@ -292,15 +546,31 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               )}
             </Disclosure>
 
-            <Disclosure>
+            <Disclosure defaultOpen={openFaqId === 'calculation'}>
               {({ open }) => (
                 <>
-                  <DisclosureButton className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-900 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none">
-                    <span>How exactly is everything calculated?</span>
-                    <ChevronDownIcon
-                      className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`}
-                    />
-                  </DisclosureButton>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['calculation'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span>How exactly is everything calculated?</span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('calculation', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'calculation' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     <div className="space-y-4">
                       <p className="text-sm">
@@ -446,6 +716,13 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
           </div>
         </DialogPanel>
       </div>
+
+      {/* Toast for copied confirmation */}
+      {copiedFaqId && (
+        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+          Link copied to clipboard
+        </div>
+      )}
     </Dialog>
   )
 }

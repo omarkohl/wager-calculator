@@ -400,3 +400,41 @@ export function getShareableURL(state: WagerState): string {
   const hash = encodeStateToURL(state)
   return baseURL + hash
 }
+
+/**
+ * Extract the faq parameter from the URL hash (if present)
+ * Returns null if not present or invalid
+ */
+export function getFaqIdFromURL(hash: string): string | null {
+  if (!hash || hash.length <= 1) {
+    return null
+  }
+
+  try {
+    const paramString = hash.substring(1)
+    const params = new URLSearchParams(paramString)
+    return params.get('faq')
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Remove the faq parameter from the URL hash
+ * Returns the cleaned hash
+ */
+export function removeFaqFromURL(hash: string): string {
+  if (!hash || hash.length <= 1) {
+    return hash
+  }
+
+  try {
+    const paramString = hash.substring(1)
+    const params = new URLSearchParams(paramString)
+    params.delete('faq')
+    const newParams = params.toString()
+    return newParams ? `#${newParams}` : ''
+  } catch {
+    return hash
+  }
+}

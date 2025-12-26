@@ -7,7 +7,7 @@ import ParticipantsList from './components/ParticipantsList'
 import OutcomesList from './components/OutcomesList'
 import PredictionsGrid from './components/PredictionsGrid'
 import Resolution from './components/Resolution'
-import HelpModal from './components/HelpSection'
+import HelpModal, { FAQ_IDS, type FaqId } from './components/HelpSection'
 import ConfirmDialog from './components/ConfirmDialog'
 import Footer from './components/Footer'
 import { calculateResults } from './modules/brier'
@@ -19,6 +19,8 @@ import {
   decodeStateFromURL,
   encodeStateToURL,
   getShareableURL,
+  getFaqIdFromURL,
+  removeFaqFromURL,
 } from './utils/urlState'
 import { autoDistribute } from './utils/autoDistribute'
 
@@ -34,9 +36,19 @@ function App() {
     return { state: deserializeState(defaultState), isFromURL: false }
   }
 
+  // Check for FAQ deep link parameter
+  const getInitialFaqId = (): FaqId | null => {
+    const faqParam = getFaqIdFromURL(window.location.hash)
+    if (faqParam && (FAQ_IDS as readonly string[]).includes(faqParam)) {
+      return faqParam as FaqId
+    }
+    return null
+  }
+
   const initialStateData = useMemo(() => getInitialStateOnce(), [])
   const initialState = initialStateData.state
   const shouldAutoFocusClaim = !initialStateData.isFromURL
+  const initialFaqId = useMemo(() => getInitialFaqId(), [])
 
   const [claim, setClaim] = useState(initialState.claim)
   const [details, setDetails] = useState(initialState.details)
@@ -47,7 +59,8 @@ function App() {
   const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(
     initialState.resolvedOutcomeId
   )
-  const [isHelpOpen, setIsHelpOpen] = useState(false)
+  const [isHelpOpen, setIsHelpOpen] = useState(initialFaqId !== null)
+  const [openFaqId, setOpenFaqId] = useState<FaqId | null>(initialFaqId)
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const previousParticipantsRef = useRef<Participant[]>([])
@@ -338,7 +351,19 @@ function App() {
         </main>
       </div>
 
-      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => {
+          setIsHelpOpen(false)
+          // Clear FAQ from URL when closing
+          if (openFaqId) {
+            setOpenFaqId(null)
+            const cleanedHash = removeFaqFromURL(window.location.hash)
+            window.history.replaceState(null, '', cleanedHash || window.location.pathname)
+          }
+        }}
+        openFaqId={openFaqId}
+      />
 
       <ConfirmDialog
         isOpen={isResetConfirmOpen}

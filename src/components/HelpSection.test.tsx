@@ -7,13 +7,13 @@ describe('HelpModal', () => {
   it('does not render when closed', () => {
     const onClose = vi.fn()
     render(<HelpModal isOpen={false} onClose={onClose} />)
-    expect(screen.queryByText('How Wager Works')).not.toBeInTheDocument()
+    expect(screen.queryByText('Frequently Asked Questions')).not.toBeInTheDocument()
   })
 
   it('renders when open', async () => {
     const onClose = vi.fn()
     render(<HelpModal isOpen={true} onClose={onClose} />)
-    expect(await screen.findByText('How Wager Works')).toBeInTheDocument()
+    expect(await screen.findByText('Frequently Asked Questions')).toBeInTheDocument()
   })
 
   it('calls onClose when close button is clicked', async () => {
