@@ -102,7 +102,7 @@ export default function ParticipantsList({
                 className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!participant.touched ? 'text-gray-500' : ''}`}
               />
             </div>
-            <div className="flex w-25 items-center gap-2">
+            <div className="flex w-36 items-center gap-2">
               <NumberInput
                 value={participant.maxBet}
                 onChange={value => handleMaxBetChange(index, value)}
@@ -112,7 +112,7 @@ export default function ParticipantsList({
                 aria-label={`Max bet for ${participant.name || 'participant'}`}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500"
               />
-              <span className="text-sm text-gray-600">{getStakesSymbol(stakes)}</span>
+              <span className="shrink-0 text-sm text-gray-600">{getStakesSymbol(stakes)}</span>
             </div>
             <button
               type="button"
