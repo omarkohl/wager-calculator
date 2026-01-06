@@ -104,7 +104,9 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Why use this app instead of simple 1:1 odds?</span>
+                      <span className="text-left">
+                        Why use this app instead of simple 1:1 odds?
+                      </span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -141,7 +143,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Why should I bet on my beliefs?</span>
+                      <span className="text-left">Why should I bet on my beliefs?</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -184,7 +186,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Are you promoting gambling? No.</span>
+                      <span className="text-left">Are you promoting gambling? No.</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -229,7 +231,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Do I have to bet money? No.</span>
+                      <span className="text-left">Do I have to bet money? No.</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -266,7 +268,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Why use Brier scoring?</span>
+                      <span className="text-left">Why use Brier scoring?</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -313,7 +315,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>What if we all predict the same thing?</span>
+                      <span className="text-left">What if we all predict the same thing?</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -347,7 +349,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>
+                      <span className="text-left">
                         What happens if different participants choose different maximum bets?
                       </span>
                       <ChevronDownIcon
@@ -384,7 +386,9 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Why do my probabilities need to sum to 100%?</span>
+                      <span className="text-left">
+                        Why do my probabilities need to sum to 100%?
+                      </span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -420,7 +424,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>How are settlements simplified?</span>
+                      <span className="text-left">How are settlements simplified?</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -454,7 +458,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Can I bet on more than two outcomes?</span>
+                      <span className="text-left">Can I bet on more than two outcomes?</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -487,7 +491,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>Is my data stored on the server? No.</span>
+                      <span className="text-left">Is my data stored on the server? No.</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -520,7 +524,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>How does sharing work?</span>
+                      <span className="text-left">How does sharing work?</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
@@ -556,7 +560,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       }}
                       className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
-                      <span>How exactly is everything calculated?</span>
+                      <span className="text-left">How exactly is everything calculated?</span>
                       <ChevronDownIcon
                         className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
                       />
