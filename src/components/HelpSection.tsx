@@ -24,6 +24,7 @@ export const FAQ_IDS = [
   'settlements',
   'multiple-outcomes',
   'continuous-values',
+  'true-belief',
   'data-storage',
   'sharing',
   'calculation',
@@ -534,6 +535,90 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                       </a>
                       .
                     </p>
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure defaultOpen={openFaqId === 'true-belief'}>
+              {({ open }) => (
+                <>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['true-belief'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span className="text-left">
+                        (Technical) Should I always report my true belief?
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('true-belief', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'true-belief' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p className="mb-3 italic">
+                      This is a technical corner case unlikely to affect most users. The short
+                      answer: yes, report your true belief—especially if participants decide on
+                      their predictions and stakes independently.
+                    </p>
+                    <p className="mb-3">
+                      Brier scoring maximizes your <em>expected value</em> (EV) when you report
+                      honestly. However, EV maximization assumes you value each dollar
+                      equally—whether it's your first or your thousandth. In reality, losing $1,000
+                      often hurts more than winning $1,000 feels good. Economists call this
+                      "diminishing marginal utility of money."
+                    </p>
+                    <p className="mb-3">
+                      If all these conditions apply, you might rationally deviate from your true
+                      belief:
+                    </p>
+                    <ul className="mb-3 ml-6 list-disc space-y-1">
+                      <li>
+                        You see your opponent's probabilities and max stake before submitting yours
+                      </li>
+                      <li>Your opponent won't adjust after seeing your submission</li>
+                      <li>Their max stake exceeds your financial comfort zone</li>
+                      <li>Avoiding large losses matters more to you than maximizing EV</li>
+                    </ul>
+                    <p className="mb-3">
+                      In such cases, you could increase your stated max stake while slightly
+                      shifting your probability toward your opponent's—this caps your maximum loss
+                      while potentially increasing EV compared to a lower stake at your true belief.
+                      For more technical details, see{' '}
+                      <a
+                        href="https://www.lesswrong.com/posts/ic6MjCkFfCecjSHhq/cheating-at-bets-with-the-even-odds-algorithm"
+                        target="_blank"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >
+                        this post
+                      </a>
+                      .
+                    </p>
+                    <p className="mb-2 font-semibold">How to avoid this issue:</p>
+                    <ul className="ml-6 list-disc space-y-1">
+                      <li>
+                        <strong>Keep stakes small or non-monetary.</strong> We recommend this anyway
+                        to avoid gambling issues. When stakes are small (or things like
+                        cookies/bragging rights), the marginal utility concern disappears.
+                      </li>
+                      <li>
+                        <strong>Commit to predictions independently.</strong> Make all participants
+                        commit to predictions and stakes independently before revealing them. This
+                        removes the information asymmetry that enables the exploit.
+                      </li>
+                    </ul>
                   </DisclosurePanel>
                 </>
               )}
