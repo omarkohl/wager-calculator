@@ -23,6 +23,7 @@ export const FAQ_IDS = [
   'sum-100',
   'settlements',
   'multiple-outcomes',
+  'continuous-values',
   'data-storage',
   'sharing',
   'calculation',
@@ -476,6 +477,63 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                   <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
                     Yes! Brier scoring works for any number of mutually exclusive outcomes. Add up
                     to 8 outcomes using the "Add Outcome" button.
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure defaultOpen={openFaqId === 'continuous-values'}>
+              {({ open }) => (
+                <>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['continuous-values'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span className="text-left">
+                        Can I wager on continuous values like temperature or a number?
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('continuous-values', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'continuous-values' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p className="mb-3">Yes, by dividing the range into buckets.</p>
+                    <p className="mb-3">
+                      <strong>Example:</strong> You and a friend disagree on how long a meeting will
+                      run. Create these outcomes: "Under 30 minutes," "30-45 minutes," "45-60
+                      minutes," and "Over 60 minutes." Each person assigns probabilities (e.g., you
+                      might predict 10% / 40% / 35% / 15%). When the meeting ends at 52 minutes, the
+                      "45-60 minutes" outcome wins and payouts are calculated normally.
+                    </p>
+                    <p className="mb-3">
+                      This approach works for any continuous value—just pick bucket boundaries that
+                      capture meaningful distinctions for your wager.
+                    </p>
+                    <p>
+                      We're considering adding direct support for probability distributions as
+                      input. If you'd like this feature, please vote or comment{' '}
+                      <a
+                        href="https://github.com/omarkohl/wager-calculator/issues/6"
+                        target="_blank"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >
+                        here
+                      </a>
+                      .
+                    </p>
                   </DisclosurePanel>
                 </>
               )}
