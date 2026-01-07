@@ -47,7 +47,7 @@ Alice predicted best, Bob worst. Result: Alice wins $11.20, Carol wins $1.60, Bo
 
 The key property: reporting your true belief always maximizes your expected payout.
 
-You can find detailed calculation examples in the [FAQ](https://w.ratfr.de) in the app.
+You can find a detailed calculation example in the [FAQ](https://w.ratfr.de/#faq=calculation) in the app.
 
 ---
 
