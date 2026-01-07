@@ -155,4 +155,16 @@ describe('NumberInput', () => {
     const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]
     expect(lastCall[0].toNumber()).toBe(100)
   })
+
+  it('does not call onChange when focusing and blurring without changing the value', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<NumberInput value={new Decimal(50)} onChange={onChange} />)
+
+    const input = screen.getByRole('spinbutton')
+    await user.click(input)
+    await user.tab() // blur without changing
+
+    expect(onChange).not.toHaveBeenCalled()
+  })
 })

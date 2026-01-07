@@ -63,7 +63,11 @@ export default function NumberInput({
       finalValue = max
     }
 
-    onChange(new Decimal(finalValue))
+    // Only call onChange if the value actually changed
+    const newValue = new Decimal(finalValue)
+    if (!newValue.equals(value)) {
+      onChange(newValue)
+    }
     setEditingValue(null)
   }
 
