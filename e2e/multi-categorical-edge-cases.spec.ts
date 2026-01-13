@@ -26,9 +26,11 @@ test.describe('Multi-categorical with Edge Cases', () => {
     await page.goto('/')
 
     // Set custom stakes (Cookies)
-    const stakesInput = page.getByRole('combobox', { name: /stakes/i })
-    await stakesInput.click()
-    await stakesInput.fill('Cookies')
+    const stakesButton = page.getByRole('button', { name: /stakes/i })
+    await stakesButton.click()
+    // Wait for listbox to open and search for Cookies
+    const searchInput = page.locator('input[placeholder="Search..."]')
+    await searchInput.fill('Cookies')
     await page.getByRole('option', { name: /cookies/i }).click()
 
     // Add third and fourth participants

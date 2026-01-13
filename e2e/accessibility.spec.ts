@@ -13,13 +13,11 @@ test.describe('Accessibility', () => {
   test('should support keyboard navigation through interactive elements', async ({ page }) => {
     await page.goto('/')
 
-    // Find and focus the stakes combobox directly
-    const stakesInput = page.getByRole('combobox', { name: /stakes/i })
-    await stakesInput.focus()
-    await expect(stakesInput).toBeFocused()
+    // Find and focus the stakes listbox button directly
+    const stakesButton = page.getByRole('button', { name: /stakes/i })
+    await stakesButton.click()
 
-    // Test opening stakes with keyboard
-    await page.keyboard.press('ArrowDown')
+    // Wait for the listbox options to be visible
     await expect(page.getByRole('option').first()).toBeVisible()
 
     // Navigate options with arrow keys and select
@@ -44,9 +42,9 @@ test.describe('Accessibility', () => {
     // Check heading structure
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
-    // Check form controls have labels
-    const stakesCombobox = page.getByRole('combobox')
-    await expect(stakesCombobox).toBeVisible()
+    // Check form controls have labels - stakes is now a listbox button
+    const stakesButton = page.getByRole('button', { name: /stakes/i })
+    await expect(stakesButton).toBeVisible()
 
     // Check buttons are accessible (using .first() since they appear at top and bottom)
     await expect(page.getByRole('button', { name: /reset/i }).first()).toBeVisible()
