@@ -148,7 +148,7 @@ test.describe('Multi-categorical with Edge Cases', () => {
     // Verify payouts section is visible
     await expect(page.getByText(/payout/i).first()).toBeVisible()
 
-    // Verify settlements are shown (someone pays someone)
-    await expect(page.getByText(/pays/).first()).toBeVisible()
+    // Verify settlements are shown (someone owes someone)
+    await expect(page.getByText(/owes/).first()).toBeVisible()
   })
 })

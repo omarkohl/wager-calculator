@@ -79,8 +79,8 @@ export default function OutcomesList({
     <div className="space-y-4">
       <div className="space-y-3">
         {outcomes.map((outcome, index) => (
-          <div key={outcome.id} className="flex items-center gap-3">
-            <div className="flex-1">
+          <div key={outcome.id} className="flex max-w-xl items-center gap-3">
+            <div className="min-w-0 flex-1">
               <input
                 type="text"
                 value={outcome.label}
@@ -120,7 +120,7 @@ export default function OutcomesList({
         <button
           type="button"
           onClick={handleAddOutcome}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+          className="inline-flex w-full max-w-xl items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
         >
           <PlusIcon className="h-5 w-5" />
           Add Outcome

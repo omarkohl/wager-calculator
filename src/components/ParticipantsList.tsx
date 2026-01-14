@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Decimal from 'decimal.js'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import type { Participant, Prediction } from '../types/wager'
-import { getStakesSymbol } from '../utils/stakes'
+import { getStakesSymbol, getStakeName } from '../utils/stakes'
 import ConfirmDialog from './ConfirmDialog'
 import NumberInput from './NumberInput'
 import { DEFAULT_PARTICIPANT_NAMES } from '../utils/defaults'
@@ -91,8 +91,8 @@ export default function ParticipantsList({
     <div className="space-y-4">
       <div className="space-y-3">
         {participants.map((participant, index) => (
-          <div key={participant.id} className="flex items-center gap-3">
-            <div className="flex-1">
+          <div key={participant.id} className="flex max-w-xl items-center gap-3">
+            <div className="min-w-0 flex-1">
               <input
                 type="text"
                 value={participant.name}
@@ -102,7 +102,7 @@ export default function ParticipantsList({
                 className={`w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none ${!participant.touched ? 'text-gray-500' : ''}`}
               />
             </div>
-            <div className="flex w-36 items-center gap-2">
+            <div className="flex w-28 shrink-0 items-center gap-1">
               <NumberInput
                 value={participant.maxBet}
                 onChange={value => handleMaxBetChange(index, value)}
@@ -110,9 +110,14 @@ export default function ParticipantsList({
                 step={1}
                 placeholder="0"
                 aria-label={`Max bet for ${participant.name || 'participant'}`}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 px-2 py-2 text-sm placeholder:text-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none data-[focus]:border-blue-500 data-[focus]:ring-1 data-[focus]:ring-blue-500"
               />
-              <span className="shrink-0 text-sm text-gray-600">{getStakesSymbol(stakes)}</span>
+              <span
+                className="w-8 shrink-0 text-center text-sm text-gray-600"
+                title={getStakeName(stakes)}
+              >
+                {getStakesSymbol(stakes)}
+              </span>
             </div>
             <button
               type="button"
@@ -144,7 +149,7 @@ export default function ParticipantsList({
         <button
           type="button"
           onClick={handleAddParticipant}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+          className="inline-flex w-full max-w-xl items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
         >
           <PlusIcon className="h-5 w-5" />
           Add Participant

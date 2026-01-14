@@ -312,7 +312,7 @@ describe('ParticipantsList', () => {
     expect(screen.getByText('$')).toBeInTheDocument()
   })
 
-  it('displays unit label for non-monetary stakes', () => {
+  it('displays emoji symbol for non-monetary stakes', () => {
     const participants: Participant[] = [{ id: '1', name: 'Alice', maxBet: new Decimal(10) }]
     render(
       <ParticipantsList
@@ -323,7 +323,8 @@ describe('ParticipantsList', () => {
       />
     )
 
-    expect(screen.getByText('cookies')).toBeInTheDocument()
+    // Non-monetary stakes now use emoji symbols
+    expect(screen.getByText('🍪')).toBeInTheDocument()
   })
 
   it('shows confirmation dialog when deleting touched participant', async () => {

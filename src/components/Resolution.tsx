@@ -2,6 +2,7 @@ import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headless
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import Decimal from 'decimal.js'
 import type { Outcome, Participant, Prediction, CalculationResult } from '../types/wager'
+import { formatPayout, getStakeName } from '../utils/stakes'
 
 interface ResolutionProps {
   outcomes: Outcome[]
@@ -23,37 +24,6 @@ function Resolution({
   onChange,
 }: ResolutionProps) {
   const selectedOutcome = outcomes.find(o => o.id === resolvedOutcomeId)
-
-  // Format currency/stakes display
-  const formatAmount = (amount: number): string => {
-    const stakeSymbols: Record<string, string> = {
-      usd: '$',
-      eur: '€',
-      gbp: '£',
-      cad: 'CA$',
-      aud: 'AU$',
-      jpy: '¥',
-      chf: 'CHF ',
-      cny: '¥',
-      cookies: '',
-      hugs: '',
-      'i-was-wrong': '',
-      other: '',
-    }
-
-    const stakeSuffixes: Record<string, string> = {
-      cookies: ' cookies',
-      hugs: ' hugs',
-      'i-was-wrong': ' "I was wrong"',
-      other: '',
-    }
-
-    const symbol = stakeSymbols[stakes] || ''
-    const suffix = stakeSuffixes[stakes] || ''
-    const formattedNum = Math.abs(amount).toFixed(2)
-
-    return `${symbol}${formattedNum}${suffix}`
-  }
 
   // Get participants with invalid probabilities
   const getInvalidProbabilityParticipants = (): Array<{ name: string; total: number }> => {
@@ -112,7 +82,7 @@ function Resolution({
   return (
     <div className="space-y-4">
       <Listbox value={resolvedOutcomeId} onChange={onChange}>
-        <div className="relative">
+        <div className="relative max-w-xs">
           <ListboxButton className="relative w-full cursor-pointer rounded-lg border border-gray-300 bg-white py-2 pr-10 pl-3 text-left focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-sm">
             <span className="block truncate">
               {selectedOutcome ? selectedOutcome.label : 'Unresolved'}
@@ -214,8 +184,10 @@ function Resolution({
                     {calculationResults.payouts.map(payout => {
                       const participant = participants.find(p => p.id === payout.participantId)
                       const amount = payout.amount.toNumber()
-                      const isPositive = amount > 0
-                      const isZero = amount === 0
+                      const formatted = formatPayout(amount, stakes)
+                      const isPositive = formatted.roundedAmount > 0
+                      const isZero = formatted.roundedAmount === 0
+                      const stakeName = getStakeName(stakes)
 
                       return (
                         <div
@@ -232,8 +204,8 @@ function Resolution({
                                   : 'font-medium text-red-600'
                             }
                           >
-                            {isPositive ? '+' : '-'}
-                            {formatAmount(amount)}
+                            {formatted.compactAmount}{' '}
+                            <span title={stakeName}>{formatted.symbol}</span>
                           </span>
                         </div>
                       )
@@ -252,12 +224,18 @@ function Resolution({
                         const from = participants.find(p => p.id === settlement.fromParticipantId)
                         const to = participants.find(p => p.id === settlement.toParticipantId)
                         const amount = settlement.amount.toNumber()
+                        const formatted = formatPayout(amount, stakes)
+                        const stakeName = getStakeName(stakes)
 
                         return (
                           <div key={idx} className="text-sm text-gray-700">
-                            <span className="font-medium">{from?.name || 'Unknown'}</span> pays{' '}
+                            <span className="font-medium">{from?.name || 'Unknown'}</span> owes{' '}
                             <span className="font-medium">{to?.name || 'Unknown'}</span>{' '}
-                            <span className="font-semibold">{formatAmount(amount)}</span>
+                            <span className="font-semibold">
+                              {/* Show amount without symbol, then symbol with tooltip */}
+                              {formatted.settlement.replace(formatted.symbol, '').trim()}{' '}
+                              <span title={stakeName}>{formatted.symbol}</span>
+                            </span>
                           </div>
                         )
                       })}

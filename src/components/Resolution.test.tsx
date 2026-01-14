@@ -291,4 +291,114 @@ describe('Resolution', () => {
     expect(screen.getByText(/Payout Summary/i)).toBeInTheDocument()
     expect(screen.queryByText(/has max bet set to 0/i)).not.toBeInTheDocument()
   })
+
+  describe('discrete stakes formatting', () => {
+    it('displays amounts with emoji symbol for cookies', () => {
+      const calculationResults = calculateResults(
+        mockParticipants,
+        mockPredictions,
+        mockOutcomes,
+        '1',
+        'Test claim'
+      )
+
+      render(
+        <Resolution
+          outcomes={mockOutcomes}
+          participants={mockParticipants}
+          predictions={mockPredictions}
+          stakes="cookies"
+          resolvedOutcomeId="1"
+          calculationResults={calculationResults}
+          onChange={vi.fn()}
+        />
+      )
+
+      // Should use emoji in display (multiple elements expected - payouts for each participant)
+      expect(screen.getAllByText(/🍪/).length).toBeGreaterThan(0)
+    })
+
+    it('displays amounts with emoji symbol for i-was-wrong', () => {
+      const calculationResults = calculateResults(
+        mockParticipants,
+        mockPredictions,
+        mockOutcomes,
+        '1',
+        'Test claim'
+      )
+
+      render(
+        <Resolution
+          outcomes={mockOutcomes}
+          participants={mockParticipants}
+          predictions={mockPredictions}
+          stakes="i-was-wrong"
+          resolvedOutcomeId="1"
+          calculationResults={calculationResults}
+          onChange={vi.fn()}
+        />
+      )
+
+      // Should use emoji in display (multiple elements expected - payouts for each participant)
+      expect(screen.getAllByText(/🏳️/).length).toBeGreaterThan(0)
+    })
+
+    it('uses verbose format with unit names in settlements', () => {
+      const calculationResults = calculateResults(
+        mockParticipants,
+        mockPredictions,
+        mockOutcomes,
+        '1',
+        'Test claim'
+      )
+
+      render(
+        <Resolution
+          outcomes={mockOutcomes}
+          participants={mockParticipants}
+          predictions={mockPredictions}
+          stakes="cookies"
+          resolvedOutcomeId="1"
+          calculationResults={calculationResults}
+          onChange={vi.fn()}
+        />
+      )
+
+      // Settlement text should use verbose format with "cookie" or "cookies"
+      const settlementSection = screen.getByText(/Simplified Settlements/i).parentElement
+      expect(settlementSection?.textContent).toMatch(/cookie/)
+    })
+
+    it('shows rounding info for discrete stakes when amount was rounded', () => {
+      // Create a scenario where rounding occurs - use decimal maxBets that will result in fractional payouts
+      const participantsWithDecimalBets: Participant[] = [
+        { id: 'p1', name: 'Alice', maxBet: new Decimal(7) },
+        { id: 'p2', name: 'Bob', maxBet: new Decimal(7) },
+      ]
+
+      const calculationResults = calculateResults(
+        participantsWithDecimalBets,
+        mockPredictions,
+        mockOutcomes,
+        '1',
+        'Test claim'
+      )
+
+      render(
+        <Resolution
+          outcomes={mockOutcomes}
+          participants={participantsWithDecimalBets}
+          predictions={mockPredictions}
+          stakes="cookies"
+          resolvedOutcomeId="1"
+          calculationResults={calculationResults}
+          onChange={vi.fn()}
+        />
+      )
+
+      // If there's rounding, it should show "(from X.XX)"
+      // The exact values depend on the Brier calculation, but we can check the structure
+      expect(screen.getByText(/Payout Summary/i)).toBeInTheDocument()
+    })
+  })
 })

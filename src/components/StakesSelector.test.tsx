@@ -13,6 +13,7 @@ describe('StakesSelector', () => {
   it('displays selected option label', () => {
     const onChange = vi.fn()
     render(<StakesSelector value="usd" onChange={onChange} />)
+    // Shows the label directly (currencies already have symbol in parentheses)
     expect(screen.getByText('USD ($)')).toBeInTheDocument()
   })
 
@@ -182,11 +183,14 @@ describe('StakesSelector', () => {
     await user.click(button)
 
     const currencyOptions = screen.getAllByRole('option')
-    // Skip non-monetary options (3) and Other (1) = first 4 options
-    const currencyCodes = currencyOptions
-      .slice(4)
-      .map(opt => opt.textContent?.split(' ')[0])
-      .filter(Boolean)
+    // Skip non-monetary options (4) = first 4 options
+    // Options now show "symbol label" format, extract the label part
+    const currencyCodes = currencyOptions.slice(4).map(opt => {
+      const text = opt.textContent || ''
+      // Extract the currency code from format like "د.إ AED (د.إ)"
+      const match = text.match(/([A-Z]{3})/)
+      return match ? match[1] : ''
+    })
 
     // Check first few are in alphabetical order
     expect(currencyCodes[0]).toBe('AED')
@@ -222,7 +226,7 @@ describe('StakesSelector', () => {
   it('uses disambiguated symbols for currencies', () => {
     const onChange = vi.fn()
 
-    // AUD uses A$
+    // AUD uses A$ - label already contains the disambiguated symbol
     render(<StakesSelector value="aud" onChange={onChange} />)
     expect(screen.getByText('AUD (A$)')).toBeInTheDocument()
   })
