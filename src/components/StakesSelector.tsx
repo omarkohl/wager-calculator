@@ -195,7 +195,7 @@ export default function StakesSelector({ value, onChange }: StakesSelectorProps)
                     <ListboxOption
                       key={option.id}
                       value={option.id}
-                      className="relative cursor-pointer px-3 py-2 text-gray-900 select-none data-[focus]:bg-blue-600 data-[focus]:text-white"
+                      className="relative cursor-pointer px-3 py-2 text-gray-900 select-none data-[focus]:bg-blue-100 data-[focus]:text-blue-900"
                     >
                       <div className="flex flex-col">
                         <span className="block truncate">
@@ -207,7 +207,7 @@ export default function StakesSelector({ value, onChange }: StakesSelectorProps)
                         </span>
                         {/* Only show secondary text if it differs from label */}
                         {option.name !== option.label && (
-                          <span className="block truncate text-xs text-gray-500 data-[focus]:text-blue-100">
+                          <span className="block truncate text-xs text-gray-500 data-[focus]:text-blue-700">
                             {option.name}
                           </span>
                         )}
