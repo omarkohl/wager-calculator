@@ -1,7 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
+
+const STAKES_STORAGE_KEY = 'wager-calculator.stakes'
 
 describe('App', () => {
   it('renders the header', () => {
@@ -77,5 +79,159 @@ describe('App', () => {
     // Allow for small floating point differences
     expect(Math.abs(secondValue - thirdValue)).toBeLessThan(1)
     expect(secondValue).toBeGreaterThan(0)
+  })
+})
+
+describe('App - Stakes LocalStorage', () => {
+  beforeEach(() => {
+    // Clear localStorage and URL before each test
+    localStorage.clear()
+    window.history.replaceState(null, '', window.location.pathname)
+  })
+
+  it('saves actively selected stakes to localStorage', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    // Open stakes selector (find the button by aria-label)
+    const stakesButton = screen.getByRole('button', { name: 'Stakes' })
+    expect(stakesButton).toHaveTextContent('USD ($)')
+    await user.click(stakesButton)
+
+    // Select a different currency (Euro)
+    const euroOption = await screen.findByRole('option', { name: /EUR \(€\)/i })
+    await user.click(euroOption)
+
+    // Wait for localStorage to be updated (debounced 400ms)
+    await waitFor(
+      () => {
+        expect(localStorage.getItem(STAKES_STORAGE_KEY)).toBe('eur')
+      },
+      { timeout: 1000 }
+    )
+  })
+
+  it('does NOT save stakes when loading from URL', async () => {
+    // Set up URL with GBP stakes
+    window.history.replaceState(
+      null,
+      '',
+      '#v=2&c=Test%20Claim&s=gbp&pn=Alice,Bob&pb=100,100&on=Yes,No&op=50,50&pr=50,50;50,50'
+    )
+
+    render(<App />)
+
+    // Verify GBP is displayed
+    const stakesButton = screen.getByRole('button', { name: 'Stakes' })
+    expect(stakesButton).toHaveTextContent('GBP (£)')
+
+    // Wait a bit to ensure localStorage would have been set if it was going to be
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // Verify localStorage was NOT updated
+    expect(localStorage.getItem(STAKES_STORAGE_KEY)).toBeNull()
+  })
+
+  it('restores stakes from localStorage on reset when no URL state', async () => {
+    const user = userEvent.setup()
+
+    // First, set a preferred stakes
+    localStorage.setItem(STAKES_STORAGE_KEY, 'eur')
+
+    render(<App />)
+
+    // Should load with Euro from localStorage
+    let stakesButton = screen.getByRole('button', { name: 'Stakes' })
+    expect(stakesButton).toHaveTextContent('EUR (€)')
+
+    // Change to a different stakes
+    await user.click(stakesButton)
+    const gbpOption = await screen.findByRole('option', { name: /GBP \(£\)/i })
+    await user.click(gbpOption)
+
+    // Wait for the change to apply
+    await waitFor(() => {
+      stakesButton = screen.getByRole('button', { name: 'Stakes' })
+      expect(stakesButton).toHaveTextContent('GBP (£)')
+    })
+
+    // Click reset button (opens confirmation dialog)
+    const resetButton = screen.getAllByRole('button', { name: /Reset/i })[0]
+    await user.click(resetButton)
+
+    // Confirm the reset in the dialog
+    const confirmButton = await screen.findByRole('button', { name: /^Reset$/i })
+    await user.click(confirmButton)
+
+    // After reset, should restore to Euro (from localStorage)
+    await waitFor(() => {
+      stakesButton = screen.getByRole('button', { name: 'Stakes' })
+      expect(stakesButton).toHaveTextContent('EUR (€)')
+    })
+  })
+
+  it('uses localStorage preference when opening new session without URL', () => {
+    // Simulate saved preference
+    localStorage.setItem(STAKES_STORAGE_KEY, 'jpy')
+
+    render(<App />)
+
+    // Should load with Japanese Yen from localStorage
+    const stakesButton = screen.getByRole('button', { name: 'Stakes' })
+    expect(stakesButton).toHaveTextContent('JPY (¥)')
+  })
+
+  it('prioritizes URL stakes over localStorage but does not update localStorage', () => {
+    // Set localStorage preference
+    localStorage.setItem(STAKES_STORAGE_KEY, 'eur')
+
+    // Set URL with different stakes
+    window.history.replaceState(
+      null,
+      '',
+      '#v=2&c=Test%20Claim&s=gbp&pn=Alice,Bob&pb=100,100&on=Yes,No&op=50,50&pr=50,50;50,50'
+    )
+
+    render(<App />)
+
+    // Should display GBP from URL (URL has priority)
+    const stakesButton = screen.getByRole('button', { name: 'Stakes' })
+    expect(stakesButton).toHaveTextContent('GBP (£)')
+
+    // localStorage should still have EUR (not updated to GBP)
+    expect(localStorage.getItem(STAKES_STORAGE_KEY)).toBe('eur')
+  })
+
+  it('updates localStorage when user changes stakes after viewing URL with different stakes', async () => {
+    const user = userEvent.setup()
+
+    // Set localStorage preference
+    localStorage.setItem(STAKES_STORAGE_KEY, 'eur')
+
+    // Load URL with GBP
+    window.history.replaceState(
+      null,
+      '',
+      '#v=2&c=Test%20Claim&s=gbp&pn=Alice,Bob&pb=100,100&on=Yes,No&op=50,50&pr=50,50;50,50'
+    )
+
+    render(<App />)
+
+    // Verify GBP is displayed
+    const stakesButton = screen.getByRole('button', { name: 'Stakes' })
+    expect(stakesButton).toHaveTextContent('GBP (£)')
+
+    // Now user actively changes to USD
+    await user.click(stakesButton)
+    const usdOption = await screen.findByRole('option', { name: /USD \(\$\)/i })
+    await user.click(usdOption)
+
+    // Wait for localStorage to update
+    await waitFor(
+      () => {
+        expect(localStorage.getItem(STAKES_STORAGE_KEY)).toBe('usd')
+      },
+      { timeout: 1000 }
+    )
   })
 })

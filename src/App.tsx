@@ -23,6 +23,7 @@ import {
   removeFaqFromURL,
 } from './utils/urlState'
 import { autoDistribute } from './utils/autoDistribute'
+import { getSavedStakes, saveStakes } from './utils/localStorage'
 
 function App() {
   // Initialize state from URL if available, otherwise use defaults
@@ -33,6 +34,11 @@ function App() {
       return { state: deserializeState(urlState), isFromURL: true }
     }
     const defaultState = getDefaultState()
+    // Try to restore saved stakes preference from localStorage
+    const savedStakes = getSavedStakes()
+    if (savedStakes) {
+      defaultState.stakes = savedStakes
+    }
     return { state: deserializeState(defaultState), isFromURL: false }
   }
 
@@ -65,6 +71,8 @@ function App() {
   const [showToast, setShowToast] = useState(false)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
+  // Track whether we should save stakes to localStorage (only when user actively changes it)
+  const shouldSaveStakesRef = useRef(!initialStateData.isFromURL)
 
   // Auto-sync state to URL with debouncing
   useEffect(() => {
@@ -84,6 +92,17 @@ function App() {
 
     return () => clearTimeout(timer)
   }, [claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId])
+
+  // Save stakes preference to localStorage (only when user actively changes it)
+  useEffect(() => {
+    if (shouldSaveStakesRef.current) {
+      const timer = setTimeout(() => {
+        saveStakes(stakes)
+      }, 400)
+
+      return () => clearTimeout(timer)
+    }
+  }, [stakes])
 
   // Calculate results when wager is resolved
   const calculationResults = useMemo<CalculationResult | null>(() => {
@@ -158,6 +177,11 @@ function App() {
 
   const confirmReset = () => {
     const defaultState = getDefaultState()
+    // Restore saved stakes preference from localStorage
+    const savedStakes = getSavedStakes()
+    if (savedStakes) {
+      defaultState.stakes = savedStakes
+    }
     const deserialized = deserializeState(defaultState)
     setClaim(deserialized.claim)
     setDetails(deserialized.details)
@@ -167,6 +191,17 @@ function App() {
     setPredictions(deserialized.predictions)
     setResolvedOutcomeId(deserialized.resolvedOutcomeId)
     window.location.hash = ''
+    // Re-enable saving to localStorage after reset
+    shouldSaveStakesRef.current = true
+  }
+
+  // Handle stakes change from UI (user actively selecting)
+  const handleStakesChange = (value: string | null) => {
+    if (value) {
+      // User is actively changing stakes, so enable localStorage saving
+      shouldSaveStakesRef.current = true
+      setStakes(value)
+    }
   }
 
   // Share wager by copying URL to clipboard
@@ -270,7 +305,7 @@ function App() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Stakes</label>
-              <StakesSelector value={stakes} onChange={value => value && setStakes(value)} />
+              <StakesSelector value={stakes} onChange={handleStakesChange} />
             </div>
 
             <div>
