@@ -25,6 +25,9 @@ export const FAQ_IDS = [
   'multiple-outcomes',
   'continuous-values',
   'true-belief',
+  'different-payouts',
+  'same-ev-different-beliefs',
+  'probability-meaning',
   'data-storage',
   'sharing',
   'calculation',
@@ -619,6 +622,174 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
                         removes the information asymmetry that enables the exploit.
                       </li>
                     </ul>
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure defaultOpen={openFaqId === 'different-payouts'}>
+              {({ open }) => (
+                <>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['different-payouts'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span className="text-left">
+                        Why are payouts different for different resolutions? Is that fair?
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('different-payouts', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'different-payouts' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p className="mb-3">
+                      This is exactly how Brier scoring works—and it's what makes it fair. Your
+                      payout depends on how accurate your prediction was relative to other
+                      participants, not on which outcome occurs.
+                    </p>
+                    <p className="mb-3">
+                      If you assigned a high probability to an outcome that actually happened, your
+                      Brier score will be low (good). If you assigned low probability to what
+                      happened, your score will be high (bad). The difference between your score and
+                      everyone else's average determines your payout.
+                    </p>
+                    <p className="mb-3">
+                      This means different resolutions produce different payouts because they reward
+                      different predictions. If Alice predicted 80% for outcome A and Bob predicted
+                      40%, one of them will be proven more accurate when we see which outcome
+                      occurs—and the payouts reflect that.
+                    </p>
+                    <p>
+                      Note that the EV (expected value) of each participant is the same! So if you
+                      multiply the probability that each participant assigns to each outcome by the
+                      amount that that participant wins or loses on that resolution you end up with
+                      the same amount for each participant. That's why it's fair.
+                    </p>
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure defaultOpen={openFaqId === 'same-ev-different-beliefs'}>
+              {({ open }) => (
+                <>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['same-ev-different-beliefs'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span className="text-left">
+                        How can different people have different probabilities but the same expected
+                        value?
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('same-ev-different-beliefs', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'same-ev-different-beliefs' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p className="mb-3">
+                      They can both be right—about their expected value! Expected value is
+                      calculated based on <em>your own beliefs</em>, not on some objective "true"
+                      probability.
+                    </p>
+                    <p className="mb-3">
+                      If you believe there's a 60% chance of rain and I believe there's an 80%
+                      chance, we're both acting rationally based on our different information or
+                      interpretations. If you think your 60% prediction is incorrect then fix it,
+                      either increase or decrease it! Everyone will end up with the same EV
+                      (expected value) when they report their honest beliefs. This doesn't mean
+                      everyone is equally correct—it means everyone is equally incentivized to be
+                      honest.
+                    </p>
+                    <p>
+                      After the outcome is revealed, we'll see whose prediction was actually better.
+                      The person who was more accurate gets paid, but beforehand, everyone's
+                      expected value (given their beliefs) is the same.
+                    </p>
+                  </DisclosurePanel>
+                </>
+              )}
+            </Disclosure>
+
+            <Disclosure defaultOpen={openFaqId === 'probability-meaning'}>
+              {({ open }) => (
+                <>
+                  <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
+                    <DisclosureButton
+                      ref={el => {
+                        questionRefs.current['probability-meaning'] = el
+                      }}
+                      className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                      <span className="text-left">
+                        How can you assign a probability to a single event?
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                      />
+                    </DisclosureButton>
+                    <button
+                      type="button"
+                      onClick={e => handleCopyLink('probability-meaning', e)}
+                      className="mr-2 rounded p-1 text-blue-400 transition-colors hover:bg-blue-200 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      aria-label="Copy link to this question"
+                      title={copiedFaqId === 'probability-meaning' ? 'Copied!' : 'Copy link'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <DisclosurePanel className="px-4 pt-3 pb-3 text-sm text-gray-700">
+                    <p className="mb-3">
+                      Probability here represents your confidence or degree of belief, not a
+                      frequency. When you say "40% chance Tom wins the election," you're expressing
+                      your uncertainty given the information you have.
+                    </p>
+                    <p className="mb-3">
+                      Think of it this way: if you take all your bets where you assign 40%
+                      probability then you expect to win 40% of those bets. Or more practically:
+                      saying 40% means you'd consider it roughly fair if someone offered you 3:2
+                      odds ($2 bet pays $5 total if Tom wins the election).
+                    </p>
+                    <p className="mb-3">
+                      Probabilities aren't just for repeatable events like coin flips. They're a
+                      useful way to quantify uncertainty about anything—elections, one-time
+                      negotiations, whether your friend will arrive on time. Being precise about
+                      your uncertainty (40% rather than "maybe") helps you think more clearly and
+                      makes your predictions falsifiable.
+                    </p>
+                    <p>
+                      This interpretation of probability is called <i>Bayesian</i> probability. It
+                      can be applied to anything, even situations where for many people{' '}
+                      <i>Frequentist</i> probability seems more intuitive, like the probability of
+                      gettings heads on the flip of a fair coin. The probability is 50% both because
+                      it's the proportion of heads that will turn up in the long run and because
+                      it's the strength of your belief that the next flip will turn up heads.
+                    </p>
                   </DisclosurePanel>
                 </>
               )}
