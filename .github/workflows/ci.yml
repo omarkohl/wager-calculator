@@ -62,7 +62,7 @@ jobs:
       group: "pages"
       cancel-in-progress: true
     runs-on: ubuntu-latest
-    needs: build
+    needs: [test, build]
 
     permissions:
       pages: write
