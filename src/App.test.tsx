@@ -86,6 +86,8 @@ describe('App - Stakes LocalStorage', () => {
   beforeEach(() => {
     // Clear localStorage and URL before each test
     localStorage.clear()
+    // Explicitly clear the hash - pathname alone doesn't always work in jsdom
+    window.location.hash = ''
     window.history.replaceState(null, '', window.location.pathname)
   })
 
@@ -98,8 +100,8 @@ describe('App - Stakes LocalStorage', () => {
     expect(stakesButton).toHaveTextContent('USD ($)')
     await user.click(stakesButton)
 
-    // Select a different currency (Euro)
-    const euroOption = await screen.findByRole('option', { name: /EUR \(€\)/i })
+    // Select a different currency (Euro) - use findByText pattern that works with HeadlessUI
+    const euroOption = await screen.findByText('EUR (€)')
     await user.click(euroOption)
 
     // Wait for localStorage to be updated (debounced 400ms)
@@ -135,7 +137,7 @@ describe('App - Stakes LocalStorage', () => {
   it('restores stakes from localStorage on reset when no URL state', async () => {
     const user = userEvent.setup()
 
-    // First, set a preferred stakes
+    // Start with a saved preference
     localStorage.setItem(STAKES_STORAGE_KEY, 'eur')
 
     render(<App />)
@@ -146,16 +148,18 @@ describe('App - Stakes LocalStorage', () => {
 
     // Change to a different stakes
     await user.click(stakesButton)
-    const gbpOption = await screen.findByRole('option', { name: /GBP \(£\)/i })
+    const gbpOption = await screen.findByText('GBP (£)')
     await user.click(gbpOption)
 
-    // Wait for the change to apply
-    await waitFor(() => {
-      stakesButton = screen.getByRole('button', { name: 'Stakes' })
-      expect(stakesButton).toHaveTextContent('GBP (£)')
-    })
+    // Wait for localStorage to update (real users take time, debounce is 400ms)
+    await waitFor(
+      () => {
+        expect(localStorage.getItem(STAKES_STORAGE_KEY)).toBe('gbp')
+      },
+      { timeout: 1000 }
+    )
 
-    // Click reset button (opens confirmation dialog)
+    // Click reset button
     const resetButton = screen.getAllByRole('button', { name: /Reset/i })[0]
     await user.click(resetButton)
 
@@ -163,10 +167,10 @@ describe('App - Stakes LocalStorage', () => {
     const confirmButton = await screen.findByRole('button', { name: /^Reset$/i })
     await user.click(confirmButton)
 
-    // After reset, should restore to Euro (from localStorage)
+    // After reset, should restore from localStorage (which now has 'gbp')
     await waitFor(() => {
       stakesButton = screen.getByRole('button', { name: 'Stakes' })
-      expect(stakesButton).toHaveTextContent('EUR (€)')
+      expect(stakesButton).toHaveTextContent('GBP (£)')
     })
   })
 
@@ -223,7 +227,7 @@ describe('App - Stakes LocalStorage', () => {
 
     // Now user actively changes to USD
     await user.click(stakesButton)
-    const usdOption = await screen.findByRole('option', { name: /USD \(\$\)/i })
+    const usdOption = await screen.findByText('USD ($)')
     await user.click(usdOption)
 
     // Wait for localStorage to update
