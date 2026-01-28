@@ -49,6 +49,7 @@ jobs:
         env:
           VITE_GITHUB_REPO_URL: https://github.com/${{ github.repository }}
           VITE_SITE_URL: ${{ vars.SITE_URL }}
+          VITE_GOATCOUNTER_SITE: ${{ vars.GOATCOUNTER_SITE }}
 
       - name: Upload build artifacts
         uses: actions/upload-pages-artifact@v4

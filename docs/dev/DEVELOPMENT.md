@@ -46,6 +46,26 @@ GitHub repository URL, automatically set in CI for repository info display.
 VITE_GITHUB_REPO_URL=https://github.com/yourusername/wager-calculator npm run build
 ```
 
+#### `VITE_GOATCOUNTER_SITE` (Optional)
+
+GoatCounter site name for analytics tracking. If set, tracking code will be injected during build.
+
+**Privacy:** Only page views are tracked (FAQ pages as `/faq/<id>`, main page as `/`). Wager data in the URL hash is never sent to analytics.
+
+**GitHub Actions:**
+
+1. Go to repository **Settings** → **Secrets and variables** → **Actions**
+2. Click **Variables** tab → **New repository variable**
+3. Name: `GOATCOUNTER_SITE`, Value: `yoursite` (the part before `.goatcounter.com`)
+
+**Local build:**
+
+```bash
+VITE_GOATCOUNTER_SITE=yoursite npm run build
+```
+
+If not set, no tracking code is added (recommended for forks and local development).
+
 ## Tech Stack
 
 - TypeScript + Vite
