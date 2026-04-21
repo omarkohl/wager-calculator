@@ -16,6 +16,8 @@ updates:
       # eslint-plugin-react not yet compatible with eslint 10 (issue #45)
       - dependency-name: "eslint"
         versions: [">= 10"]
+      - dependency-name: "@eslint/js"
+        versions: [">= 10"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
