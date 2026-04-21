@@ -12,6 +12,10 @@ updates:
         patterns:
           - "*"
     open-pull-requests-limit: 10
+    ignore:
+      # eslint-plugin-react not yet compatible with eslint 10 (issue #45)
+      - dependency-name: "eslint"
+        versions: [">= 10"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
