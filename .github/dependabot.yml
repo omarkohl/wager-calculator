@@ -21,6 +21,9 @@ updates:
       # vite-plugin-pwa not yet compatible with vite 8 (issue #48)
       - dependency-name: "vite"
         versions: [">= 8"]
+      # @vitejs/plugin-react >= 6 requires vite 8 (issue #48)
+      - dependency-name: "@vitejs/plugin-react"
+        versions: [">= 6"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
