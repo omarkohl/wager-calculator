@@ -18,6 +18,9 @@ updates:
         versions: [">= 10"]
       - dependency-name: "@eslint/js"
         versions: [">= 10"]
+      # vite-plugin-pwa not yet compatible with vite 8 (issue #48)
+      - dependency-name: "vite"
+        versions: [">= 8"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
