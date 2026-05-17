@@ -7,6 +7,8 @@ updates:
       day: "monday"
     cooldown:
       default-days: 7
+    assignees:
+      - "omarkohl"
     groups:
       all-dependencies:
         patterns:
@@ -32,6 +34,8 @@ updates:
       day: "monday"
     cooldown:
       default-days: 7
+    assignees:
+      - "omarkohl"
     groups:
       all-actions:
         patterns:
