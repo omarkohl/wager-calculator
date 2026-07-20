@@ -26,6 +26,9 @@ updates:
       # @vitejs/plugin-react >= 6 requires vite 8 (issue #48)
       - dependency-name: "@vitejs/plugin-react"
         versions: [">= 6"]
+      # typescript-eslint not yet compatible with typescript 7 (issue #76)
+      - dependency-name: "typescript"
+        versions: [">= 7"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
