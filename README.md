@@ -61,7 +61,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Security & Privacy
 
-All calculations are client-side. No data collection. See [docs/dev/SECURITY.md](docs/dev/SECURITY.md).
+All calculations are client-side. No data collection. See [SECURITY.md](SECURITY.md).
 
 ## License
 
