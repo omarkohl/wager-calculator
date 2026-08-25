@@ -21,7 +21,8 @@ By participating in this project, you agree to abide by our Code of Conduct:
 
 ### Prerequisites
 
-- Node.js 22.22.2 or higher
+- Node.js 24 (what CI runs; 22.19 is the floor — jsdom 30 pulls in undici 8,
+  which needs `worker_threads.markAsUncloneable`)
 - [Bun](https://bun.sh/) package manager
 - GNU Make
 - Git for version control
