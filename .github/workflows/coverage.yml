@@ -16,10 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
 
+      # jsdom 30 pulls in undici 8, which needs worker_threads.markAsUncloneable
+      # (Node >=22.19). Keep this at or above jsdom's engines field.
       - name: Setup Node.js
         uses: actions/setup-node@v7.0.0
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
