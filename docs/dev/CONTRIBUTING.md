@@ -23,15 +23,17 @@ By participating in this project, you agree to abide by our Code of Conduct:
 
 - Node.js 22.22.2 or higher
 - [Bun](https://bun.sh/) package manager
+- GNU Make
 - Git for version control
 
 ### Development Setup
 
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/omarkohl/wager-calculator.git`
-3. Install dependencies: `bun install`
-4. Start development server: `bun run dev`
-5. Run tests: `bun run test`
+3. Start development server: `make dev`
+4. Run tests: `make test`
+
+Run `make help` for the full list of commands.
 
 ### Project Structure
 

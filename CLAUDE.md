@@ -8,7 +8,8 @@ Brier scoring calculator for friendly wagers. PWA with React + TypeScript + Tail
 - **Version control**: Use `jj` (jujutsu), not git
 - **Commits**: Conventional commits (`feat:`, `fix:`, `refactor:`), semantic units
 - **Package manager**: Use `bun` (not npm/yarn)
-- **Pre-commit**: Run `bun run lint && bun run format && bun run test` before committing
+- **Pre-commit**: Run `make precommit` before committing
+- **Common tasks**: See `make help` (the Makefile wraps the bun scripts)
 
 ## Key Docs
 

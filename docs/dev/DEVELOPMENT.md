@@ -5,14 +5,19 @@
 ```bash
 git clone https://github.com/omarkohl/wager-calculator.git
 cd wager-calculator
-bun install
-bun run dev      # Start dev server
-bun run test     # Run unit and integration tests
-bun run build    # Production build
-bun run lint     # Lint the code
-bun run format   # Format the code
-bun run test:e2e # Run end to end browser UI tests
+make help        # List all available commands
+make dev         # Start dev server
+make test        # Run unit and integration tests
+make build       # Production build
+make lint        # Lint the code
+make format      # Format the code
+make test-e2e    # Run end to end browser UI tests
+make precommit   # Everything the CI checks, before you push
 ```
+
+Every target installs dependencies first, so there is no separate setup step.
+The underlying `bun run <script>` commands from `package.json` also work
+directly.
 
 ## Deployment
 
