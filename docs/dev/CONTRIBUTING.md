@@ -21,17 +21,17 @@ By participating in this project, you agree to abide by our Code of Conduct:
 
 ### Prerequisites
 
-- Node.js 18 or higher
-- npm or yarn package manager
+- Node.js 22.22.2 or higher
+- [Bun](https://bun.sh/) package manager
 - Git for version control
 
 ### Development Setup
 
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/omarkohl/wager-calculator.git`
-3. Install dependencies: `npm install`
-4. Start development server: `npm run dev`
-5. Run tests: `npm test`
+3. Install dependencies: `bun install`
+4. Start development server: `bun run dev`
+5. Run tests: `bun run test`
 
 ### Project Structure
 

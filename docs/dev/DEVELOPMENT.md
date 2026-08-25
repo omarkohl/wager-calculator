@@ -5,13 +5,13 @@
 ```bash
 git clone https://github.com/omarkohl/wager-calculator.git
 cd wager-calculator
-npm install
-npm run dev      # Start dev server
-npm test         # Run unit and integration tests
-npm run build    # Production build
-npm run lint     # Lint the code
-npm run format   # Format the code
-npm run test:e2e # Run end to end browser UI tests
+bun install
+bun run dev      # Start dev server
+bun run test     # Run unit and integration tests
+bun run build    # Production build
+bun run lint     # Lint the code
+bun run format   # Format the code
+bun run test:e2e # Run end to end browser UI tests
 ```
 
 ## Deployment
@@ -33,7 +33,7 @@ The workflow uses `${{ vars.SITE_URL }}` during builds.
 **Local build:**
 
 ```bash
-VITE_SITE_URL=https://yourdomain.com npm run build
+VITE_SITE_URL=https://yourdomain.com bun run build
 ```
 
 If not set, meta tags will have empty URLs (local development is unaffected).
@@ -43,7 +43,7 @@ If not set, meta tags will have empty URLs (local development is unaffected).
 GitHub repository URL, automatically set in CI for repository info display.
 
 ```bash
-VITE_GITHUB_REPO_URL=https://github.com/yourusername/wager-calculator npm run build
+VITE_GITHUB_REPO_URL=https://github.com/yourusername/wager-calculator bun run build
 ```
 
 #### `VITE_GOATCOUNTER_SITE` (Optional)
@@ -61,7 +61,7 @@ GoatCounter site name for analytics tracking. If set, tracking code will be inje
 **Local build:**
 
 ```bash
-VITE_GOATCOUNTER_SITE=yoursite npm run build
+VITE_GOATCOUNTER_SITE=yoursite bun run build
 ```
 
 If not set, no tracking code is added (recommended for forks and local development).

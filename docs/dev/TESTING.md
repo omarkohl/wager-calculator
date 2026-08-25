@@ -5,20 +5,20 @@
 ### Unit Tests
 
 ```bash
-npm test              # Run all unit tests once
-npm run test:ui       # Open Vitest UI
-npm run test:coverage # Generate coverage report
+bun run test          # Run all unit tests once
+bun run test:ui       # Open Vitest UI
+bun run test:coverage # Generate coverage report
 ```
 
 ### E2E Tests
 
 ```bash
-npx playwright test                    # Run all browsers
-npx playwright test --project=chromium # Chromium only
-npx playwright test --project=firefox  # Firefox only
-npx playwright test --project=webkit   # Safari/WebKit only
-npx playwright test --headed           # Show browser UI
-npx playwright show-report             # View HTML report
+bun x playwright test                    # Run all browsers
+bun x playwright test --project=chromium # Chromium only
+bun x playwright test --project=firefox  # Firefox only
+bun x playwright test --project=webkit   # Safari/WebKit only
+bun x playwright test --headed           # Show browser UI
+bun x playwright show-report             # View HTML report
 ```
 
 ## Performance Testing
@@ -28,7 +28,7 @@ npx playwright show-report             # View HTML report
 Check production bundle size:
 
 ```bash
-npm run build
+bun run build
 ```
 
 Look for output like:
@@ -68,9 +68,9 @@ Or use browser DevTools:
 ### Lighthouse Audit
 
 ```bash
-npm run build
-npx serve dist -l 8000
-npx lighthouse http://localhost:8000 --view
+bun run build
+bun x serve dist -l 8000
+bun x lighthouse http://localhost:8000 --view
 ```
 
 **Target scores:**
@@ -91,7 +91,7 @@ Playwright tests run on:
 - **WebKit** (Safari)
 
 ```bash
-npx playwright test --project=chromium,firefox,webkit
+bun x playwright test --project=chromium,firefox,webkit
 ```
 
 ### Manual Browser Testing Checklist
@@ -178,7 +178,7 @@ Test these scenarios in each browser:
 Playwright accessibility tests use axe-core:
 
 ```bash
-npx playwright test e2e/accessibility.spec.ts
+bun x playwright test e2e/accessibility.spec.ts
 ```
 
 ### Manual Keyboard Navigation

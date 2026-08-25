@@ -186,7 +186,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 
 ### Development Environment
 
-- **Package Manager**: npm or yarn
+- **Package Manager**: bun
 - **Build Tool**: Vite with React and PWA plugins
 - **Development Server**: Vite dev server with HMR and Fast Refresh
 - **TypeScript Configuration**: Strict mode with comprehensive type checking and JSX support
@@ -223,13 +223,13 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ### Deployment Options
 
 - **Static Hosting**: GitHub Pages, Netlify, Vercel, or Cloudflare Pages
-- **Build Output**: Static files in `dist/` directory after `npm run build`
+- **Build Output**: Static files in `dist/` directory after `bun run build`
 - **Base Path Configuration**: Vite `base` option set to `'./'` for relative paths (GitHub Pages compatibility)
 - **CDN**: Automatic global distribution via hosting provider
 - **HTTPS**: Required for PWA features (all providers support HTTPS by default)
 - **Continuous Deployment**: Automated deployment on git push via GitHub Actions or provider integrations
 - **GitHub Pages Deployment**:
-  - Build command: `npm run build`
+  - Build command: `bun run build`
   - Publish directory: `dist`
   - Service worker requires HTTPS (automatically provided by GitHub Pages)
   - PWA installability works on GitHub Pages with proper manifest and HTTPS

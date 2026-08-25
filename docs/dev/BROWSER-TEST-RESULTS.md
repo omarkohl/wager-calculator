@@ -71,7 +71,7 @@ All failures are **test implementation issues**, not actual accessibility proble
 
 ### WebKit
 
-- Not tested (requires `sudo npx playwright install-deps libavif16`)
+- Not tested (requires `sudo bun x playwright install-deps libavif16`)
 - Would need system dependencies installed
 - Recommended for pre-release testing
 
@@ -85,7 +85,7 @@ All failures are **test implementation issues**, not actual accessibility proble
 2. **WebKit testing** - Install dependencies for Safari/WebKit testing:
 
    ```bash
-   sudo npx playwright install-deps
+   sudo bun x playwright install-deps
    ```
 
 3. **Manual testing** - Before major releases, perform manual checklist in:
