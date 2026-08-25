@@ -254,8 +254,7 @@ wager-calculator/
 │   ├── e2e/                # Playwright E2E tests
 │   └── setup.ts            # Test environment setup
 ├── dist/                   # Production build output (generated, git-ignored)
-├── docs/                   # Documentation
-├── data/                   # Test scenarios and generation scripts
+├── docs/                   # Documentation (incl. historical-calculations/)
 ├── vite.config.ts          # Vite configuration with React plugin
 ├── vitest.config.ts        # Vitest configuration (extends Vite config)
 ├── tsconfig.json           # TypeScript configuration with JSX
