@@ -57,7 +57,7 @@ See [docs/dev/DEVELOPMENT.md](docs/dev/DEVELOPMENT.md) for setup and deployment.
 
 ## Contributing
 
-See [docs/dev/CONTRIBUTING.md](docs/dev/CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Security & Privacy
 
