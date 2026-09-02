@@ -77,6 +77,12 @@ describe('InlineEdit', () => {
     expect(displayElement).toHaveFocus()
   })
 
+  it('uses the current value as the accessible name once filled in', () => {
+    render(<InlineEdit value="Will it rain?" onChange={vi.fn()} placeholder="Test" />)
+    expect(screen.getByRole('button', { name: 'Will it rain?' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Test' })).not.toBeInTheDocument()
+  })
+
   it('does not focus when autoFocus is false', () => {
     render(<InlineEdit value="" onChange={vi.fn()} placeholder="Test" />)
     const displayElement = screen.getByRole('button', { name: 'Test' })

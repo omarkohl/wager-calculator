@@ -103,7 +103,8 @@ export default function InlineEdit({
       onKeyDown={handleDisplayKeyDown}
       tabIndex={0}
       role="button"
-      aria-label={placeholder}
+      aria-label={isPlaceholder ? placeholder : undefined}
+      title="Click to edit"
       className={`cursor-text rounded px-3 py-2 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none ${displayClassName} ${
         isPlaceholder ? 'text-gray-500' : ''
       }`}
