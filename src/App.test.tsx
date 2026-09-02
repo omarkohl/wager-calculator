@@ -21,6 +21,21 @@ describe('App', () => {
     expect(shareButtons.length).toBeGreaterThanOrEqual(1)
   })
 
+  it('exposes each form section as a level 2 heading for screen reader navigation', () => {
+    render(<App />)
+    for (const name of [
+      'Claim',
+      'Details',
+      'Stakes',
+      'Participants & Max Bets',
+      'Outcomes',
+      'Predictions',
+      'Resolution',
+    ]) {
+      expect(screen.getByRole('heading', { name: new RegExp(`^${name}`), level: 2 })).toBeVisible()
+    }
+  })
+
   it('autofocuses claim field when loading without URL state', () => {
     // Explicitly ensure no hash
     window.history.replaceState(null, '', window.location.pathname)

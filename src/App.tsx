@@ -309,7 +309,7 @@ function App() {
           {/* Claim & Details Section */}
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Claim</label>
+              <h2 className="mb-2 text-sm font-medium text-gray-700">Claim</h2>
               <InlineEdit
                 value={claim}
                 onChange={setClaim}
@@ -320,9 +320,9 @@ function App() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <h2 className="mb-2 text-sm font-medium text-gray-700">
                 Details <span className="text-gray-500">(Optional)</span>
-              </label>
+              </h2>
               <InlineEdit
                 value={details}
                 onChange={setDetails}
@@ -333,14 +333,12 @@ function App() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Stakes</label>
+              <h2 className="mb-2 text-sm font-medium text-gray-700">Stakes</h2>
               <StakesSelector value={stakes} onChange={handleStakesChange} />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Participants & Max Bets
-              </label>
+              <h2 className="mb-2 text-sm font-medium text-gray-700">Participants & Max Bets</h2>
               <ParticipantsList
                 participants={participants}
                 predictions={predictions}
@@ -351,7 +349,7 @@ function App() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Outcomes</label>
+              <h2 className="mb-2 text-sm font-medium text-gray-700">Outcomes</h2>
               <OutcomesList
                 outcomes={outcomes}
                 predictions={predictions}
@@ -371,7 +369,7 @@ function App() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Resolution</label>
+              <h2 className="mb-2 text-sm font-medium text-gray-700">Resolution</h2>
               <Resolution
                 outcomes={outcomes}
                 participants={participants}

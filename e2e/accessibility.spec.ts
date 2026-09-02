@@ -62,9 +62,9 @@ test.describe('Accessibility', () => {
     await page.goto('/')
 
     // Navigate to resolution section - it's a Headless UI Listbox
-    // Find the Resolution label and then the button in its parent container
-    const resolutionLabel = page.locator('label:has-text("Resolution")')
-    const resolutionContainer = resolutionLabel.locator('..')
+    // Find the Resolution heading and then the button in its parent container
+    const resolutionHeading = page.getByRole('heading', { name: 'Resolution' })
+    const resolutionContainer = resolutionHeading.locator('..')
     const listboxButton = resolutionContainer.getByRole('button')
     await expect(listboxButton).toHaveText('Unresolved')
 
