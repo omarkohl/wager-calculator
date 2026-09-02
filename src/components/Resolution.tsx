@@ -2,7 +2,7 @@ import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headless
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import Decimal from 'decimal.js'
 import type { Outcome, Participant, Prediction, CalculationResult } from '../types/wager'
-import type { FaqId } from '../types/faq'
+import type { FaqId } from './faq'
 import { formatPayout, getStakeName } from '../utils/stakes'
 
 interface ResolutionProps {

@@ -8,7 +8,7 @@ import OutcomesList from './components/OutcomesList'
 import PredictionsGrid from './components/PredictionsGrid'
 import Resolution from './components/Resolution'
 import HelpModal from './components/HelpSection'
-import { FAQ_IDS, type FaqId } from './types/faq'
+import { isFaqId, type FaqId } from './components/faq'
 import ConfirmDialog from './components/ConfirmDialog'
 import Footer from './components/Footer'
 import { calculateResults } from './modules/brier'
@@ -46,10 +46,7 @@ function App() {
   // Check for FAQ deep link parameter
   const getInitialFaqId = (): FaqId | null => {
     const faqParam = getFaqIdFromURL(window.location.hash)
-    if (faqParam && (FAQ_IDS as readonly string[]).includes(faqParam)) {
-      return faqParam as FaqId
-    }
-    return null
+    return isFaqId(faqParam) ? faqParam : null
   }
 
   const initialStateData = useMemo(() => getInitialStateOnce(), [])
