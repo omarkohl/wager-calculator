@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
@@ -237,5 +237,72 @@ describe('App - Stakes LocalStorage', () => {
       },
       { timeout: 1000 }
     )
+  })
+
+  describe('share', () => {
+    const originalShare = navigator.share
+    const originalClipboard = navigator.clipboard
+    const originalMatchMedia = window.matchMedia
+
+    afterEach(() => {
+      Object.defineProperty(navigator, 'share', { value: originalShare, configurable: true })
+      Object.defineProperty(navigator, 'clipboard', {
+        value: originalClipboard,
+        configurable: true,
+      })
+      window.matchMedia = originalMatchMedia
+    })
+
+    it('opens the native share sheet on touch devices', async () => {
+      const user = userEvent.setup()
+      const share = vi.fn().mockResolvedValue(undefined)
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      Object.defineProperty(navigator, 'share', { value: share, configurable: true })
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+      window.matchMedia = vi.fn().mockReturnValue({ matches: true }) as unknown as typeof matchMedia
+      window.history.replaceState(null, '', '#v=2&c=Rain+tomorrow')
+
+      render(<App />)
+      await user.click(screen.getAllByRole('button', { name: /Share/ })[0])
+
+      expect(share).toHaveBeenCalledWith(
+        expect.objectContaining({ url: expect.stringContaining('#v=2&c=Rain+tomorrow') })
+      )
+      expect(writeText).not.toHaveBeenCalled()
+    })
+
+    it('copies the URL to the clipboard on non-touch devices and announces it', async () => {
+      const user = userEvent.setup()
+      const share = vi.fn().mockResolvedValue(undefined)
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      Object.defineProperty(navigator, 'share', { value: share, configurable: true })
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+      window.matchMedia = vi
+        .fn()
+        .mockReturnValue({ matches: false }) as unknown as typeof matchMedia
+      window.history.replaceState(null, '', '#v=2&c=Rain+tomorrow')
+
+      render(<App />)
+      await user.click(screen.getAllByRole('button', { name: /Share/ })[0])
+
+      expect(share).not.toHaveBeenCalled()
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('#v=2&c=Rain+tomorrow'))
+      expect(await screen.findByRole('status')).toHaveTextContent(/copied/i)
+    })
+
+    it('tells the user when copying fails', async () => {
+      const user = userEvent.setup()
+      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true })
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
+        configurable: true,
+      })
+      window.history.replaceState(null, '', window.location.pathname)
+
+      render(<App />)
+      await user.click(screen.getAllByRole('button', { name: /Share/ })[0])
+
+      expect(await screen.findByRole('status')).toHaveTextContent(/address bar/i)
+    })
   })
 })

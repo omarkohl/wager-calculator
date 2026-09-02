@@ -69,7 +69,7 @@ function App() {
   const [isHelpOpen, setIsHelpOpen] = useState(initialFaqId !== null)
   const [openFaqId, setOpenFaqId] = useState<FaqId | null>(initialFaqId)
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
-  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
   // Track whether we should save stakes to localStorage (only when user actively changes it)
@@ -93,6 +93,13 @@ function App() {
 
     return () => clearTimeout(timer)
   }, [claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId])
+
+  // Auto-hide the toast
+  useEffect(() => {
+    if (toastMessage === null) return
+    const timer = setTimeout(() => setToastMessage(null), 2500)
+    return () => clearTimeout(timer)
+  }, [toastMessage])
 
   // Save stakes preference to localStorage (only when user actively changes it)
   useEffect(() => {
@@ -210,7 +217,7 @@ function App() {
     setIsHelpOpen(true)
   }
 
-  // Share wager by copying URL to clipboard
+  // Share wager: native share sheet on touch devices, clipboard elsewhere
   const handleShare = async () => {
     const state = serializeState(
       claim,
@@ -222,18 +229,28 @@ function App() {
       resolvedOutcomeId
     )
     const url = getShareableURL(state)
+    // Make sure the address bar shows the same URL we are sharing
+    window.history.replaceState(null, '', url)
+
+    // On phones and tablets the share sheet (messenger apps etc.) beats the clipboard
+    const isTouchDevice = window.matchMedia?.('(pointer: coarse)').matches ?? false
+    if (typeof navigator.share === 'function' && isTouchDevice) {
+      try {
+        await navigator.share({ title: claim.trim() || 'Wager Calculator', url })
+        return
+      } catch (error) {
+        // The user dismissed the share sheet
+        if (error instanceof Error && error.name === 'AbortError') return
+        console.error('Native share failed, falling back to clipboard:', error)
+      }
+    }
 
     try {
       await navigator.clipboard.writeText(url)
-      // Update URL hash without reloading
-      window.history.replaceState(null, '', url)
-      // Show toast
-      setShowToast(true)
-      setTimeout(() => setShowToast(false), 2000)
+      setToastMessage('URL copied to clipboard')
     } catch (error) {
       console.error('Failed to copy URL to clipboard:', error)
-      // Fallback: just update the URL
-      window.history.replaceState(null, '', url)
+      setToastMessage('Could not copy automatically. Copy the URL from the address bar.')
     }
   }
 
@@ -416,9 +433,12 @@ function App() {
         confirmLabel="Reset"
       />
 
-      {showToast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
-          URL copied to clipboard
+      {toastMessage && (
+        <div
+          role="status"
+          className="fixed bottom-4 left-1/2 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-md bg-gray-900 px-4 py-2 text-center text-sm text-white shadow-lg"
+        >
+          {toastMessage}
         </div>
       )}
 
