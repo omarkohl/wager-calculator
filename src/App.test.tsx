@@ -239,6 +239,20 @@ describe('App - Stakes LocalStorage', () => {
     )
   })
 
+  describe('document title', () => {
+    it('uses the claim as the page title so tabs and bookmarks are identifiable', () => {
+      window.history.replaceState(null, '', '#v=2&c=Will+it+rain+tomorrow%3F')
+      render(<App />)
+      expect(document.title).toBe('Will it rain tomorrow? – Wager Calculator')
+    })
+
+    it('falls back to the app name when there is no claim', () => {
+      window.history.replaceState(null, '', window.location.pathname)
+      render(<App />)
+      expect(document.title).toBe('Wager Calculator')
+    })
+  })
+
   describe('share', () => {
     const originalShare = navigator.share
     const originalClipboard = navigator.clipboard

@@ -94,6 +94,12 @@ function App() {
     return () => clearTimeout(timer)
   }, [claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId])
 
+  // Reflect the claim in the tab title so open tabs, history and bookmarks are identifiable
+  useEffect(() => {
+    const trimmedClaim = claim.trim()
+    document.title = trimmedClaim ? `${trimmedClaim} – Wager Calculator` : 'Wager Calculator'
+  }, [claim])
+
   // Auto-hide the toast
   useEffect(() => {
     if (toastMessage === null) return
