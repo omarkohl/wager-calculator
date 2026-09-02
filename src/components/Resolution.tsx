@@ -1,9 +1,10 @@
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-import Decimal from 'decimal.js'
 import type { Outcome, Participant, Prediction, CalculationResult } from '../types/wager'
 import type { FaqId } from './faq'
 import { formatPayout, getStakeName } from '../utils/stakes'
+import { amountInPlay } from '../modules/brier'
+import { haveIdenticalPredictions, isCompleteTotal, participantTotal } from '../utils/predictions'
 
 interface ResolutionProps {
   outcomes: Outcome[]
@@ -29,50 +30,17 @@ function Resolution({
   const selectedOutcome = outcomes.find(o => o.id === resolvedOutcomeId)
   const stakeName = getStakeName(stakes)
 
-  // The amount everyone is actually playing for: the lowest max bet
-  const amountInPlay =
-    participants.length > 0 ? Decimal.min(...participants.map(p => p.maxBet)) : new Decimal(0)
-  const formattedAmountInPlay = formatPayout(amountInPlay.toNumber(), stakes)
+  const formattedAmountInPlay = formatPayout(amountInPlay(participants).toNumber(), stakes)
 
   // Get participants with invalid probabilities
   const getInvalidProbabilityParticipants = (): Array<{ name: string; total: number }> => {
     return participants
-      .map(participant => {
-        const participantPredictions = predictions.filter(p => p.participantId === participant.id)
-        const total = participantPredictions.reduce(
-          (sum, pred) => sum.plus(pred.probability),
-          new Decimal(0)
-        )
-        return {
-          name: participant.name || 'Unknown',
-          total: total.toNumber(),
-          isValid: total.minus(100).abs().lessThan(0.001),
-        }
-      })
-      .filter(p => !p.isValid)
-  }
-
-  // Check if all participants have identical predictions
-  const hasIdenticalPredictions = (): boolean => {
-    if (participants.length < 2 || outcomes.length === 0) return false
-
-    const firstParticipantPredictions = predictions
-      .filter(p => p.participantId === participants[0].id)
-      .sort((a, b) => a.outcomeId.localeCompare(b.outcomeId))
-
-    return participants.slice(1).every(participant => {
-      const participantPredictions = predictions
-        .filter(p => p.participantId === participant.id)
-        .sort((a, b) => a.outcomeId.localeCompare(b.outcomeId))
-
-      if (participantPredictions.length !== firstParticipantPredictions.length) return false
-
-      return participantPredictions.every(
-        (pred, idx) =>
-          pred.outcomeId === firstParticipantPredictions[idx].outcomeId &&
-          pred.probability.equals(firstParticipantPredictions[idx].probability)
-      )
-    })
+      .map(participant => ({
+        name: participant.name || 'Unknown',
+        total: participantTotal(predictions, participant.id),
+      }))
+      .filter(p => !isCompleteTotal(p.total))
+      .map(p => ({ name: p.name, total: p.total.toNumber() }))
   }
 
   // Get participants with max bet of 0
@@ -85,7 +53,8 @@ function Resolution({
     : []
   const zeroMaxBetParticipants = resolvedOutcomeId ? getZeroMaxBetParticipants() : []
   const showProbabilityError = invalidProbabilityParticipants.length > 0
-  const showIdenticalPredictionsMessage = resolvedOutcomeId && hasIdenticalPredictions()
+  const showIdenticalPredictionsMessage =
+    resolvedOutcomeId && outcomes.length > 0 && haveIdenticalPredictions(participants, predictions)
   const showZeroMaxBetWarning = zeroMaxBetParticipants.length > 0
 
   return (

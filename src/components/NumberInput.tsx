@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Input } from '@headlessui/react'
 import Decimal from 'decimal.js'
 
@@ -24,7 +24,6 @@ export default function NumberInput({
   'aria-label': ariaLabel,
 }: NumberInputProps) {
   const [editingValue, setEditingValue] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
 
   // When not editing, derive display from props. When editing, use local state.
   const displayValue = editingValue !== null ? editingValue : value.toDecimalPlaces(2).toString()
@@ -73,7 +72,6 @@ export default function NumberInput({
 
   return (
     <Input
-      ref={inputRef}
       type="number"
       value={displayValue}
       onFocus={handleFocus}

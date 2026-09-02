@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
-import Decimal from 'decimal.js'
+import { useState, useEffect, useMemo } from 'react'
 import { QuestionMarkCircleIcon, ArrowPathIcon, ShareIcon } from '@heroicons/react/24/outline'
 import InlineEdit from './components/InlineEdit'
 import StakesSelector from './components/StakesSelector'
@@ -12,7 +11,7 @@ import { isFaqId, type FaqId } from './components/faq'
 import ConfirmDialog from './components/ConfirmDialog'
 import Footer from './components/Footer'
 import { calculateResults } from './modules/brier'
-import type { Participant, Outcome, Prediction, CalculationResult, Wager } from './types/wager'
+import type { CalculationResult, Wager } from './types/wager'
 import {
   decodeWagerFromHash,
   encodeWagerToHash,
@@ -21,7 +20,7 @@ import {
   removeFaqFromURL,
 } from './utils/urlState'
 import { createDefaultWager } from './utils/defaults'
-import { autoDistribute } from './utils/autoDistribute'
+import { fillMissingPredictions } from './utils/predictions'
 import { getSavedStakes, saveStakes } from './utils/localStorage'
 
 /**
@@ -56,8 +55,6 @@ function App() {
   const [openFaqId, setOpenFaqId] = useState<FaqId | null>(initialFaqId)
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const previousParticipantsRef = useRef<Participant[]>([])
-  const previousOutcomesRef = useRef<Outcome[]>([])
 
   // Auto-sync state to URL with debouncing
   useEffect(() => {
@@ -95,55 +92,12 @@ function App() {
     }
   }, [resolvedOutcomeId, participants, predictions, outcomes, claim])
 
-  // Initialize predictions with even distribution when participants or outcomes change
+  // Keep the prediction grid complete whenever participants or outcomes change
   useEffect(() => {
-    if (participants.length === 0 || outcomes.length === 0) return
-
-    // Check if participants or outcomes actually changed
-    const participantsChanged =
-      participants.length !== previousParticipantsRef.current.length ||
-      participants.some((p, i) => p.id !== previousParticipantsRef.current[i]?.id)
-    const outcomesChanged =
-      outcomes.length !== previousOutcomesRef.current.length ||
-      outcomes.some((o, i) => o.id !== previousOutcomesRef.current[i]?.id)
-
-    if (!participantsChanged && !outcomesChanged) return
-
-    previousParticipantsRef.current = participants
-    previousOutcomesRef.current = outcomes
-
-    const evenProbability = new Decimal(100).div(outcomes.length)
-
-    // Create predictions for all participant-outcome combinations
-    const newPredictions: Prediction[] = []
-    participants.forEach(participant => {
-      outcomes.forEach(outcome => {
-        // Only add if doesn't exist
-        const exists = predictions.find(
-          p => p.participantId === participant.id && p.outcomeId === outcome.id
-        )
-        if (!exists) {
-          newPredictions.push({
-            participantId: participant.id,
-            outcomeId: outcome.id,
-            probability: evenProbability,
-            touched: false,
-          })
-        }
-      })
-    })
-
-    if (newPredictions.length > 0) {
-      // Add new predictions and auto-distribute for each participant
-      let updatedPredictions = [...predictions, ...newPredictions]
-
-      // Auto-distribute for each participant to handle untouched predictions correctly
-      participants.forEach(participant => {
-        updatedPredictions = autoDistribute(updatedPredictions, participant.id)
-      })
-
+    const filled = fillMissingPredictions(predictions, participants, outcomes)
+    if (filled !== predictions) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      updateWager({ predictions: updatedPredictions })
+      updateWager({ predictions: filled })
     }
   }, [participants, outcomes, predictions])
 

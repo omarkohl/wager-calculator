@@ -99,6 +99,13 @@ function calculateAvgOthersBrier(participantId: string, brierScores: BrierScore[
 }
 
 /**
+ * The amount everyone is actually playing for: the lowest max bet.
+ */
+export function amountInPlay(participants: Participant[]): Decimal {
+  return participants.length > 0 ? Decimal.min(...participants.map(p => p.maxBet)) : new Decimal(0)
+}
+
+/**
  * Calculate payouts for all participants based on Brier scores.
  *
  * Formula: Payout = (amount_in_play) × (avg_others_brier - my_brier) / 2
@@ -113,11 +120,7 @@ export function calculatePayouts(
   brierScores: BrierScore[],
   claim: string
 ): Payout[] {
-  // Calculate amount in play (minimum of all max bets)
-  const amountInPlay = participants.reduce(
-    (min, p) => (p.maxBet.lessThan(min) ? p.maxBet : min),
-    participants[0].maxBet
-  )
+  const stake = amountInPlay(participants)
 
   // Calculate raw payouts
   const rawPayouts = participants.map(participant => {
@@ -129,10 +132,7 @@ export function calculatePayouts(
     const avgOthersBrier = calculateAvgOthersBrier(participant.id, brierScores)
 
     // Payout = (avg_others_brier - my_brier) / 2 × amount_in_play
-    const payoutBeforeRounding = avgOthersBrier
-      .minus(myBrier.score)
-      .dividedBy(2)
-      .times(amountInPlay)
+    const payoutBeforeRounding = avgOthersBrier.minus(myBrier.score).dividedBy(2).times(stake)
 
     return {
       participantId: participant.id,

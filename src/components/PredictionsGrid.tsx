@@ -1,7 +1,11 @@
-import { useRef } from 'react'
 import Decimal from 'decimal.js'
 import type { Participant, Outcome, Prediction } from '../types/wager'
-import { autoDistribute } from '../utils/autoDistribute'
+import {
+  isCompleteTotal,
+  normalizePredictions,
+  participantTotal,
+  setPrediction,
+} from '../utils/predictions'
 import NumberInput from './NumberInput'
 
 interface PredictionsGridProps {
@@ -17,9 +21,6 @@ export default function PredictionsGrid({
   predictions,
   onChange,
 }: PredictionsGridProps) {
-  const inputDebounceTimers = useRef<Record<string, NodeJS.Timeout>>({})
-  const predictionsRef = useRef<Prediction[]>(predictions)
-
   const getPrediction = (participantId: string, outcomeId: string): Prediction => {
     return (
       predictions.find(p => p.participantId === participantId && p.outcomeId === outcomeId) || {
@@ -31,121 +32,19 @@ export default function PredictionsGrid({
     )
   }
 
-  const handleSliderChange = (participantId: string, outcomeId: string, probability: number) => {
-    const updated = [...predictions]
-    const index = updated.findIndex(
-      p => p.participantId === participantId && p.outcomeId === outcomeId
-    )
-
-    const newPrediction: Prediction = {
-      participantId,
-      outcomeId,
-      probability: new Decimal(probability),
-      touched: true,
-    }
-
-    if (index >= 0) {
-      updated[index] = newPrediction
-    } else {
-      updated.push(newPrediction)
-    }
-
-    // Auto-distribute immediately to avoid flashing warning
-    const distributed = autoDistribute(updated, participantId)
-    onChange(distributed)
-  }
-
-  const handleInputChange = (participantId: string, outcomeId: string, probability: Decimal) => {
-    const updated = [...predictions]
-    const index = updated.findIndex(
-      p => p.participantId === participantId && p.outcomeId === outcomeId
-    )
-
-    const newPrediction: Prediction = {
-      participantId,
-      outcomeId,
-      probability,
-      touched: true,
-    }
-
-    if (index >= 0) {
-      updated[index] = newPrediction
-    } else {
-      updated.push(newPrediction)
-    }
-
-    // Auto-distribute immediately to avoid flashing warning
-    const distributed = autoDistribute(updated, participantId)
-    onChange(distributed)
-    predictionsRef.current = distributed
-
-    // Clear any pending debounce timeout for this input
-    const key = `${participantId}-${outcomeId}`
-    if (inputDebounceTimers.current[key]) {
-      clearTimeout(inputDebounceTimers.current[key])
-    }
-  }
-
-  const getParticipantTotal = (participantId: string): Decimal => {
-    return predictions
-      .filter(p => p.participantId === participantId)
-      .reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
-  }
-
-  const hasWarning = (participantId: string): boolean => {
-    const total = getParticipantTotal(participantId)
-    return total.minus(100).abs().greaterThanOrEqualTo(0.001) // Allow for floating point errors
+  const handleChange = (participantId: string, outcomeId: string, probability: Decimal) => {
+    onChange(setPrediction(predictions, participantId, outcomeId, probability))
   }
 
   const handleNormalize = (participantId: string) => {
-    const validOutcomeIds = new Set(outcomes.map(o => o.id))
-    const participantPredictions = predictions.filter(
-      p => p.participantId === participantId && validOutcomeIds.has(p.outcomeId)
-    )
-    const total = participantPredictions.reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
-
-    if (total.isZero()) return
-
-    const scale = new Decimal(100).div(total)
-
-    // Scale values using high precision arithmetic - keep as Decimal
-    const scaled = participantPredictions.map(p => ({
-      ...p,
-      probability: p.probability.mul(scale),
-    }))
-
-    // Calculate exact sum using high precision
-    const scaledTotal = scaled.reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
-    const roundingError = new Decimal(100).minus(scaledTotal)
-
-    // Distribute rounding error to earlier outcomes (deterministic)
-    // Only adjust if error exceeds floating point precision threshold
-    if (roundingError.abs().greaterThan(0.001)) {
-      const adjustment = roundingError.greaterThan(0) ? new Decimal(0.01) : new Decimal(-0.01)
-      let remaining = roundingError.abs()
-
-      for (let i = 0; i < scaled.length && remaining.greaterThan(0.001); i++) {
-        scaled[i].probability = scaled[i].probability.plus(adjustment)
-        remaining = remaining.minus(0.01)
-      }
-    }
-
-    // Update predictions - keep as Decimal in state
-    const updated = predictions.map(p => {
-      const scaledPrediction = scaled.find(
-        sp => sp.participantId === p.participantId && sp.outcomeId === p.outcomeId
-      )
-      return scaledPrediction || p
-    })
-
-    onChange(updated)
+    onChange(normalizePredictions(predictions, participantId, outcomes))
   }
 
   return (
     <div className="space-y-6">
       {participants.map(participant => {
-        const total = getParticipantTotal(participant.id)
-        const showWarning = hasWarning(participant.id)
+        const total = participantTotal(predictions, participant.id)
+        const showWarning = !isCompleteTotal(total)
 
         return (
           <div key={participant.id} className="rounded-lg border border-gray-200 bg-white p-4">
@@ -170,7 +69,7 @@ export default function PredictionsGrid({
                       step="1"
                       value={prediction.probability.toNumber()}
                       onChange={e =>
-                        handleSliderChange(participant.id, outcome.id, parseFloat(e.target.value))
+                        handleChange(participant.id, outcome.id, new Decimal(e.target.value))
                       }
                       aria-label={`${participant.name || 'Participant'} probability for ${outcome.label}`}
                       className={`h-8 min-w-0 flex-1 cursor-pointer ${!prediction.touched ? 'opacity-40' : ''}`}
@@ -179,7 +78,7 @@ export default function PredictionsGrid({
                     <div className="flex shrink-0 items-center gap-0.5">
                       <NumberInput
                         value={prediction.probability}
-                        onChange={value => handleInputChange(participant.id, outcome.id, value)}
+                        onChange={value => handleChange(participant.id, outcome.id, value)}
                         min={0}
                         max={100}
                         step={1}

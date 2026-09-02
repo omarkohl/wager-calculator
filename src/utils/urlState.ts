@@ -2,7 +2,7 @@ import { decompressFromEncodedURIComponent } from 'lz-string'
 import Decimal from 'decimal.js'
 import type { Wager } from '../types/wager'
 import { DEFAULT_OUTCOME_LABELS, DEFAULT_PARTICIPANT_NAMES, DEFAULT_STAKES } from './defaults'
-import { autoDistribute } from './autoDistribute'
+import { autoDistribute } from './predictions'
 
 /**
  * URL hash formats, newest first:

@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import Decimal from 'decimal.js'
-import { autoDistribute } from './autoDistribute'
-import type { Prediction } from '../types/wager'
+import {
+  autoDistribute,
+  setPrediction,
+  fillMissingPredictions,
+  normalizePredictions,
+  participantTotal,
+  isCompleteTotal,
+  haveIdenticalPredictions,
+} from './predictions'
+import type { Outcome, Participant, Prediction } from '../types/wager'
 
 // Helper to create predictions with numbers that will be converted to Decimal
 const expectProbability = (actual: Prediction[], expected: Prediction[]) => {
@@ -363,5 +371,147 @@ describe('autoDistribute', () => {
       .reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
 
     expect(total.minus(100).abs().lessThan(0.001)).toBe(true)
+  })
+})
+
+const pred = (
+  participantId: string,
+  outcomeId: string,
+  probability: number,
+  touched: boolean
+): Prediction => ({ participantId, outcomeId, probability: new Decimal(probability), touched })
+
+const participant = (id: string): Participant => ({ id, name: id, maxBet: new Decimal(10) })
+const outcome = (id: string): Outcome => ({ id, label: id })
+
+describe('participantTotal / isCompleteTotal', () => {
+  it('sums only the given participant', () => {
+    const predictions = [
+      pred('p1', 'o1', 60, true),
+      pred('p1', 'o2', 30, true),
+      pred('p2', 'o1', 99, true),
+    ]
+    expect(participantTotal(predictions, 'p1').toNumber()).toBe(90)
+    expect(participantTotal(predictions, 'p3').toNumber()).toBe(0)
+  })
+
+  it('treats totals within a hair of 100 as complete', () => {
+    expect(isCompleteTotal(new Decimal(100))).toBe(true)
+    expect(isCompleteTotal(new Decimal('99.9995'))).toBe(true)
+    expect(isCompleteTotal(new Decimal('99.99'))).toBe(false)
+    expect(isCompleteTotal(new Decimal('100.01'))).toBe(false)
+  })
+})
+
+describe('setPrediction', () => {
+  it('marks the prediction touched and redistributes the rest', () => {
+    const predictions = [pred('p1', 'o1', 50, false), pred('p1', 'o2', 50, false)]
+    const result = setPrediction(predictions, 'p1', 'o1', new Decimal(70))
+    expectProbability(result, [pred('p1', 'o1', 70, true), pred('p1', 'o2', 30, false)])
+  })
+
+  it('adds the prediction when it did not exist yet', () => {
+    const result = setPrediction([], 'p1', 'o1', new Decimal(70))
+    expectProbability(result, [pred('p1', 'o1', 70, true)])
+  })
+
+  it('does not mutate the input', () => {
+    const predictions = [pred('p1', 'o1', 50, false)]
+    setPrediction(predictions, 'p1', 'o1', new Decimal(70))
+    expect(predictions[0].probability.toNumber()).toBe(50)
+    expect(predictions[0].touched).toBe(false)
+  })
+})
+
+describe('fillMissingPredictions', () => {
+  const participants = [participant('p1'), participant('p2')]
+  const outcomes = [outcome('o1'), outcome('o2')]
+
+  it('creates an even split for a participant with no predictions', () => {
+    const result = fillMissingPredictions([], participants, outcomes)
+    expectProbability(result, [
+      pred('p1', 'o1', 50, false),
+      pred('p1', 'o2', 50, false),
+      pred('p2', 'o1', 50, false),
+      pred('p2', 'o2', 50, false),
+    ])
+  })
+
+  it('gives a new outcome the probability that is still unassigned', () => {
+    const existing = [pred('p1', 'o1', 70, true), pred('p1', 'o2', 30, false)]
+    const result = fillMissingPredictions(
+      existing,
+      [participant('p1')],
+      [...outcomes, outcome('o3')]
+    )
+    expectProbability(result, [
+      pred('p1', 'o1', 70, true),
+      pred('p1', 'o2', 15, false),
+      pred('p1', 'o3', 15, false),
+    ])
+  })
+
+  it('returns the very same array when nothing is missing', () => {
+    const existing = [pred('p1', 'o1', 60, true), pred('p1', 'o2', 40, true)]
+    expect(fillMissingPredictions(existing, [participant('p1')], outcomes)).toBe(existing)
+  })
+})
+
+describe('normalizePredictions', () => {
+  const outcomes = [outcome('o1'), outcome('o2')]
+
+  it('scales the probabilities proportionally to 100', () => {
+    const predictions = [pred('p1', 'o1', 60, true), pred('p1', 'o2', 30, true)]
+    const result = normalizePredictions(predictions, 'p1', outcomes)
+    expect(result[0].probability.toNumber()).toBeCloseTo(66.67, 2)
+    expect(result[1].probability.toNumber()).toBeCloseTo(33.33, 2)
+    expect(isCompleteTotal(participantTotal(result, 'p1'))).toBe(true)
+  })
+
+  it('leaves other participants and removed outcomes alone', () => {
+    const predictions = [
+      pred('p1', 'o1', 50, true),
+      pred('p1', 'o2', 25, true),
+      pred('p1', 'gone', 25, true),
+      pred('p2', 'o1', 10, true),
+    ]
+    const result = normalizePredictions(predictions, 'p1', outcomes)
+    expect(result[0].probability.toNumber()).toBeCloseTo(66.67, 2)
+    expect(result[1].probability.toNumber()).toBeCloseTo(33.33, 2)
+    expect(result[2].probability.toNumber()).toBe(25)
+    expect(result[3].probability.toNumber()).toBe(10)
+  })
+
+  it('returns the input unchanged when the total is zero', () => {
+    const predictions = [pred('p1', 'o1', 0, true), pred('p1', 'o2', 0, true)]
+    expect(normalizePredictions(predictions, 'p1', outcomes)).toBe(predictions)
+  })
+})
+
+describe('haveIdenticalPredictions', () => {
+  const participants = [participant('p1'), participant('p2')]
+
+  it('is true when everyone predicted the same', () => {
+    const predictions = [
+      pred('p1', 'o1', 60, true),
+      pred('p1', 'o2', 40, true),
+      pred('p2', 'o2', 40, true),
+      pred('p2', 'o1', 60, true),
+    ]
+    expect(haveIdenticalPredictions(participants, predictions)).toBe(true)
+  })
+
+  it('is false when any probability differs', () => {
+    const predictions = [
+      pred('p1', 'o1', 60, true),
+      pred('p1', 'o2', 40, true),
+      pred('p2', 'o1', 61, true),
+      pred('p2', 'o2', 39, true),
+    ]
+    expect(haveIdenticalPredictions(participants, predictions)).toBe(false)
+  })
+
+  it('is false with fewer than two participants', () => {
+    expect(haveIdenticalPredictions([participant('p1')], [pred('p1', 'o1', 100, true)])).toBe(false)
   })
 })
