@@ -10,18 +10,18 @@ import HelpModal from './components/HelpSection'
 import { isFaqId, type FaqId } from './components/faq'
 import ConfirmDialog from './components/ConfirmDialog'
 import Footer from './components/Footer'
-import { calculateResults } from './modules/brier'
-import type { CalculationResult, Wager } from './types/wager'
+import { calculateResults } from './domain/brier'
+import type { CalculationResult, Wager } from './domain/wager'
 import {
   decodeWagerFromHash,
   encodeWagerToHash,
   getShareableURL,
   getFaqIdFromURL,
   removeFaqFromURL,
-} from './utils/urlState'
-import { createDefaultWager } from './utils/defaults'
-import { fillMissingPredictions } from './utils/predictions'
-import { getSavedStakes, saveStakes } from './utils/localStorage'
+} from './storage/urlHash'
+import { createDefaultWager } from './domain/defaults'
+import { fillMissingPredictions } from './domain/predictions'
+import { getSavedStakes, saveStakes } from './storage/stakesPreference'
 
 /**
  * A blank wager that remembers the stakes the user picked last time

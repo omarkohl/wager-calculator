@@ -7,7 +7,7 @@ import {
   calculateSettlements,
   calculateResults,
 } from './brier'
-import type { Participant, Outcome, Prediction, Payout } from '../types/wager'
+import type { Participant, Outcome, Prediction, Payout } from './wager'
 
 describe('Brier Scoring Module', () => {
   describe('calculateBrierScore', () => {

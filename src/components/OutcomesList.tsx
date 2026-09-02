@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { PlusIcon } from '@heroicons/react/24/outline'
-import type { Outcome, Prediction } from '../types/wager'
+import type { Outcome, Prediction } from '../domain/wager'
 import ConfirmDialog from './ConfirmDialog'
-import { DEFAULT_OUTCOME_LABELS } from '../utils/defaults'
+import { DEFAULT_OUTCOME_LABELS } from '../domain/defaults'
 
 interface OutcomesListProps {
   outcomes: Outcome[]

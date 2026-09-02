@@ -7,7 +7,7 @@ import type {
   Payout,
   Settlement,
   CalculationResult,
-} from '../types/wager'
+} from './wager'
 
 /**
  * Calculate Brier score for a participant given their predictions and the actual outcome.

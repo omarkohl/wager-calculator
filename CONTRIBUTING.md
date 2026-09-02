@@ -40,11 +40,12 @@ Run `make help` for the full list of commands.
 
 ```
 src/
-├── components/     # UI components
-├── modules/        # Calculation logic
-├── types/          # TypeScript interfaces
-├── utils/          # Utility functions
-└── styles/         # CSS/SCSS files
+├── components/     # React UI components (incl. FAQ content)
+├── domain/         # Pure wager logic: types, Brier scoring, prediction rules, stakes
+├── storage/        # URL hash format and localStorage preference
+├── App.tsx         # Single Wager state, wires components together
+└── main.tsx        # Entry point
+e2e/                # Playwright tests
 ```
 
 ## Development Process

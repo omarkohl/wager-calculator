@@ -1,10 +1,10 @@
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-import type { Outcome, Participant, Prediction, CalculationResult } from '../types/wager'
+import type { Outcome, Participant, Prediction, CalculationResult } from '../domain/wager'
 import type { FaqId } from './faq'
-import { formatPayout, getStakeName } from '../utils/stakes'
-import { amountInPlay } from '../modules/brier'
-import { haveIdenticalPredictions, isCompleteTotal, participantTotal } from '../utils/predictions'
+import { formatPayout, getStakeName } from '../domain/stakes'
+import { amountInPlay } from '../domain/brier'
+import { haveIdenticalPredictions, isCompleteTotal, participantTotal } from '../domain/predictions'
 
 interface ResolutionProps {
   outcomes: Outcome[]

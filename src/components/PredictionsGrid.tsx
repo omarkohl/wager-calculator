@@ -1,11 +1,11 @@
 import Decimal from 'decimal.js'
-import type { Participant, Outcome, Prediction } from '../types/wager'
+import type { Participant, Outcome, Prediction } from '../domain/wager'
 import {
   isCompleteTotal,
   normalizePredictions,
   participantTotal,
   setPrediction,
-} from '../utils/predictions'
+} from '../domain/predictions'
 import NumberInput from './NumberInput'
 
 interface PredictionsGridProps {

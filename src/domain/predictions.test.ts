@@ -9,7 +9,7 @@ import {
   isCompleteTotal,
   haveIdenticalPredictions,
 } from './predictions'
-import type { Outcome, Participant, Prediction } from '../types/wager'
+import type { Outcome, Participant, Prediction } from './wager'
 
 // Helper to create predictions with numbers that will be converted to Decimal
 const expectProbability = (actual: Prediction[], expected: Prediction[]) => {

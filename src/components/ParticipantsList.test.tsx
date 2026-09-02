@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Decimal from 'decimal.js'
 import ParticipantsList from './ParticipantsList'
-import type { Participant, Prediction } from '../types/wager'
+import type { Participant, Prediction } from '../domain/wager'
 
 const emptyPredictions: Prediction[] = []
 

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import Decimal from 'decimal.js'
 import { PlusIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
-import type { Participant, Prediction } from '../types/wager'
-import { getStakesSymbol, getStakeName } from '../utils/stakes'
+import type { Participant, Prediction } from '../domain/wager'
+import { getStakesSymbol, getStakeName } from '../domain/stakes'
 import ConfirmDialog from './ConfirmDialog'
 import NumberInput from './NumberInput'
-import { DEFAULT_PARTICIPANT_NAMES } from '../utils/defaults'
+import { DEFAULT_PARTICIPANT_NAMES } from '../domain/defaults'
 
 interface ParticipantsListProps {
   participants: Participant[]

@@ -18,11 +18,13 @@ Brier scoring calculator for friendly wagers. PWA with React + TypeScript + Tail
 
 ## Architecture
 
-- `src/modules/` - Calculation logic (Brier scoring, settlements) using decimal.js
-- `src/components/` - React UI components
-- `src/types/` - TypeScript interfaces
+- `src/domain/` - Pure wager logic, no DOM: types (`wager.ts`), Brier scoring and settlements (`brier.ts`), prediction rules (`predictions.ts`), stakes catalog and formatting (`stakes.ts`), defaults
+- `src/storage/` - Browser persistence: the URL hash format (`urlHash.ts`) and the remembered stakes preference (`stakesPreference.ts`)
+- `src/components/` - React UI components; FAQ content lives in `components/faq.tsx`
+- `src/App.tsx` - Holds the single `Wager` state and wires components to it
 - Headless UI for accessible primitives
-- lz-string for URL state compression
+- decimal.js for all probability and money arithmetic
+- lz-string only to read legacy (v1) share URLs
 
 ## E2E Tests (Playwright)
 

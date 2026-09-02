@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { compressToEncodedURIComponent } from 'lz-string'
 import Decimal from 'decimal.js'
-import type { Wager } from '../types/wager'
-import { encodeWagerToHash, decodeWagerFromHash } from './urlState'
+import type { Wager } from '../domain/wager'
+import { encodeWagerToHash, decodeWagerFromHash } from './urlHash'
 
 const EMPTY_WAGER: Wager = {
   claim: '',
@@ -18,7 +18,7 @@ function makeWager(overrides: Partial<Wager>): Wager {
   return { ...EMPTY_WAGER, ...overrides }
 }
 
-describe('urlState', () => {
+describe('urlHash', () => {
   const sampleParticipants = [
     { id: 'p1', name: 'Alice', maxBet: new Decimal(100), touched: true },
     { id: 'p2', name: 'Bob', maxBet: new Decimal(50), touched: false },

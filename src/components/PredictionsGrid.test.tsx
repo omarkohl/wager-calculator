@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Decimal from 'decimal.js'
 import PredictionsGrid from './PredictionsGrid'
-import type { Participant, Outcome, Prediction } from '../types/wager'
+import type { Participant, Outcome, Prediction } from '../domain/wager'
 
 describe('PredictionsGrid', () => {
   const participants: Participant[] = [

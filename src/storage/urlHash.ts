@@ -1,8 +1,12 @@
 import { decompressFromEncodedURIComponent } from 'lz-string'
 import Decimal from 'decimal.js'
-import type { Wager } from '../types/wager'
-import { DEFAULT_OUTCOME_LABELS, DEFAULT_PARTICIPANT_NAMES, DEFAULT_STAKES } from './defaults'
-import { autoDistribute } from './predictions'
+import type { Wager } from '../domain/wager'
+import {
+  DEFAULT_OUTCOME_LABELS,
+  DEFAULT_PARTICIPANT_NAMES,
+  DEFAULT_STAKES,
+} from '../domain/defaults'
+import { autoDistribute } from '../domain/predictions'
 
 /**
  * URL hash formats, newest first:

@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js'
-import type { Wager } from '../types/wager'
+import type { Wager } from './wager'
 
 export const DEFAULT_PARTICIPANT_NAMES = [
   'Artem',

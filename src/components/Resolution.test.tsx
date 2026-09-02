@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Decimal from 'decimal.js'
 import Resolution from './Resolution'
-import { calculateResults } from '../modules/brier'
-import type { Outcome, Participant, Prediction } from '../types/wager'
+import { calculateResults } from '../domain/brier'
+import type { Outcome, Participant, Prediction } from '../domain/wager'
 
 describe('Resolution', () => {
   const mockOutcomes: Outcome[] = [

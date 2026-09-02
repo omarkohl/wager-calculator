@@ -73,6 +73,6 @@ If not set, no tracking code is added (recommended for forks and local developme
 
 ## Tech Stack
 
-- TypeScript + Vite
-- Jest + Playwright for testing
+- React + TypeScript + Vite, Tailwind CSS
+- Vitest + React Testing Library for unit and component tests, Playwright for E2E
 - PWA with service worker

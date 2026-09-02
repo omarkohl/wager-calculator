@@ -168,11 +168,11 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 
 ## Technical Architecture
 
-- **Calculation Module**: Separate TypeScript module for all Brier scoring operations using decimal.js
+- **Domain Layer**: Pure TypeScript modules (no DOM) for Brier scoring, prediction rules and stakes, using decimal.js
 - **UI Components**: Modular React component structure
-- **State Management**: Simple state management for form inputs and calculations
+- **State Management**: A single `Wager` value held in the root component; components receive slices and report changes back
 - **Type Safety**: Comprehensive TypeScript interfaces for all data structures
-- **URL State**: JSON → lz-string compression → base64 → URL hash for sharing
+- **URL State**: Plain query parameters in the URL hash (v2); legacy v1 links (JSON → lz-string) are still decoded
 - **Settlement Algorithm**: Brute force transaction minimization (acceptable for ≤8 participants)
 
 ### Key Brier Scoring Properties
@@ -239,26 +239,20 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 ```
 wager-calculator/
 ├── src/
-│   ├── components/          # React UI components
-│   ├── modules/            # Calculation logic (Brier scoring, settlements)
-│   ├── types/              # TypeScript interfaces
-│   ├── utils/              # Utility functions
-│   ├── hooks/              # Custom React hooks
-│   ├── App.tsx             # Root React component
+│   ├── components/         # React UI components (unit tests live next to them)
+│   ├── domain/             # Pure wager logic: types, Brier scoring, prediction rules, stakes
+│   ├── storage/            # URL hash format and localStorage preference
+│   ├── test/setup.ts       # Vitest environment setup
+│   ├── App.tsx             # Root React component holding the Wager state
 │   ├── main.tsx            # Application entry point
 │   └── index.css           # Tailwind CSS imports and global styles
-├── public/                 # Static assets (favicon, manifest icons, robots.txt)
-├── tests/
-│   ├── unit/               # Unit tests for modules and utilities
-│   ├── components/         # Component tests
-│   ├── e2e/                # Playwright E2E tests
-│   └── setup.ts            # Test environment setup
+├── e2e/                    # Playwright E2E tests
+├── public/                 # Static assets (favicon, manifest icons)
 ├── dist/                   # Production build output (generated, git-ignored)
 ├── docs/                   # Documentation (incl. historical-calculations/)
-├── vite.config.ts          # Vite configuration with React plugin
-├── vitest.config.ts        # Vitest configuration (extends Vite config)
+├── vite.config.ts          # Vite configuration with React and PWA plugins
+├── vitest.config.ts        # Vitest configuration
 ├── tsconfig.json           # TypeScript configuration with JSX
-├── tailwind.config.js      # Tailwind CSS configuration
 ├── postcss.config.js       # PostCSS configuration for Tailwind
 ├── playwright.config.ts    # E2E test configuration
 └── package.json            # Dependencies and scripts

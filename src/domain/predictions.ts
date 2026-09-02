@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js'
-import type { Outcome, Participant, Prediction } from '../types/wager'
+import type { Outcome, Participant, Prediction } from './wager'
 
 /**
  * Rules for a participant's probability distribution over the outcomes.

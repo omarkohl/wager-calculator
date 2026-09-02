@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import { ChevronUpDownIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/20/solid'
-import { ALL_OPTIONS } from '../utils/stakes'
+import { ALL_OPTIONS } from '../domain/stakes'
 
 interface StakesSelectorProps {
   value: string
