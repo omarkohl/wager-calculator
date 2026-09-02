@@ -205,6 +205,11 @@ function App() {
     }
   }
 
+  const openFaq = (faqId: FaqId | null) => {
+    setOpenFaqId(faqId)
+    setIsHelpOpen(true)
+  }
+
   // Share wager by copying URL to clipboard
   const handleShare = async () => {
     const state = serializeState(
@@ -251,7 +256,7 @@ function App() {
           <div className="mb-6 flex justify-end gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={() => setIsHelpOpen(true)}
+              onClick={() => openFaq(null)}
               aria-label="Open FAQ (top)"
               className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >
@@ -352,13 +357,14 @@ function App() {
                 resolvedOutcomeId={resolvedOutcomeId}
                 calculationResults={calculationResults}
                 onChange={setResolvedOutcomeId}
+                onOpenFaq={openFaq}
               />
             </div>
           </div>
           <div className="mt-6 flex justify-end gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={() => setIsHelpOpen(true)}
+              onClick={() => openFaq(null)}
               aria-label="Open FAQ (bottom)"
               className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
             >

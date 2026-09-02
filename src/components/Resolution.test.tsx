@@ -147,6 +147,91 @@ describe('Resolution', () => {
     expect(screen.getAllByText('Bob').length).toBeGreaterThan(0)
   })
 
+  it('shows the amount in play as the lowest max bet', () => {
+    const unevenParticipants: Participant[] = [
+      { id: 'p1', name: 'Alice', maxBet: new Decimal(25) },
+      { id: 'p2', name: 'Bob', maxBet: new Decimal(10) },
+    ]
+    const calculationResults = calculateResults(
+      unevenParticipants,
+      mockPredictions,
+      mockOutcomes,
+      '1',
+      'Test claim'
+    )
+
+    render(
+      <Resolution
+        outcomes={mockOutcomes}
+        participants={unevenParticipants}
+        predictions={mockPredictions}
+        stakes="usd"
+        resolvedOutcomeId="1"
+        calculationResults={calculationResults}
+        onChange={vi.fn()}
+      />
+    )
+
+    const amountInPlay = screen.getByText(/Amount in play/i).closest('p')
+    expect(amountInPlay).toHaveTextContent('10.00 $')
+    expect(amountInPlay).not.toHaveTextContent('25')
+  })
+
+  it('shows each participant Brier score next to their payout', () => {
+    const calculationResults = calculateResults(
+      mockParticipants,
+      mockPredictions,
+      mockOutcomes,
+      '1',
+      'Test claim'
+    )
+
+    render(
+      <Resolution
+        outcomes={mockOutcomes}
+        participants={mockParticipants}
+        predictions={mockPredictions}
+        stakes="usd"
+        resolvedOutcomeId="1"
+        calculationResults={calculationResults}
+        onChange={vi.fn()}
+      />
+    )
+
+    // Alice: (0.7-1)² + (0.3-0)² = 0.18, Bob: (0.4-1)² + (0.6-0)² = 0.72
+    expect(screen.getByRole('columnheader', { name: /Brier score/i })).toBeInTheDocument()
+    expect(screen.getByRole('row', { name: /Alice/ })).toHaveTextContent('0.18')
+    expect(screen.getByRole('row', { name: /Bob/ })).toHaveTextContent('0.72')
+  })
+
+  it('opens the calculation FAQ from the payout summary', async () => {
+    const user = userEvent.setup()
+    const onOpenFaq = vi.fn()
+    const calculationResults = calculateResults(
+      mockParticipants,
+      mockPredictions,
+      mockOutcomes,
+      '1',
+      'Test claim'
+    )
+
+    render(
+      <Resolution
+        outcomes={mockOutcomes}
+        participants={mockParticipants}
+        predictions={mockPredictions}
+        stakes="usd"
+        resolvedOutcomeId="1"
+        calculationResults={calculationResults}
+        onChange={vi.fn()}
+        onOpenFaq={onOpenFaq}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: /how these numbers are calculated/i }))
+    expect(onOpenFaq).toHaveBeenCalledWith('calculation')
+  })
+
   it('does not display payout summary when unresolved', () => {
     render(
       <Resolution

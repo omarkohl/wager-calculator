@@ -2,6 +2,7 @@ import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headless
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import Decimal from 'decimal.js'
 import type { Outcome, Participant, Prediction, CalculationResult } from '../types/wager'
+import type { FaqId } from '../types/faq'
 import { formatPayout, getStakeName } from '../utils/stakes'
 
 interface ResolutionProps {
@@ -12,6 +13,7 @@ interface ResolutionProps {
   resolvedOutcomeId: string | null
   calculationResults: CalculationResult | null
   onChange: (outcomeId: string | null) => void
+  onOpenFaq?: (faqId: FaqId) => void
 }
 
 function Resolution({
@@ -22,8 +24,15 @@ function Resolution({
   resolvedOutcomeId,
   calculationResults,
   onChange,
+  onOpenFaq,
 }: ResolutionProps) {
   const selectedOutcome = outcomes.find(o => o.id === resolvedOutcomeId)
+  const stakeName = getStakeName(stakes)
+
+  // The amount everyone is actually playing for: the lowest max bet
+  const amountInPlay =
+    participants.length > 0 ? Decimal.min(...participants.map(p => p.maxBet)) : new Decimal(0)
+  const formattedAmountInPlay = formatPayout(amountInPlay.toNumber(), stakes)
 
   // Get participants with invalid probabilities
   const getInvalidProbabilityParticipants = (): Array<{ name: string; total: number }> => {
@@ -177,40 +186,72 @@ function Resolution({
               </p>
             ) : calculationResults ? (
               <div className="space-y-4">
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Amount in play:</span>{' '}
+                  {formattedAmountInPlay.settlement
+                    .replace(formattedAmountInPlay.symbol, '')
+                    .trim()}{' '}
+                  <span title={stakeName}>{formattedAmountInPlay.symbol}</span>{' '}
+                  <span className="text-gray-500">(the lowest max bet)</span>
+                </p>
+
                 {/* Net Payouts */}
                 <div>
                   <h4 className="mb-2 text-xs font-medium text-gray-700 uppercase">Net Payouts</h4>
-                  <div className="space-y-1">
-                    {calculationResults.payouts.map(payout => {
-                      const participant = participants.find(p => p.id === payout.participantId)
-                      const amount = payout.amount.toNumber()
-                      const formatted = formatPayout(amount, stakes)
-                      const isPositive = formatted.roundedAmount > 0
-                      const isZero = formatted.roundedAmount === 0
-                      const stakeName = getStakeName(stakes)
-
-                      return (
-                        <div
-                          key={payout.participantId}
-                          className="flex items-center justify-between text-sm"
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-xs text-gray-500">
+                        <th scope="col" className="pb-1 text-left font-normal">
+                          Participant
+                        </th>
+                        <th
+                          scope="col"
+                          className="pb-1 text-right font-normal"
+                          title="Lower is better: 0 is a perfect prediction, 2 the worst possible"
                         >
-                          <span className="text-gray-700">{participant?.name || 'Unknown'}</span>
-                          <span
-                            className={
-                              isZero
-                                ? 'text-gray-700'
-                                : isPositive
-                                  ? 'font-medium text-green-600'
-                                  : 'font-medium text-red-600'
-                            }
-                          >
-                            {formatted.compactAmount}{' '}
-                            <span title={stakeName}>{formatted.symbol}</span>
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
+                          Brier score
+                        </th>
+                        <th scope="col" className="pb-1 text-right font-normal">
+                          Payout
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {calculationResults.payouts.map(payout => {
+                        const participant = participants.find(p => p.id === payout.participantId)
+                        const brierScore = calculationResults.brierScores.find(
+                          bs => bs.participantId === payout.participantId
+                        )
+                        const amount = payout.amount.toNumber()
+                        const formatted = formatPayout(amount, stakes)
+                        const isPositive = formatted.roundedAmount > 0
+                        const isZero = formatted.roundedAmount === 0
+
+                        return (
+                          <tr key={payout.participantId}>
+                            <td className="py-0.5 text-gray-700">
+                              {participant?.name || 'Unknown'}
+                            </td>
+                            <td className="py-0.5 text-right text-gray-500 tabular-nums">
+                              {brierScore ? brierScore.score.toDecimalPlaces(3).toString() : ''}
+                            </td>
+                            <td
+                              className={`py-0.5 text-right tabular-nums ${
+                                isZero
+                                  ? 'text-gray-700'
+                                  : isPositive
+                                    ? 'font-medium text-green-600'
+                                    : 'font-medium text-red-600'
+                              }`}
+                            >
+                              {formatted.compactAmount}{' '}
+                              <span title={stakeName}>{formatted.symbol}</span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
 
                 {/* Simplified Settlements */}
@@ -225,7 +266,6 @@ function Resolution({
                         const to = participants.find(p => p.id === settlement.toParticipantId)
                         const amount = settlement.amount.toNumber()
                         const formatted = formatPayout(amount, stakes)
-                        const stakeName = getStakeName(stakes)
 
                         return (
                           <div key={idx} className="text-sm text-gray-700">
@@ -240,13 +280,24 @@ function Resolution({
                         )
                       })}
                     </div>
-                    <div className="mt-6">
-                      <p className="text-sm text-gray-600">
-                        <i>See the FAQ to understand how these numbers are calculated.</i>
-                      </p>
-                    </div>
                   </div>
                 )}
+
+                <p className="text-sm text-gray-600 italic">
+                  See the FAQ to understand{' '}
+                  {onOpenFaq ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenFaq('calculation')}
+                      className="text-blue-600 underline hover:text-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    >
+                      how these numbers are calculated
+                    </button>
+                  ) : (
+                    'how these numbers are calculated'
+                  )}
+                  .
+                </p>
               </div>
             ) : (
               <p className="text-sm text-gray-600 italic">
