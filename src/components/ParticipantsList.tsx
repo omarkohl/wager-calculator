@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Decimal from 'decimal.js'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 import type { Participant, Prediction } from '../types/wager'
 import { getStakesSymbol, getStakeName } from '../utils/stakes'
 import ConfirmDialog from './ConfirmDialog'
@@ -48,6 +48,16 @@ export default function ParticipantsList({
     updated[index] = { ...updated[index], maxBet, touched: true }
     onChange(updated)
   }
+
+  // Everyone usually bets the same amount, so let one max bet be copied to all
+  const handleUseMaxBetForEveryone = (index: number) => {
+    const maxBet = participants[index].maxBet
+    onChange(participants.map(p => ({ ...p, maxBet, touched: true })))
+  }
+
+  const canPropagateMaxBet = (participant: Participant): boolean =>
+    participant.maxBet.greaterThan(0) &&
+    participants.some(other => !other.maxBet.equals(participant.maxBet))
 
   const handleAddParticipant = () => {
     const nextIndex = participants.length
@@ -119,6 +129,22 @@ export default function ParticipantsList({
                 {getStakesSymbol(stakes)}
               </span>
             </div>
+            {canPropagateMaxBet(participant) ? (
+              <button
+                type="button"
+                onClick={() => handleUseMaxBetForEveryone(index)}
+                className="rounded-md border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                aria-label={`Use ${participant.name || 'this'}'s max bet for everyone`}
+                title="Use this max bet for everyone"
+              >
+                <DocumentDuplicateIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+            ) : (
+              // Keep rows aligned whether or not the action applies
+              <div className="invisible shrink-0 rounded-md border p-2" aria-hidden="true">
+                <div className="h-5 w-5" />
+              </div>
+            )}
             <button
               type="button"
               onClick={() => handleRemoveParticipant(index)}

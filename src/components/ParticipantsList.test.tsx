@@ -26,6 +26,76 @@ describe('ParticipantsList', () => {
     expect(screen.getByDisplayValue('Bob')).toBeInTheDocument()
   })
 
+  describe('use max bet for everyone', () => {
+    it('offers the action only for a non-zero max bet that others do not share', () => {
+      const participants: Participant[] = [
+        { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+        { id: '2', name: 'Bob', maxBet: new Decimal(0) },
+        { id: '3', name: 'Carol', maxBet: new Decimal(100) },
+      ]
+      render(
+        <ParticipantsList
+          participants={participants}
+          predictions={emptyPredictions}
+          onChange={vi.fn()}
+          stakes="usd"
+        />
+      )
+
+      expect(
+        screen.getByRole('button', { name: "Use Alice's max bet for everyone" })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: "Use Carol's max bet for everyone" })
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: "Use Bob's max bet for everyone" })
+      ).not.toBeInTheDocument()
+    })
+
+    it('does not offer the action when all max bets are already equal', () => {
+      const participants: Participant[] = [
+        { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+        { id: '2', name: 'Bob', maxBet: new Decimal(100) },
+      ]
+      render(
+        <ParticipantsList
+          participants={participants}
+          predictions={emptyPredictions}
+          onChange={vi.fn()}
+          stakes="usd"
+        />
+      )
+
+      expect(screen.queryByRole('button', { name: /max bet for everyone/ })).not.toBeInTheDocument()
+    })
+
+    it('copies the max bet to every participant', async () => {
+      const user = userEvent.setup()
+      const onChange = vi.fn()
+      const participants: Participant[] = [
+        { id: '1', name: 'Alice', maxBet: new Decimal(100), touched: true },
+        { id: '2', name: 'Bob', maxBet: new Decimal(0) },
+        { id: '3', name: 'Carol', maxBet: new Decimal(25), touched: true },
+      ]
+      render(
+        <ParticipantsList
+          participants={participants}
+          predictions={emptyPredictions}
+          onChange={onChange}
+          stakes="usd"
+        />
+      )
+
+      await user.click(screen.getByRole('button', { name: "Use Alice's max bet for everyone" }))
+
+      expect(onChange).toHaveBeenCalledTimes(1)
+      const updated = onChange.mock.calls[0][0] as Participant[]
+      expect(updated.map(p => p.maxBet.toString())).toEqual(['100', '100', '100'])
+      expect(updated.every(p => p.touched)).toBe(true)
+    })
+  })
+
   it('renders max bet inputs with values', () => {
     const participants: Participant[] = [
       { id: '1', name: 'Alice', maxBet: new Decimal(100) },
