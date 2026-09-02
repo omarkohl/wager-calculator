@@ -36,6 +36,8 @@ function getBuildInfo() {
   }
 }
 
+const buildInfo = getBuildInfo()
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -98,8 +100,8 @@ export default defineConfig({
   ],
   base: './',
   define: {
-    __COMMIT_HASH__: JSON.stringify(getBuildInfo().commitHash),
-    __COMMIT_DATE__: JSON.stringify(getBuildInfo().commitDate),
+    __COMMIT_HASH__: JSON.stringify(buildInfo.commitHash),
+    __COMMIT_DATE__: JSON.stringify(buildInfo.commitDate),
     __REPO_URL__: JSON.stringify(process.env.VITE_GITHUB_REPO_URL || ''),
     __SITE_URL__: JSON.stringify(process.env.VITE_SITE_URL || ''),
   },
