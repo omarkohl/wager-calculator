@@ -33,6 +33,14 @@ export default function InlineEdit({
     }
   }, [isEditing, multiline])
 
+  // Grow the textarea with its content instead of scrolling inside a fixed box
+  useEffect(() => {
+    if (!isEditing || !multiline || !inputRef.current) return
+    const textarea = inputRef.current
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }, [isEditing, multiline, editValue])
+
   useEffect(() => {
     if (autoFocus && displayRef.current) {
       displayRef.current.focus()
@@ -86,6 +94,7 @@ export default function InlineEdit({
           {...commonProps}
           ref={inputRef as React.RefObject<HTMLTextAreaElement>}
           rows={3}
+          className={`${commonProps.className} resize-none overflow-hidden`}
         />
       )
     }
@@ -107,7 +116,7 @@ export default function InlineEdit({
       title="Click to edit"
       className={`cursor-text rounded px-3 py-2 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none ${displayClassName} ${
         isPlaceholder ? 'text-gray-500' : ''
-      }`}
+      } ${multiline ? 'whitespace-pre-wrap' : ''}`}
     >
       {displayText}
     </div>

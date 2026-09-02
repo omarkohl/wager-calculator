@@ -83,6 +83,29 @@ describe('InlineEdit', () => {
     expect(screen.queryByRole('button', { name: 'Test' })).not.toBeInTheDocument()
   })
 
+  describe('multiline', () => {
+    it('keeps line breaks when displaying the value', () => {
+      render(<InlineEdit value={'line one\nline two'} onChange={vi.fn()} multiline />)
+      const display = screen.getByRole('button')
+      expect(display).toHaveTextContent('line one line two')
+      expect(display).toHaveClass('whitespace-pre-wrap')
+    })
+
+    it('grows the textarea to fit its content', async () => {
+      const user = userEvent.setup()
+      const scrollHeight = vi
+        .spyOn(HTMLTextAreaElement.prototype, 'scrollHeight', 'get')
+        .mockReturnValue(160)
+      render(<InlineEdit value="Some details" onChange={vi.fn()} multiline />)
+
+      await user.click(screen.getByText('Some details'))
+      const textarea = screen.getByRole('textbox')
+
+      expect(textarea.style.height).toBe('160px')
+      scrollHeight.mockRestore()
+    })
+  })
+
   it('does not focus when autoFocus is false', () => {
     render(<InlineEdit value="" onChange={vi.fn()} placeholder="Test" />)
     const displayElement = screen.getByRole('button', { name: 'Test' })
