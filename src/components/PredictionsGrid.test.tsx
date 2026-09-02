@@ -31,6 +31,19 @@ describe('PredictionsGrid', () => {
     expect(screen.getByText('Bob')).toBeInTheDocument()
   })
 
+  it('shows a fallback heading for a participant with an empty name', () => {
+    render(
+      <PredictionsGrid
+        participants={[{ id: 'p1', name: '', maxBet: new Decimal(10) }]}
+        outcomes={outcomes}
+        predictions={[]}
+        onChange={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('heading', { name: 'Unnamed participant' })).toBeInTheDocument()
+  })
+
   it('renders outcome labels for each participant', () => {
     const predictions: Prediction[] = []
     render(

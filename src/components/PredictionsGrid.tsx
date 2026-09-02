@@ -55,10 +55,6 @@ export default function PredictionsGrid({
     onChange(distributed)
   }
 
-  const handleSliderMouseUp = () => {
-    // Auto-distribute already handled in handleSliderChange
-  }
-
   const handleInputChange = (participantId: string, outcomeId: string, probability: Decimal) => {
     const updated = [...predictions]
     const index = updated.findIndex(
@@ -153,7 +149,9 @@ export default function PredictionsGrid({
 
         return (
           <div key={participant.id} className="rounded-lg border border-gray-200 bg-white p-4">
-            <h3 className="mb-4 text-sm font-semibold text-gray-900">{participant.name}</h3>
+            <h3 className="mb-4 text-sm font-semibold text-gray-900">
+              {participant.name || 'Unnamed participant'}
+            </h3>
 
             <div className="space-y-3">
               {outcomes.map(outcome => {
@@ -161,7 +159,7 @@ export default function PredictionsGrid({
 
                 return (
                   <div key={outcome.id} className="flex min-w-0 items-center gap-1.5 sm:gap-4">
-                    <label className="w-10 shrink-0 text-xs text-gray-700 sm:w-16 sm:text-sm">
+                    <label className="w-20 shrink-0 text-xs leading-tight break-words text-gray-700 sm:w-32 sm:text-sm">
                       {outcome.label}
                     </label>
 
@@ -174,10 +172,8 @@ export default function PredictionsGrid({
                       onChange={e =>
                         handleSliderChange(participant.id, outcome.id, parseFloat(e.target.value))
                       }
-                      onMouseUp={handleSliderMouseUp}
-                      onClick={handleSliderMouseUp}
                       aria-label={`${participant.name || 'Participant'} probability for ${outcome.label}`}
-                      className={`min-w-0 flex-1 ${!prediction.touched ? 'opacity-40' : ''}`}
+                      className={`h-8 min-w-0 flex-1 cursor-pointer ${!prediction.touched ? 'opacity-40' : ''}`}
                     />
 
                     <div className="flex shrink-0 items-center gap-0.5">
