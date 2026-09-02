@@ -58,8 +58,6 @@ function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
-  // Track whether we should save stakes to localStorage (only when user actively changes it)
-  const shouldSaveStakesRef = useRef(!initial.isFromURL)
 
   // Auto-sync state to URL with debouncing
   useEffect(() => {
@@ -82,17 +80,6 @@ function App() {
     const timer = setTimeout(() => setToastMessage(null), 2500)
     return () => clearTimeout(timer)
   }, [toastMessage])
-
-  // Save stakes preference to localStorage (only when user actively changes it)
-  useEffect(() => {
-    if (shouldSaveStakesRef.current) {
-      const timer = setTimeout(() => {
-        saveStakes(stakes)
-      }, 400)
-
-      return () => clearTimeout(timer)
-    }
-  }, [stakes])
 
   // Calculate results when wager is resolved
   const calculationResults = useMemo<CalculationResult | null>(() => {
@@ -168,15 +155,13 @@ function App() {
   const confirmReset = () => {
     setWager(freshWager())
     window.location.hash = ''
-    // Re-enable saving to localStorage after reset
-    shouldSaveStakesRef.current = true
   }
 
-  // Handle stakes change from UI (user actively selecting)
+  // Only a deliberate pick becomes the remembered preference; stakes that
+  // arrived via a shared URL are someone else's choice
   const handleStakesChange = (value: string | null) => {
     if (value) {
-      // User is actively changing stakes, so enable localStorage saving
-      shouldSaveStakesRef.current = true
+      saveStakes(value)
       updateWager({ stakes: value })
     }
   }
