@@ -1,13 +1,22 @@
 import { describe, it, expect } from 'vitest'
 import { compressToEncodedURIComponent } from 'lz-string'
 import Decimal from 'decimal.js'
-import {
-  STATE_VERSION,
-  serializeState,
-  deserializeState,
-  encodeStateToURL,
-  decodeStateFromURL,
-} from './urlState'
+import type { Wager } from '../types/wager'
+import { encodeWagerToHash, decodeWagerFromHash } from './urlState'
+
+const EMPTY_WAGER: Wager = {
+  claim: '',
+  details: '',
+  stakes: 'usd',
+  participants: [],
+  outcomes: [],
+  predictions: [],
+  resolvedOutcomeId: null,
+}
+
+function makeWager(overrides: Partial<Wager>): Wager {
+  return { ...EMPTY_WAGER, ...overrides }
+}
 
 describe('urlState', () => {
   const sampleParticipants = [
@@ -25,78 +34,22 @@ describe('urlState', () => {
     { participantId: 'p1', outcomeId: 'o2', probability: new Decimal(0.4), touched: true },
   ]
 
-  describe('serializeState', () => {
-    it('includes version number in serialized state', () => {
-      const state = serializeState(
-        'Test claim',
-        'Test details',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        null
-      )
+  describe('encodeWagerToHash / decodeWagerFromHash', () => {
+    it('roundtrips a wager', () => {
+      const wager = makeWager({
+        claim: 'Test claim',
+        details: 'Test details',
+        stakes: 'eur',
+        participants: sampleParticipants,
+        outcomes: sampleOutcomes,
+        predictions: samplePredictions,
+        resolvedOutcomeId: 'o1',
+      })
 
-      expect(state.v).toBe(STATE_VERSION)
-      expect(state.v).toBe(2)
-    })
-
-    it('preserves Decimal values', () => {
-      const state = serializeState(
-        'Test',
-        '',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        null
-      )
-
-      expect(state.participants[0].maxBet).toBeInstanceOf(Decimal)
-      expect(state.participants[0].maxBet.toNumber()).toBe(100)
-      expect(state.predictions[0].probability).toBeInstanceOf(Decimal)
-      expect(state.predictions[0].probability.toNumber()).toBe(0.6)
-    })
-  })
-
-  describe('deserializeState', () => {
-    it('converts string values back to Decimals', () => {
-      const serialized = serializeState(
-        'Test',
-        '',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        null
-      )
-
-      const deserialized = deserializeState(serialized)
-
-      expect(deserialized.participants[0].maxBet).toBeInstanceOf(Decimal)
-      expect(deserialized.participants[0].maxBet.toNumber()).toBe(100)
-      expect(deserialized.predictions[0].probability).toBeInstanceOf(Decimal)
-      expect(deserialized.predictions[0].probability.toNumber()).toBe(0.6)
-    })
-  })
-
-  describe('encodeStateToURL / decodeStateFromURL', () => {
-    it('roundtrips state with version number', () => {
-      const state = serializeState(
-        'Test claim',
-        'Test details',
-        'eur',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        'o1'
-      )
-
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
-      expect(decoded!.v).toBe(2)
       expect(decoded!.claim).toBe('Test claim')
       expect(decoded!.stakes).toBe('eur')
       // v2 generates new IDs, so just check it's not null for resolved outcome
@@ -119,10 +72,9 @@ describe('urlState', () => {
       const compressed = compressToEncodedURIComponent(json)
       const hash = `#${compressed}`
 
-      const decoded = decodeStateFromURL(hash)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
-      expect(decoded!.v).toBe(1) // Should default to v1
       expect(decoded!.claim).toBe('Old claim')
     })
 
@@ -154,10 +106,9 @@ describe('urlState', () => {
       const compressed = compressToEncodedURIComponent(json)
       const hash = `#${compressed}`
 
-      const decoded = decodeStateFromURL(hash)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
-      expect(decoded!.v).toBe(1)
       expect(decoded!.claim).toBe('Will it rain?')
       expect(decoded!.details).toBe('Weather prediction')
       expect(decoded!.stakes).toBe('eur')
@@ -187,28 +138,26 @@ describe('urlState', () => {
     })
 
     it('returns null for empty hash', () => {
-      expect(decodeStateFromURL('')).toBeNull()
-      expect(decodeStateFromURL('#')).toBeNull()
+      expect(decodeWagerFromHash('')).toBeNull()
+      expect(decodeWagerFromHash('#')).toBeNull()
     })
 
     it('returns null for invalid hash', () => {
-      expect(decodeStateFromURL('#invalid-data')).toBeNull()
+      expect(decodeWagerFromHash('#invalid-data')).toBeNull()
     })
   })
 
   describe('v2 URL format', () => {
     it('encodes basic state to plain text params', () => {
-      const state = serializeState(
-        'Will it rain?',
-        'Resolves YES if rain',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        null
-      )
+      const wager = makeWager({
+        claim: 'Will it rain?',
+        details: 'Resolves YES if rain',
+        participants: sampleParticipants,
+        outcomes: sampleOutcomes,
+        predictions: samplePredictions,
+      })
 
-      const hash = encodeStateToURL(state)
+      const hash = encodeWagerToHash(wager)
 
       // v2 should start with #v=2
       expect(hash).toMatch(/^#v=2&/)
@@ -236,21 +185,20 @@ describe('urlState', () => {
         { participantId: 'p2', outcomeId: 'o2', probability: new Decimal(0.7), touched: true },
       ]
 
-      const state = serializeState(
-        'Test claim',
-        'Test details',
-        'eur',
-        touchedParticipants,
-        touchedOutcomes,
-        touchedPredictions,
-        'o1'
-      )
+      const wager = makeWager({
+        claim: 'Test claim',
+        details: 'Test details',
+        stakes: 'eur',
+        participants: touchedParticipants,
+        outcomes: touchedOutcomes,
+        predictions: touchedPredictions,
+        resolvedOutcomeId: 'o1',
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
-      expect(decoded!.v).toBe(2)
       expect(decoded!.claim).toBe('Test claim')
       expect(decoded!.details).toBe('Test details')
       expect(decoded!.stakes).toBe('eur')
@@ -275,10 +223,10 @@ describe('urlState', () => {
       ]
       const outcomes = [{ id: 'o1', label: 'Yes/No?', touched: true }]
 
-      const state = serializeState('Test?', '', 'usd', participants, outcomes, [], null)
+      const wager = makeWager({ claim: 'Test?', participants: participants, outcomes: outcomes })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.participants[0].name).toBe('Alice & Bob')
@@ -294,18 +242,15 @@ describe('urlState', () => {
         { participantId: 'p2', outcomeId: 'o2', probability: new Decimal(0.7), touched: true },
       ]
 
-      const state = serializeState(
-        'Test',
-        '',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        predictions,
-        null
-      )
+      const wager = makeWager({
+        claim: 'Test',
+        participants: sampleParticipants,
+        outcomes: sampleOutcomes,
+        predictions: predictions,
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.predictions).toHaveLength(4)
@@ -323,18 +268,15 @@ describe('urlState', () => {
     })
 
     it('preserves touched state through encode/decode', () => {
-      const state = serializeState(
-        'Test',
-        '',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        null
-      )
+      const wager = makeWager({
+        claim: 'Test',
+        participants: sampleParticipants,
+        outcomes: sampleOutcomes,
+        predictions: samplePredictions,
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       // First participant was touched, second was not
@@ -360,18 +302,15 @@ describe('urlState', () => {
         // p2 predictions are missing (untouched)
       ]
 
-      const state = serializeState(
-        'Test',
-        '',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        predictions,
-        null
-      )
+      const wager = makeWager({
+        claim: 'Test',
+        participants: sampleParticipants,
+        outcomes: sampleOutcomes,
+        predictions: predictions,
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       // Participant 1's predictions are preserved
@@ -399,10 +338,15 @@ describe('urlState', () => {
         // o2 and o3 are untouched, should split remaining 30%
       ]
 
-      const state = serializeState('Test', '', 'usd', participants, outcomes, predictions, null)
+      const wager = makeWager({
+        claim: 'Test',
+        participants: participants,
+        outcomes: outcomes,
+        predictions: predictions,
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.predictions[0].probability.toNumber()).toBe(70)
@@ -415,18 +359,16 @@ describe('urlState', () => {
     })
 
     it('handles resolved outcome by index', () => {
-      const state = serializeState(
-        'Test',
-        '',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        'o2'
-      )
+      const wager = makeWager({
+        claim: 'Test',
+        participants: sampleParticipants,
+        outcomes: sampleOutcomes,
+        predictions: samplePredictions,
+        resolvedOutcomeId: 'o2',
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       // o2 is the second outcome (index 1), v2 generates new IDs
@@ -434,46 +376,41 @@ describe('urlState', () => {
     })
 
     it('handles no resolved outcome', () => {
-      const state = serializeState(
-        'Test',
-        '',
-        'usd',
-        sampleParticipants,
-        sampleOutcomes,
-        samplePredictions,
-        null
-      )
+      const wager = makeWager({
+        claim: 'Test',
+        participants: sampleParticipants,
+        outcomes: sampleOutcomes,
+        predictions: samplePredictions,
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.resolvedOutcomeId).toBeNull()
     })
 
     it('is much shorter than v1 compressed format', () => {
-      const state = serializeState(
-        'Will it rain tomorrow?',
-        'Resolves YES if any rain between 6am-6pm',
-        'usd',
-        [
+      const wager = makeWager({
+        claim: 'Will it rain tomorrow?',
+        details: 'Resolves YES if any rain between 6am-6pm',
+        participants: [
           { id: 'p1', name: 'Alice', maxBet: new Decimal(100), touched: true },
           { id: 'p2', name: 'Bob', maxBet: new Decimal(50), touched: false },
         ],
-        [
+        outcomes: [
           { id: 'o1', label: 'Yes', touched: true },
           { id: 'o2', label: 'No', touched: false },
         ],
-        [
+        predictions: [
           { participantId: 'p1', outcomeId: 'o1', probability: new Decimal(0.6), touched: true },
           { participantId: 'p1', outcomeId: 'o2', probability: new Decimal(0.4), touched: true },
           { participantId: 'p2', outcomeId: 'o1', probability: new Decimal(0.3), touched: true },
           { participantId: 'p2', outcomeId: 'o2', probability: new Decimal(0.7), touched: true },
         ],
-        null
-      )
+      })
 
-      const v2Hash = encodeStateToURL(state)
+      const v2Hash = encodeWagerToHash(wager)
 
       // v2 should be significantly shorter (target < 300 chars vs ~500+ for v1)
       expect(v2Hash.length).toBeLessThan(300)
@@ -486,10 +423,10 @@ describe('urlState', () => {
       ]
       const outcomes = [{ id: 'o1', label: 'Yes', touched: true }]
 
-      const state = serializeState('Test', '', 'usd', participants, outcomes, [], null)
+      const wager = makeWager({ claim: 'Test', participants: participants, outcomes: outcomes })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.participants).toHaveLength(2)
@@ -504,10 +441,10 @@ describe('urlState', () => {
         { id: 'o2', label: 'No, never', touched: true },
       ]
 
-      const state = serializeState('Test', '', 'usd', participants, outcomes, [], null)
+      const wager = makeWager({ claim: 'Test', participants: participants, outcomes: outcomes })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.outcomes).toHaveLength(2)
@@ -521,10 +458,10 @@ describe('urlState', () => {
       ]
       const outcomes = [{ id: 'o1', label: 'Yes\\No', touched: true }]
 
-      const state = serializeState('Test', '', 'usd', participants, outcomes, [], null)
+      const wager = makeWager({ claim: 'Test', participants: participants, outcomes: outcomes })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.participants[0].name).toBe('Alice\\Bob')
@@ -537,10 +474,10 @@ describe('urlState', () => {
       ]
       const outcomes = [{ id: 'o1', label: 'Yes\\, No', touched: true }]
 
-      const state = serializeState('Test', '', 'usd', participants, outcomes, [], null)
+      const wager = makeWager({ claim: 'Test', participants: participants, outcomes: outcomes })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       expect(decoded!.participants[0].name).toBe('Alice\\, Bob')
@@ -571,10 +508,15 @@ describe('urlState', () => {
         },
       ]
 
-      const state = serializeState('Test', '', 'usd', participants, outcomes, predictions, null)
+      const wager = makeWager({
+        claim: 'Test',
+        participants: participants,
+        outcomes: outcomes,
+        predictions: predictions,
+      })
 
-      const hash = encodeStateToURL(state)
-      const decoded = decodeStateFromURL(hash)
+      const hash = encodeWagerToHash(wager)
+      const decoded = decodeWagerFromHash(hash)
 
       expect(decoded).not.toBeNull()
       // Full precision is preserved
@@ -594,9 +536,14 @@ describe('urlState', () => {
         { participantId: 'p1', outcomeId: 'o1', probability: new Decimal('0.5000'), touched: true },
       ]
 
-      const state = serializeState('Test', '', 'usd', participants, outcomes, predictions, null)
+      const wager = makeWager({
+        claim: 'Test',
+        participants: participants,
+        outcomes: outcomes,
+        predictions: predictions,
+      })
 
-      const hash = encodeStateToURL(state)
+      const hash = encodeWagerToHash(wager)
 
       // Decimal.toString() removes trailing zeros
       expect(hash).toContain('pb=100%2C50.5')

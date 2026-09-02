@@ -1,33 +1,28 @@
 import { decompressFromEncodedURIComponent } from 'lz-string'
 import Decimal from 'decimal.js'
-import type { Participant, Outcome, Prediction } from '../types/wager'
-import { DEFAULT_OUTCOME_LABELS, DEFAULT_PARTICIPANT_NAMES } from './defaults'
+import type { Wager } from '../types/wager'
+import { DEFAULT_OUTCOME_LABELS, DEFAULT_PARTICIPANT_NAMES, DEFAULT_STAKES } from './defaults'
 import { autoDistribute } from './autoDistribute'
 
 /**
- * Current state version for backwards compatibility
+ * URL hash formats, newest first:
+ *
+ * - v2: plain `URLSearchParams` (`#v=2&c=...`). Participants, outcomes and
+ *   predictions are positional CSV lists; ids are regenerated on decode.
+ * - v1: lz-string compressed JSON. Only decoded, never produced any more.
  */
-export const STATE_VERSION = 2
+const URL_FORMAT_VERSION = 2
 
 /**
- * JSON-serializable state for v1 URL format (compressed JSON)
+ * Shape of the JSON inside a v1 hash. Decimals were stored as strings.
  */
-interface JSONWagerState {
+interface JSONWagerV1 {
   v?: number
   claim: string
   details: string
   stakes: string
-  participants: Array<{
-    id: string
-    name: string
-    maxBet: string
-    touched?: boolean
-  }>
-  outcomes: Array<{
-    id: string
-    label: string
-    touched?: boolean
-  }>
+  participants: Array<{ id: string; name: string; maxBet: string; touched?: boolean }>
+  outcomes: Array<{ id: string; label: string; touched?: boolean }>
   predictions: Array<{
     participantId: string
     outcomeId: string
@@ -35,141 +30,6 @@ interface JSONWagerState {
     touched: boolean
   }>
   resolvedOutcomeId: string | null
-}
-
-/**
- * Internal state representation using Decimal for precision
- */
-export interface WagerState {
-  v: number
-  claim: string
-  details: string
-  stakes: string
-  participants: Array<{
-    id: string
-    name: string
-    maxBet: Decimal
-    touched?: boolean
-  }>
-  outcomes: Array<{
-    id: string
-    label: string
-    touched?: boolean
-  }>
-  predictions: Array<{
-    participantId: string
-    outcomeId: string
-    probability: Decimal
-    touched: boolean
-  }>
-  resolvedOutcomeId: string | null
-}
-
-/**
- * Default initial state
- */
-export function getDefaultState(): WagerState {
-  return {
-    v: STATE_VERSION,
-    claim: '',
-    details: '',
-    stakes: 'usd',
-    participants: [
-      {
-        id: crypto.randomUUID(),
-        name: DEFAULT_PARTICIPANT_NAMES[0],
-        maxBet: new Decimal(0),
-        touched: false,
-      },
-      {
-        id: crypto.randomUUID(),
-        name: DEFAULT_PARTICIPANT_NAMES[1],
-        maxBet: new Decimal(0),
-        touched: false,
-      },
-    ],
-    outcomes: [
-      { id: crypto.randomUUID(), label: DEFAULT_OUTCOME_LABELS[0], touched: false },
-      { id: crypto.randomUUID(), label: DEFAULT_OUTCOME_LABELS[1], touched: false },
-    ],
-    predictions: [],
-    resolvedOutcomeId: null,
-  }
-}
-
-/**
- * Convert runtime state to WagerState format
- */
-export function serializeState(
-  claim: string,
-  details: string,
-  stakes: string,
-  participants: Participant[],
-  outcomes: Outcome[],
-  predictions: Prediction[],
-  resolvedOutcomeId: string | null
-): WagerState {
-  return {
-    v: STATE_VERSION,
-    claim,
-    details,
-    stakes,
-    participants: participants.map(p => ({
-      id: p.id,
-      name: p.name,
-      maxBet: p.maxBet,
-      touched: p.touched,
-    })),
-    outcomes: outcomes.map(o => ({
-      id: o.id,
-      label: o.label,
-      touched: o.touched,
-    })),
-    predictions: predictions.map(p => ({
-      participantId: p.participantId,
-      outcomeId: p.outcomeId,
-      probability: p.probability,
-      touched: p.touched,
-    })),
-    resolvedOutcomeId,
-  }
-}
-
-/**
- * Convert WagerState to runtime state (now a simple passthrough since types match)
- */
-export function deserializeState(state: WagerState): {
-  claim: string
-  details: string
-  stakes: string
-  participants: Participant[]
-  outcomes: Outcome[]
-  predictions: Prediction[]
-  resolvedOutcomeId: string | null
-} {
-  return {
-    claim: state.claim,
-    details: state.details,
-    stakes: state.stakes,
-    participants: state.participants.map(p => ({
-      id: p.id,
-      name: p.name,
-      maxBet: p.maxBet,
-      touched: p.touched,
-    })),
-    outcomes: state.outcomes.map(o => ({
-      id: o.id,
-      label: o.label,
-      touched: o.touched,
-    })),
-    predictions: state.predictions.map(p => ({
-      participantId: p.participantId,
-      outcomeId: p.outcomeId,
-      probability: p.probability,
-      touched: p.touched,
-    })),
-    resolvedOutcomeId: state.resolvedOutcomeId,
-  }
 }
 
 /**
@@ -187,46 +47,44 @@ function unescapeCSV(str: string): string {
 }
 
 /**
- * Encode state to URL hash using v2 plain text format
+ * Encode a wager as a URL hash (v2 format). Untouched fields are left empty
+ * so that defaults are re-applied on decode.
  */
-function encodeStateToURLV2(state: WagerState): string {
+export function encodeWagerToHash(wager: Wager): string {
   const params = new URLSearchParams()
 
-  params.set('v', '2')
-  if (state.claim) params.set('c', state.claim)
-  if (state.details) params.set('d', state.details)
-  if (state.stakes) params.set('s', state.stakes)
+  params.set('v', String(URL_FORMAT_VERSION))
+  if (wager.claim) params.set('c', wager.claim)
+  if (wager.details) params.set('d', wager.details)
+  if (wager.stakes) params.set('s', wager.stakes)
 
-  // Participant names (CSV with escaping)
-  if (state.participants.length > 0) {
-    params.set('pn', state.participants.map(p => escapeCSV(p.touched ? p.name : '')).join(','))
-    params.set('pb', state.participants.map(p => (p.touched ? p.maxBet.toString() : '')).join(','))
+  // Participant names and max bets (CSV with escaping)
+  if (wager.participants.length > 0) {
+    params.set('pn', wager.participants.map(p => escapeCSV(p.touched ? p.name : '')).join(','))
+    params.set('pb', wager.participants.map(p => (p.touched ? p.maxBet.toString() : '')).join(','))
   }
 
   // Outcome labels (CSV with escaping)
-  if (state.outcomes.length > 0) {
-    params.set('ol', state.outcomes.map(o => escapeCSV(o.touched ? o.label : '')).join(','))
+  if (wager.outcomes.length > 0) {
+    params.set('ol', wager.outcomes.map(o => escapeCSV(o.touched ? o.label : '')).join(','))
   }
 
   // Predictions (row-major order: p0o0, p0o1, ..., p1o0, p1o1, ...)
-  if (state.predictions.length > 0) {
-    const participantOutcomeArray = new Array<string>(
-      state.participants.length * state.outcomes.length
-    ).fill('')
-    state.predictions.forEach(prediction => {
-      const participantIndex = state.participants.findIndex(
-        participant => participant.id === prediction.participantId
-      )
-      const outcomeIndex = state.outcomes.findIndex(outcome => outcome.id === prediction.outcomeId)
-      participantOutcomeArray[participantIndex * state.outcomes.length + outcomeIndex] =
-        prediction.touched ? prediction.probability.toString() : ''
+  if (wager.predictions.length > 0) {
+    const cells = new Array<string>(wager.participants.length * wager.outcomes.length).fill('')
+    wager.predictions.forEach(prediction => {
+      const participantIndex = wager.participants.findIndex(p => p.id === prediction.participantId)
+      const outcomeIndex = wager.outcomes.findIndex(o => o.id === prediction.outcomeId)
+      cells[participantIndex * wager.outcomes.length + outcomeIndex] = prediction.touched
+        ? prediction.probability.toString()
+        : ''
     })
-    params.set('pp', participantOutcomeArray.join(','))
+    params.set('pp', cells.join(','))
   }
 
   // Resolved outcome (index)
-  if (state.resolvedOutcomeId !== null) {
-    const index = state.outcomes.findIndex(o => o.id === state.resolvedOutcomeId)
+  if (wager.resolvedOutcomeId !== null) {
+    const index = wager.outcomes.findIndex(o => o.id === wager.resolvedOutcomeId)
     if (index >= 0) {
       params.set('r', index.toString())
     }
@@ -235,21 +93,9 @@ function encodeStateToURLV2(state: WagerState): string {
   return `#${params.toString()}`
 }
 
-/**
- * Encode state to URL hash (uses v2 plain text format)
- */
-export function encodeStateToURL(state: WagerState): string {
-  return encodeStateToURLV2(state)
-}
-
-/**
- * Decode state from URL hash using v2 plain text format
- */
-function decodeStateFromURLV2(hash: string): WagerState | null {
+function decodeV2(hash: string): Wager | null {
   try {
-    // Remove leading '#'
-    const paramString = hash.substring(1)
-    const params = new URLSearchParams(paramString)
+    const params = new URLSearchParams(hash.substring(1))
 
     // Parse participants (with CSV unescaping)
     const participantNames = params.get('pn')?.split(',').map(unescapeCSV) || []
@@ -277,12 +123,11 @@ function decodeStateFromURLV2(hash: string): WagerState | null {
 
     // Parse predictions (row-major order)
     const predictionProbsRaw = params.get('pp')?.split(',') || []
-    let predictions: WagerState['predictions'] = []
+    let predictions: Wager['predictions'] = []
 
     for (let pIndex = 0; pIndex < participants.length; pIndex++) {
       for (let oIndex = 0; oIndex < outcomes.length; oIndex++) {
-        const probIndex = pIndex * outcomes.length + oIndex
-        const probStr = predictionProbsRaw[probIndex] || ''
+        const probStr = predictionProbsRaw[pIndex * outcomes.length + oIndex] || ''
         const isTouched = probStr !== ''
         predictions.push({
           participantId: participants[pIndex].id,
@@ -309,10 +154,9 @@ function decodeStateFromURLV2(hash: string): WagerState | null {
     }
 
     return {
-      v: 2,
       claim: params.get('c') || '',
       details: params.get('d') || '',
-      stakes: params.get('s') || 'usd',
+      stakes: params.get('s') || DEFAULT_STAKES,
       participants,
       outcomes,
       predictions,
@@ -324,45 +168,37 @@ function decodeStateFromURLV2(hash: string): WagerState | null {
   }
 }
 
-/**
- * Decode state from URL hash using v1 compressed format
- */
-function decodeStateFromURLV1(hash: string): WagerState | null {
+function decodeV1(hash: string): Wager | null {
   try {
-    // Remove leading '#'
-    const compressed = hash.substring(1)
-    const json = decompressFromEncodedURIComponent(compressed)
-
+    const json = decompressFromEncodedURIComponent(hash.substring(1))
     if (!json) {
       return null
     }
 
-    const jsonState = JSON.parse(json) as JSONWagerState
+    const parsed = JSON.parse(json) as JSONWagerV1
 
-    // Convert JSONWagerState (strings) to WagerState (Decimals)
     return {
-      v: jsonState.v ?? 1,
-      claim: jsonState.claim,
-      details: jsonState.details,
-      stakes: jsonState.stakes,
-      participants: jsonState.participants.map(p => ({
+      claim: parsed.claim,
+      details: parsed.details,
+      stakes: parsed.stakes,
+      participants: parsed.participants.map(p => ({
         id: p.id,
         name: p.name,
         maxBet: new Decimal(p.maxBet),
         touched: p.touched,
       })),
-      outcomes: jsonState.outcomes.map(o => ({
+      outcomes: parsed.outcomes.map(o => ({
         id: o.id,
         label: o.label,
         touched: o.touched,
       })),
-      predictions: jsonState.predictions.map(p => ({
+      predictions: parsed.predictions.map(p => ({
         participantId: p.participantId,
         outcomeId: p.outcomeId,
         probability: new Decimal(p.probability),
         touched: p.touched,
       })),
-      resolvedOutcomeId: jsonState.resolvedOutcomeId,
+      resolvedOutcomeId: parsed.resolvedOutcomeId,
     }
   } catch (error) {
     console.error('Failed to decode v1 state from URL:', error)
@@ -371,34 +207,21 @@ function decodeStateFromURLV1(hash: string): WagerState | null {
 }
 
 /**
- * Decode state from URL hash (handles both v1 and v2)
+ * Decode a wager from a URL hash of any supported format.
+ * Returns null when the hash is empty or unreadable.
  */
-export function decodeStateFromURL(hash: string): WagerState | null {
-  try {
-    if (!hash || hash.length <= 1) {
-      return null
-    }
-
-    // Check if it's v2 format (starts with #v=2)
-    if (hash.startsWith('#v=2')) {
-      return decodeStateFromURLV2(hash)
-    }
-
-    // Otherwise try v1 (compressed JSON)
-    return decodeStateFromURLV1(hash)
-  } catch (error) {
-    console.error('Failed to decode state from URL:', error)
+export function decodeWagerFromHash(hash: string): Wager | null {
+  if (!hash || hash.length <= 1) {
     return null
   }
+  return hash.startsWith('#v=2') ? decodeV2(hash) : decodeV1(hash)
 }
 
 /**
- * Get current URL with encoded state
+ * Absolute URL of the current page with the wager encoded in the hash
  */
-export function getShareableURL(state: WagerState): string {
-  const baseURL = window.location.origin + window.location.pathname
-  const hash = encodeStateToURL(state)
-  return baseURL + hash
+export function getShareableURL(wager: Wager): string {
+  return window.location.origin + window.location.pathname + encodeWagerToHash(wager)
 }
 
 /**
@@ -411,8 +234,7 @@ export function getFaqIdFromURL(hash: string): string | null {
   }
 
   try {
-    const paramString = hash.substring(1)
-    const params = new URLSearchParams(paramString)
+    const params = new URLSearchParams(hash.substring(1))
     return params.get('faq')
   } catch {
     return null
@@ -429,8 +251,7 @@ export function removeFaqFromURL(hash: string): string {
   }
 
   try {
-    const paramString = hash.substring(1)
-    const params = new URLSearchParams(paramString)
+    const params = new URLSearchParams(hash.substring(1))
     params.delete('faq')
     const newParams = params.toString()
     return newParams ? `#${newParams}` : ''

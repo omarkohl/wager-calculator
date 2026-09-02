@@ -12,57 +12,46 @@ import { isFaqId, type FaqId } from './components/faq'
 import ConfirmDialog from './components/ConfirmDialog'
 import Footer from './components/Footer'
 import { calculateResults } from './modules/brier'
-import type { Participant, Outcome, Prediction, CalculationResult } from './types/wager'
+import type { Participant, Outcome, Prediction, CalculationResult, Wager } from './types/wager'
 import {
-  getDefaultState,
-  serializeState,
-  deserializeState,
-  decodeStateFromURL,
-  encodeStateToURL,
+  decodeWagerFromHash,
+  encodeWagerToHash,
   getShareableURL,
   getFaqIdFromURL,
   removeFaqFromURL,
 } from './utils/urlState'
+import { createDefaultWager } from './utils/defaults'
 import { autoDistribute } from './utils/autoDistribute'
 import { getSavedStakes, saveStakes } from './utils/localStorage'
 
+/**
+ * A blank wager that remembers the stakes the user picked last time
+ */
+function freshWager(): Wager {
+  const wager = createDefaultWager()
+  const savedStakes = getSavedStakes()
+  return savedStakes ? { ...wager, stakes: savedStakes } : wager
+}
+
+function loadInitialWager(): { wager: Wager; isFromURL: boolean } {
+  const fromURL = decodeWagerFromHash(window.location.hash)
+  return fromURL ? { wager: fromURL, isFromURL: true } : { wager: freshWager(), isFromURL: false }
+}
+
+function loadInitialFaqId(): FaqId | null {
+  const faqParam = getFaqIdFromURL(window.location.hash)
+  return isFaqId(faqParam) ? faqParam : null
+}
+
 function App() {
-  // Initialize state from URL if available, otherwise use defaults
-  // Compute once and store in a ref-like pattern using lazy initialization
-  const getInitialStateOnce = () => {
-    const urlState = decodeStateFromURL(window.location.hash)
-    if (urlState) {
-      return { state: deserializeState(urlState), isFromURL: true }
-    }
-    const defaultState = getDefaultState()
-    // Try to restore saved stakes preference from localStorage
-    const savedStakes = getSavedStakes()
-    if (savedStakes) {
-      defaultState.stakes = savedStakes
-    }
-    return { state: deserializeState(defaultState), isFromURL: false }
-  }
+  const [initial] = useState(loadInitialWager)
+  const [initialFaqId] = useState(loadInitialFaqId)
+  const shouldAutoFocusClaim = !initial.isFromURL
 
-  // Check for FAQ deep link parameter
-  const getInitialFaqId = (): FaqId | null => {
-    const faqParam = getFaqIdFromURL(window.location.hash)
-    return isFaqId(faqParam) ? faqParam : null
-  }
+  const [wager, setWager] = useState<Wager>(initial.wager)
+  const { claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId } = wager
+  const updateWager = (patch: Partial<Wager>) => setWager(current => ({ ...current, ...patch }))
 
-  const initialStateData = useMemo(() => getInitialStateOnce(), [])
-  const initialState = initialStateData.state
-  const shouldAutoFocusClaim = !initialStateData.isFromURL
-  const initialFaqId = useMemo(() => getInitialFaqId(), [])
-
-  const [claim, setClaim] = useState(initialState.claim)
-  const [details, setDetails] = useState(initialState.details)
-  const [stakes, setStakes] = useState(initialState.stakes)
-  const [participants, setParticipants] = useState<Participant[]>(initialState.participants)
-  const [outcomes, setOutcomes] = useState<Outcome[]>(initialState.outcomes)
-  const [predictions, setPredictions] = useState<Prediction[]>(initialState.predictions)
-  const [resolvedOutcomeId, setResolvedOutcomeId] = useState<string | null>(
-    initialState.resolvedOutcomeId
-  )
   const [isHelpOpen, setIsHelpOpen] = useState(initialFaqId !== null)
   const [openFaqId, setOpenFaqId] = useState<FaqId | null>(initialFaqId)
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false)
@@ -70,26 +59,16 @@ function App() {
   const previousParticipantsRef = useRef<Participant[]>([])
   const previousOutcomesRef = useRef<Outcome[]>([])
   // Track whether we should save stakes to localStorage (only when user actively changes it)
-  const shouldSaveStakesRef = useRef(!initialStateData.isFromURL)
+  const shouldSaveStakesRef = useRef(!initial.isFromURL)
 
   // Auto-sync state to URL with debouncing
   useEffect(() => {
     const timer = setTimeout(() => {
-      const state = serializeState(
-        claim,
-        details,
-        stakes,
-        participants,
-        outcomes,
-        predictions,
-        resolvedOutcomeId
-      )
-      const hash = encodeStateToURL(state)
-      window.history.replaceState(null, '', hash)
+      window.history.replaceState(null, '', encodeWagerToHash(wager))
     }, 400)
 
     return () => clearTimeout(timer)
-  }, [claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId])
+  }, [wager])
 
   // Reflect the claim in the tab title so open tabs, history and bookmarks are identifiable
   useEffect(() => {
@@ -177,7 +156,7 @@ function App() {
       })
 
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPredictions(updatedPredictions)
+      updateWager({ predictions: updatedPredictions })
     }
   }, [participants, outcomes, predictions])
 
@@ -187,20 +166,7 @@ function App() {
   }
 
   const confirmReset = () => {
-    const defaultState = getDefaultState()
-    // Restore saved stakes preference from localStorage
-    const savedStakes = getSavedStakes()
-    if (savedStakes) {
-      defaultState.stakes = savedStakes
-    }
-    const deserialized = deserializeState(defaultState)
-    setClaim(deserialized.claim)
-    setDetails(deserialized.details)
-    setStakes(deserialized.stakes)
-    setParticipants(deserialized.participants)
-    setOutcomes(deserialized.outcomes)
-    setPredictions(deserialized.predictions)
-    setResolvedOutcomeId(deserialized.resolvedOutcomeId)
+    setWager(freshWager())
     window.location.hash = ''
     // Re-enable saving to localStorage after reset
     shouldSaveStakesRef.current = true
@@ -211,7 +177,7 @@ function App() {
     if (value) {
       // User is actively changing stakes, so enable localStorage saving
       shouldSaveStakesRef.current = true
-      setStakes(value)
+      updateWager({ stakes: value })
     }
   }
 
@@ -222,16 +188,7 @@ function App() {
 
   // Share wager: native share sheet on touch devices, clipboard elsewhere
   const handleShare = async () => {
-    const state = serializeState(
-      claim,
-      details,
-      stakes,
-      participants,
-      outcomes,
-      predictions,
-      resolvedOutcomeId
-    )
-    const url = getShareableURL(state)
+    const url = getShareableURL(wager)
     // Make sure the address bar shows the same URL we are sharing
     window.history.replaceState(null, '', url)
 
@@ -309,7 +266,7 @@ function App() {
               <h2 className="mb-2 text-sm font-medium text-gray-700">Claim</h2>
               <InlineEdit
                 value={claim}
-                onChange={setClaim}
+                onChange={claim => updateWager({ claim })}
                 placeholder="What are you betting on?"
                 displayClassName="text-lg font-semibold"
                 autoFocus={shouldAutoFocusClaim}
@@ -322,7 +279,7 @@ function App() {
               </h2>
               <InlineEdit
                 value={details}
-                onChange={setDetails}
+                onChange={details => updateWager({ details })}
                 placeholder="Add resolution criteria or context..."
                 multiline
                 displayClassName="text-sm"
@@ -339,8 +296,8 @@ function App() {
               <ParticipantsList
                 participants={participants}
                 predictions={predictions}
-                onChange={setParticipants}
-                onPredictionsChange={setPredictions}
+                onChange={participants => updateWager({ participants })}
+                onPredictionsChange={predictions => updateWager({ predictions })}
                 stakes={stakes}
               />
             </div>
@@ -350,8 +307,8 @@ function App() {
               <OutcomesList
                 outcomes={outcomes}
                 predictions={predictions}
-                onChange={setOutcomes}
-                onPredictionsChange={setPredictions}
+                onChange={outcomes => updateWager({ outcomes })}
+                onPredictionsChange={predictions => updateWager({ predictions })}
               />
             </div>
 
@@ -361,7 +318,7 @@ function App() {
                 participants={participants}
                 outcomes={outcomes}
                 predictions={predictions}
-                onChange={setPredictions}
+                onChange={predictions => updateWager({ predictions })}
               />
             </div>
 
@@ -374,7 +331,7 @@ function App() {
                 stakes={stakes}
                 resolvedOutcomeId={resolvedOutcomeId}
                 calculationResults={calculationResults}
-                onChange={setResolvedOutcomeId}
+                onChange={resolvedOutcomeId => updateWager({ resolvedOutcomeId })}
                 onOpenFaq={openFaq}
               />
             </div>
