@@ -26,6 +26,42 @@ describe('ParticipantsList', () => {
     expect(screen.getByDisplayValue('Bob')).toBeInTheDocument()
   })
 
+  describe('max bet hint', () => {
+    it('explains how max bets work while any participant still has 0', () => {
+      const participants: Participant[] = [
+        { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+        { id: '2', name: 'Bob', maxBet: new Decimal(0) },
+      ]
+      render(
+        <ParticipantsList
+          participants={participants}
+          predictions={emptyPredictions}
+          onChange={vi.fn()}
+          stakes="usd"
+        />
+      )
+
+      expect(screen.getByText(/lowest max bet/i)).toBeInTheDocument()
+    })
+
+    it('hides the hint once everyone has a max bet', () => {
+      const participants: Participant[] = [
+        { id: '1', name: 'Alice', maxBet: new Decimal(100) },
+        { id: '2', name: 'Bob', maxBet: new Decimal(50) },
+      ]
+      render(
+        <ParticipantsList
+          participants={participants}
+          predictions={emptyPredictions}
+          onChange={vi.fn()}
+          stakes="usd"
+        />
+      )
+
+      expect(screen.queryByText(/lowest max bet/i)).not.toBeInTheDocument()
+    })
+  })
+
   describe('use max bet for everyone', () => {
     it('offers the action only for a non-zero max bet that others do not share', () => {
       const participants: Participant[] = [

@@ -59,6 +59,8 @@ export default function ParticipantsList({
     participant.maxBet.greaterThan(0) &&
     participants.some(other => !other.maxBet.equals(participant.maxBet))
 
+  const someoneHasNoMaxBet = participants.some(p => p.maxBet.equals(0))
+
   const handleAddParticipant = () => {
     const nextIndex = participants.length
     const defaultName =
@@ -170,6 +172,13 @@ export default function ParticipantsList({
           </div>
         ))}
       </div>
+
+      {someoneHasNoMaxBet && (
+        <p className="max-w-xl text-sm text-gray-600">
+          Enter the most each person is willing to lose. The lowest max bet is the amount everyone
+          plays for.
+        </p>
+      )}
 
       {participants.length < 8 && (
         <button
