@@ -4,13 +4,17 @@ import type { Outcome, Participant, Prediction, CalculationResult } from '../dom
 import type { FaqId } from './faq'
 import { formatPayout, getStakeName } from '../domain/stakes'
 import { amountInPlay } from '../domain/brier'
+import { explainResults } from '../domain/explanation'
 import { haveIdenticalPredictions, isCompleteTotal, participantTotal } from '../domain/predictions'
+import CalculationDetails from './CalculationDetails'
+import PayoutPreview from './PayoutPreview'
 
 interface ResolutionProps {
   outcomes: Outcome[]
   participants: Participant[]
   predictions: Prediction[]
   stakes: string
+  claim: string
   resolvedOutcomeId: string | null
   calculationResults: CalculationResult | null
   onChange: (outcomeId: string | null) => void
@@ -22,6 +26,7 @@ function Resolution({
   participants,
   predictions,
   stakes,
+  claim,
   resolvedOutcomeId,
   calculationResults,
   onChange,
@@ -252,6 +257,19 @@ function Resolution({
                   </div>
                 )}
 
+                <CalculationDetails
+                  explanation={explainResults(
+                    participants,
+                    predictions,
+                    outcomes,
+                    resolvedOutcomeId,
+                    claim
+                  )}
+                  participants={participants}
+                  outcomes={outcomes}
+                  stakes={stakes}
+                />
+
                 <p className="text-sm text-gray-600 italic">
                   See the FAQ to understand{' '}
                   {onOpenFaq ? (
@@ -276,6 +294,16 @@ function Resolution({
           </div>
         </div>
       )}
+
+      <PayoutPreview
+        participants={participants}
+        outcomes={outcomes}
+        predictions={predictions}
+        stakes={stakes}
+        claim={claim}
+        resolvedOutcomeId={resolvedOutcomeId}
+        onOpenFaq={onOpenFaq}
+      />
     </div>
   )
 }

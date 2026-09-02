@@ -65,7 +65,7 @@ test.describe('Accessibility', () => {
     // Find the Resolution heading and then the button in its parent container
     const resolutionHeading = page.getByRole('heading', { name: 'Resolution' })
     const resolutionContainer = resolutionHeading.locator('..')
-    const listboxButton = resolutionContainer.getByRole('button')
+    const listboxButton = resolutionContainer.getByRole('button').first()
     await expect(listboxButton).toHaveText('Unresolved')
 
     // Open the listbox

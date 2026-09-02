@@ -5,6 +5,7 @@ import {
   setPrediction,
   fillMissingPredictions,
   normalizePredictions,
+  shiftPrediction,
   participantTotal,
   isCompleteTotal,
   haveIdenticalPredictions,
@@ -513,5 +514,56 @@ describe('haveIdenticalPredictions', () => {
 
   it('is false with fewer than two participants', () => {
     expect(haveIdenticalPredictions([participant('p1')], [pred('p1', 'o1', 100, true)])).toBe(false)
+  })
+})
+
+describe('shiftPrediction', () => {
+  it('moves one probability and scales the others to keep 100%', () => {
+    const predictions = [
+      pred('p1', 'o1', 60, true),
+      pred('p1', 'o2', 30, true),
+      pred('p1', 'o3', 10, true),
+    ]
+    const result = shiftPrediction(predictions, 'p1', 'o1', new Decimal(20), [
+      outcome('o1'),
+      outcome('o2'),
+      outcome('o3'),
+    ])
+    expectProbability(result, [
+      pred('p1', 'o1', 20, true),
+      pred('p1', 'o2', 60, true),
+      pred('p1', 'o3', 20, true),
+    ])
+  })
+
+  it('splits the remainder evenly when the others were all zero', () => {
+    const predictions = [
+      pred('p1', 'o1', 100, true),
+      pred('p1', 'o2', 0, true),
+      pred('p1', 'o3', 0, true),
+    ]
+    const result = shiftPrediction(predictions, 'p1', 'o1', new Decimal(40), [
+      outcome('o1'),
+      outcome('o2'),
+      outcome('o3'),
+    ])
+    expectProbability(result, [
+      pred('p1', 'o1', 40, true),
+      pred('p1', 'o2', 30, true),
+      pred('p1', 'o3', 30, true),
+    ])
+  })
+
+  it('leaves other participants alone', () => {
+    const predictions = [
+      pred('p1', 'o1', 50, true),
+      pred('p1', 'o2', 50, true),
+      pred('p2', 'o1', 80, true),
+    ]
+    const result = shiftPrediction(predictions, 'p1', 'o1', new Decimal(10), [
+      outcome('o1'),
+      outcome('o2'),
+    ])
+    expect(result.find(p => p.participantId === 'p2')!.probability.toNumber()).toBe(80)
   })
 })

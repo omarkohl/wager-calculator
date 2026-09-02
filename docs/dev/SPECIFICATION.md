@@ -31,6 +31,8 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
   - Text input allows two decimal places (e.g., 33.33%)
   - Auto-distribute on blur: when total probability is under 100% and user blurs a field, remaining probability is distributed evenly across outcomes they haven't yet touched
 - **Resolution**: Headless UI Listbox/RadioGroup to select which outcome occurred. Option to un-resolve and change the selected outcome. Display a summary showing who has to pay whom and how much. If all participants have identical predictions, explain that payouts are zero.
+  - **Calculation details** (collapsed by default, inside the payout summary): every Brier term, the others' average and the payout formula filled in with the wager's numbers, noting any payout nudged for a zero sum
+  - **Payout preview** (collapsed by default, available before and after resolution): a participants × outcomes table of net payouts for every possible resolution, an "Expected" column (each participant's expected payout by their own probabilities) with a one-line explanation, an optional calculation trace for the expected values, and an optional "Why report honestly?" explorer that lets the user slide one probability away from the entered belief and shows the resulting drop in expected payout. Requires complete probabilities and a max bet above 0 for everyone; otherwise it says what is missing.
 
 #### Validation & Warnings
 
@@ -180,6 +182,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 - **Proper Scoring**: Participants maximize expected payout by reporting true beliefs
 - **Zero Sum**: Total payouts across all participants always equal zero
 - **Fair**: Expected payout is zero when probabilities match true frequencies
+- **Positive by own beliefs**: A participant's expected payout, weighted by their own probabilities, is (amount_in_play / 2) × the average squared distance between their prediction and each other participant's, so it is never negative and is equal for both sides of a two-participant wager. Reporting q instead of the true belief p lowers it by (amount_in_play / 2) × |q − p|²
 - **Unified Implementation**: Binary outcomes (R=2) handled as special case of multi-categorical (R>2)
 
 ## Development & Deployment Toolchain

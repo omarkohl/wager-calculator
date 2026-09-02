@@ -261,35 +261,66 @@ export const FAQ_ENTRIES = [
           be proven more accurate when we see which outcome occurs—and the payouts reflect that.
         </p>
         <p>
-          Note that the EV (expected value) of each participant is the same! So if you multiply the
-          probability that each participant assigns to each outcome by the amount that that
-          participant wins or loses on that resolution you end up with the same amount for each
-          participant. That's why it's fair.
+          Note that every participant has a positive expected value by their own beliefs. Multiply
+          the probability a participant assigns to each outcome by what they win or lose on that
+          resolution, add it all up, and the result is never negative. With two participants it is
+          even the same amount for both. That's why it's fair. Use "Preview payouts for each
+          outcome" under Resolution to see this for your own wager.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'expected-value',
+    question: 'What is expected value (EV)?',
+    answer: (
+      <>
+        <p className="mb-3">
+          Expected value is what you would win or lose on average if the wager were repeated many
+          times. Take each possible resolution, multiply your payout for it by how likely you think
+          it is, and add everything up.
+        </p>
+        <p className="mb-3">
+          <strong>Example:</strong> Alice says 70% Yes and Bob says 40% Yes, with $10 in play. If
+          Yes happens Alice wins $2.70, if No happens she loses $3.30. Her expected value is 0.7 ×
+          2.70 + 0.3 × (−3.30) = +$0.90. Bob, by his own probabilities, also expects +$0.90: 0.4 ×
+          (−2.70) + 0.6 × 3.30.
+        </p>
+        <p className="mb-3">
+          Both can expect to come out ahead at the same time because expected value is computed from
+          each person's <em>own</em> beliefs. Only one of them is actually closer to the truth, and
+          that person will tend to win.
+        </p>
+        <p>
+          Brier scoring is designed so that your expected value is highest when you report exactly
+          what you believe. Any other report lowers it by (amount in play / 2) × the squared
+          distance between your report and your belief. Use "Preview payouts for each outcome" under
+          Resolution to see the expected values for your wager and to try shading a prediction.
         </p>
       </>
     ),
   },
   {
     id: 'same-ev-different-beliefs',
-    question: 'How can different people have different probabilities but the same expected value?',
+    question: 'How can everyone expect to win at the same time?',
     answer: (
       <>
         <p className="mb-3">
-          They can both be right—about their expected value! Expected value is calculated based on{' '}
+          They can all be right—about their expected value! Expected value is calculated based on{' '}
           <em>your own beliefs</em>, not on some objective "true" probability.
         </p>
         <p className="mb-3">
           If you believe there's a 60% chance of rain and I believe there's an 80% chance, we're
           both acting rationally based on our different information or interpretations. If you think
-          your 60% prediction is incorrect then fix it, either increase or decrease it! Everyone
-          will end up with the same EV (expected value) when they report their honest beliefs. This
-          doesn't mean everyone is equally correct—it means everyone is equally incentivized to be
-          honest.
+          your 60% prediction is incorrect then fix it, either increase or decrease it! Everyone who
+          reports their honest belief has a positive EV (expected value); with two participants it
+          is even the same amount for both. This doesn't mean everyone is equally correct—it means
+          everyone is equally incentivized to be honest.
         </p>
         <p>
           After the outcome is revealed, we'll see whose prediction was actually better. The person
-          who was more accurate gets paid, but beforehand, everyone's expected value (given their
-          beliefs) is the same.
+          who was more accurate gets paid, but beforehand, everyone expects to come out ahead by
+          their own lights.
         </p>
       </>
     ),

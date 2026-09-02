@@ -245,6 +245,7 @@ function App() {
                 participants={participants}
                 predictions={predictions}
                 stakes={stakes}
+                claim={claim}
                 resolvedOutcomeId={resolvedOutcomeId}
                 calculationResults={calculationResults}
                 onChange={resolvedOutcomeId => updateWager({ resolvedOutcomeId })}

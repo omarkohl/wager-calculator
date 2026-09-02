@@ -153,6 +153,43 @@ export function normalizePredictions(
 }
 
 /**
+ * Move one of a participant's probabilities and scale their other outcomes so
+ * the total stays at 100%, keeping their proportions. When the others were
+ * all zero the remainder is split evenly. Used to explore "what if I had
+ * reported something else"; it does not touch other participants.
+ */
+export function shiftPrediction(
+  predictions: Prediction[],
+  participantId: string,
+  outcomeId: string,
+  probability: Decimal,
+  outcomes: Outcome[]
+): Prediction[] {
+  const otherIds = outcomes.map(o => o.id).filter(id => id !== outcomeId)
+  const others = predictions.filter(
+    p => p.participantId === participantId && otherIds.includes(p.outcomeId)
+  )
+  const othersTotal = others.reduce((sum, p) => sum.plus(p.probability), new Decimal(0))
+  const remaining = new Decimal(100).minus(probability)
+
+  const scaled = new Map(
+    others.map(p => [
+      p.outcomeId,
+      othersTotal.isZero()
+        ? remaining.div(others.length)
+        : p.probability.times(remaining).div(othersTotal),
+    ])
+  )
+
+  return predictions.map(p => {
+    if (p.participantId !== participantId) return p
+    if (p.outcomeId === outcomeId) return { ...p, probability }
+    const next = scaled.get(p.outcomeId)
+    return next === undefined ? p : { ...p, probability: next }
+  })
+}
+
+/**
  * True when every participant assigned the same probability to every outcome
  * as the first participant did, which makes all payouts zero.
  */

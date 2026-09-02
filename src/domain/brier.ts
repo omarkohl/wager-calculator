@@ -86,7 +86,7 @@ export function calculateAllBrierScores(
  * @param brierScores All Brier scores
  * @returns Average Brier score of others
  */
-function calculateAvgOthersBrier(participantId: string, brierScores: BrierScore[]): Decimal {
+export function calculateAvgOthersBrier(participantId: string, brierScores: BrierScore[]): Decimal {
   const otherScores = brierScores.filter(bs => bs.participantId !== participantId)
 
   if (otherScores.length === 0) {
@@ -106,24 +106,21 @@ export function amountInPlay(participants: Participant[]): Decimal {
 }
 
 /**
- * Calculate payouts for all participants based on Brier scores.
+ * Payouts before rounding.
  *
  * Formula: Payout = (amount_in_play) × (avg_others_brier - my_brier) / 2
  *
  * @param participants All participants
  * @param brierScores Calculated Brier scores
- * @param claim The claim text (used for seeded PRNG in rounding)
- * @returns Array of payouts for each participant
+ * @returns Exact (unrounded) payout for each participant
  */
-export function calculatePayouts(
+export function calculateRawPayouts(
   participants: Participant[],
-  brierScores: BrierScore[],
-  claim: string
+  brierScores: BrierScore[]
 ): Payout[] {
   const stake = amountInPlay(participants)
 
-  // Calculate raw payouts
-  const rawPayouts = participants.map(participant => {
+  return participants.map(participant => {
     const myBrier = brierScores.find(bs => bs.participantId === participant.id)
     if (!myBrier) {
       throw new Error(`Missing Brier score for participant ${participant.id}`)
@@ -139,9 +136,23 @@ export function calculatePayouts(
       amount: payoutBeforeRounding,
     }
   })
+}
 
-  // Round payouts to 2 decimal places and ensure they sum to zero
-  return roundPayoutsToZero(rawPayouts, claim)
+/**
+ * Calculate payouts for all participants based on Brier scores, rounded to
+ * two decimal places so that they sum to exactly zero.
+ *
+ * @param participants All participants
+ * @param brierScores Calculated Brier scores
+ * @param claim The claim text (used for seeded PRNG in rounding)
+ * @returns Array of payouts for each participant
+ */
+export function calculatePayouts(
+  participants: Participant[],
+  brierScores: BrierScore[],
+  claim: string
+): Payout[] {
+  return roundPayoutsToZero(calculateRawPayouts(participants, brierScores), claim)
 }
 
 /**

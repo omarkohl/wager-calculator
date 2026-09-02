@@ -31,6 +31,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId={null}
         calculationResults={null}
         onChange={vi.fn()}
@@ -50,6 +51,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId={null}
         calculationResults={null}
         onChange={onChange}
@@ -57,7 +59,7 @@ describe('Resolution', () => {
     )
 
     // Click to open the listbox
-    await user.click(screen.getByRole('button'))
+    await user.click(screen.getByRole('button', { name: /unresolved/i }))
 
     // Select "Yes"
     await user.click(screen.getByRole('option', { name: 'Yes' }))
@@ -80,13 +82,14 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={vi.fn()}
       />
     )
 
-    expect(screen.getByRole('button')).toHaveTextContent('Yes')
+    expect(screen.getByRole('button', { name: 'Yes' })).toBeInTheDocument()
   })
 
   it('allows changing selection back to unresolved', async () => {
@@ -106,13 +109,14 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={onChange}
       />
     )
 
-    await user.click(screen.getByRole('button'))
+    await user.click(screen.getByRole('button', { name: 'Yes' }))
     await user.click(screen.getByRole('option', { name: 'Unresolved' }))
 
     expect(onChange).toHaveBeenCalledWith(null)
@@ -133,6 +137,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={vi.fn()}
@@ -166,6 +171,7 @@ describe('Resolution', () => {
         participants={unevenParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={vi.fn()}
@@ -192,6 +198,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={vi.fn()}
@@ -221,6 +228,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={vi.fn()}
@@ -239,6 +247,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId={null}
         calculationResults={null}
         onChange={vi.fn()}
@@ -262,6 +271,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={identicalPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={null}
         onChange={vi.fn()}
@@ -285,6 +295,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={incompletePredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={null}
         onChange={vi.fn()}
@@ -311,6 +322,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mixedPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={null}
         onChange={vi.fn()}
@@ -342,6 +354,7 @@ describe('Resolution', () => {
         participants={participantsWithZeroBet}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={vi.fn()}
@@ -367,6 +380,7 @@ describe('Resolution', () => {
         participants={mockParticipants}
         predictions={mockPredictions}
         stakes="usd"
+        claim="Rain?"
         resolvedOutcomeId="1"
         calculationResults={calculationResults}
         onChange={vi.fn()}
@@ -393,6 +407,7 @@ describe('Resolution', () => {
           participants={mockParticipants}
           predictions={mockPredictions}
           stakes="cookies"
+          claim="Rain?"
           resolvedOutcomeId="1"
           calculationResults={calculationResults}
           onChange={vi.fn()}
@@ -418,6 +433,7 @@ describe('Resolution', () => {
           participants={mockParticipants}
           predictions={mockPredictions}
           stakes="i-was-wrong"
+          claim="Rain?"
           resolvedOutcomeId="1"
           calculationResults={calculationResults}
           onChange={vi.fn()}
@@ -443,6 +459,7 @@ describe('Resolution', () => {
           participants={mockParticipants}
           predictions={mockPredictions}
           stakes="cookies"
+          claim="Rain?"
           resolvedOutcomeId="1"
           calculationResults={calculationResults}
           onChange={vi.fn()}
@@ -475,6 +492,7 @@ describe('Resolution', () => {
           participants={participantsWithDecimalBets}
           predictions={mockPredictions}
           stakes="cookies"
+          claim="Rain?"
           resolvedOutcomeId="1"
           calculationResults={calculationResults}
           onChange={vi.fn()}
