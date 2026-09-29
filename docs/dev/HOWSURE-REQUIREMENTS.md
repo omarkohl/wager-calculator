@@ -10,11 +10,11 @@ howsure.org is a **toolbox with a spine**. Each tool keeps its own name,
 route and personality; what unifies them is that all three traffic in the
 same object, a probability:
 
-| Tool                | Role      |
-| ------------------- | --------- |
-| Belief elicitation  | produces  |
-| Bayesian updating   | transforms|
-| Wager calculator    | tests     |
+| Tool               | Role       |
+| ------------------ | ---------- |
+| Belief elicitation | produces   |
+| Bayesian updating  | transforms |
+| Wager calculator   | tests      |
 
 The test of whether the domain earns its existence: **each tool can hand a
 probability to another one**. At least one live handoff is a v1 requirement,
@@ -79,7 +79,7 @@ Per question, three answers:
 - The wedge shows its number. Concealment was rejected: an unlabeled area is
   inaccessible, the number must be exposed to assistive tech anyway, and
   hiding it would only make the tool worse for blind users. The visual's job
-  is to make `w`% *felt*, not to withhold it.
+  is to make `w`% _felt_, not to withhold it.
 - Opening wedge randomized in 35–65%, PRNG seeded from the claim text — same
   approach already used for payout rounding tiebreaks in `domain/brier.ts`,
   so runs stay deterministic and shareable.
@@ -105,7 +105,7 @@ Per question, three answers:
   wedge to a discrete count ("3 winning balls out of 100", degrading to
   1-in-1000). People reason about small frequencies far better as counts
   than as areas. The switch is **[NEEDS PROTOTYPE]**.
-- Results are still *reported* in percent — there is a conversion boundary
+- Results are still _reported_ in percent — there is a conversion boundary
   to get right.
 - Log-odds is also the space tool 3 works in (likelihood ratios are additive
   there), which makes the spine mathematical rather than merely visual.
@@ -119,7 +119,7 @@ Per question, three answers:
     are one estimate each of two different numbers.
   - Swapped-arm repeats of already-answered comparisons.
   - **Negation-framed probes** — a few questions about the claim being
-    *false*, to catch subadditivity. Flagged clearly and neutrally in the
+    _false_, to catch subadditivity. Flagged clearly and neutrally in the
     question text, with **no meta-commentary** identifying it as a check;
     naming it in the moment cues users to compute the complement and hand
     back manufactured coherence.
@@ -186,7 +186,7 @@ and would put meaningless node positions into the URL.
 
 ## Edge cases
 
-**Confident coin flip vs. total ignorance.** Distinguished by *when* the
+**Confident coin flip vs. total ignorance.** Distinguished by _when_ the
 user stops discriminating, with no self-report needed. A sharp 50/50
 believer prefers a 60% spinner clearly and only fails to separate very near
 50 → narrow band. Someone who knows nothing has no basis to prefer either
@@ -198,7 +198,7 @@ coin-flipper who drew an opening wedge near 50 as maximally ignorant.
 re-answer ("you said X, now Y — which is it?"), they learn what a consistent
 respondent looks like and start performing consistency, training away the
 signal being measured. Inconsistency is the finding, not user error. A
-20-point wobble in the answers *is* a 20-point wobble in the belief.
+20-point wobble in the answers _is_ a 20-point wobble in the belief.
 
 - Contradicting pairs are shown in the result with a user-initiated "that
   was a misclick, drop it" affordance. Never a system demand.
@@ -208,7 +208,7 @@ in the optional details for the user to ponder. Never refused, never
 blocking.
 
 **Nonsensical answers → sharpen the claim.** Trigger on a hard
-non-monotonic contradiction (preferred the claim over a 70% wedge *and*
+non-monotonic contradiction (preferred the claim over a 70% wedge _and_
 preferred a 40% wedge over the claim) or a band wider than ~50 points. The
 result screen still gives the number, but leads with "your answers don't
 hang together; the usual cause is that the claim can mean more than one
@@ -234,7 +234,7 @@ switch (above).
   handling mid-elicitation abandonment is real plumbing for a path that is
   probably rare; people usually know they're unsure before opening a wager.
 - **DAG / Bayes-net version of tool 3** — **[DEFERRED]**, as a possible
-  *fourth* tool, not an evolution of the third. Chain maths (multiply the
+  _fourth_ tool, not an evolution of the third. Chain maths (multiply the
   odds by each LR) does not generalise to multiple parents, so it would be a
   rewrite, not a refactor.
 - Fun/non-monetary stakes in the elicitation gate.
