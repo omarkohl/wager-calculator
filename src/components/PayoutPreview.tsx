@@ -40,9 +40,17 @@ export default function PayoutPreview({
   const [showHonesty, setShowHonesty] = useState(false)
 
   const incomplete = participants.filter(p => !isCompleteTotal(participantTotal(predictions, p.id)))
+  // A just-added outcome has no predictions until the grid is refilled
+  const missingPredictions = participants.some(p =>
+    outcomes.some(o => !predictions.some(pr => pr.participantId === p.id && pr.outcomeId === o.id))
+  )
   const noStake = amountInPlay(participants).isZero()
   const ready =
-    participants.length >= 2 && outcomes.length > 0 && incomplete.length === 0 && !noStake
+    participants.length >= 2 &&
+    outcomes.length > 0 &&
+    incomplete.length === 0 &&
+    !missingPredictions &&
+    !noStake
 
   const table = ready ? payoutsForEveryOutcome(participants, predictions, outcomes, claim) : []
   const expected = ready ? expectedPayouts(participants, predictions, table) : []

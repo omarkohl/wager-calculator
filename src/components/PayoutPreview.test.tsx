@@ -39,6 +39,11 @@ function renderPreview(overrides: Partial<Parameters<typeof PayoutPreview>[0]> =
 }
 
 describe('PayoutPreview', () => {
+  it('does not crash while an outcome has no predictions yet', () => {
+    const withNewOutcome = [...outcomes, { id: 'maybe', label: 'Maybe' }]
+    expect(() => renderPreview({ outcomes: withNewOutcome })).not.toThrow()
+  })
+
   it('is collapsed by default', () => {
     renderPreview()
     expect(screen.getByRole('button', { name: /preview payouts/i })).toHaveAttribute(
