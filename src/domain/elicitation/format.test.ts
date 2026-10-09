@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { adjustmentGap, defaultAdjusted, describeBand, describeGap, parseAdjusted } from './format'
+import {
+  adjustmentGap,
+  defaultAdjusted,
+  describeBand,
+  describeGap,
+  parseAdjusted,
+  parseBar,
+  parseNumber,
+  isAmbiguousNumber,
+} from './format'
 import { bandAbove, bandBelow, bandBetween } from './logOdds'
 
 describe('describeBand', () => {
@@ -90,5 +99,41 @@ describe('parseAdjusted and defaultAdjusted', () => {
     expect(defaultAdjusted(0.5768)).toBe('57.68')
     expect(defaultAdjusted(0.0324)).toBe('3.24')
     expect(parseAdjusted(defaultAdjusted(0.0324))).toBe('3.24')
+  })
+})
+
+describe('parseBar, parseNumber', () => {
+  it('reads a bar from 0 to 100, with a comma or percent sign', () => {
+    expect(parseBar('0')).toBe('0')
+    expect(parseBar('100')).toBe('100')
+    expect(parseBar(' 12,5% ')).toBe('12.5')
+    expect(parseBar('100.5')).toBeNull()
+    expect(parseBar('-1')).toBeNull()
+    expect(parseBar('1.234')).toBeNull()
+    expect(parseBar('')).toBeNull()
+  })
+  it('does not guess at "1,000", and reads ".5" and "5."', () => {
+    expect(parseNumber('1,000')).toBeNull()
+    expect(isAmbiguousNumber('1,000')).toBe(true)
+    expect(isAmbiguousNumber('1,000,000')).toBe(true)
+    expect(isAmbiguousNumber('12,5')).toBe(false)
+    expect(isAmbiguousNumber('1,0000')).toBe(false)
+    expect(parseNumber('1000')).toBe('1000')
+    expect(parseNumber('1.000')).toBe('1')
+    expect(parseNumber('.5')).toBe('0.5')
+    expect(parseNumber('5.')).toBe('5')
+    expect(parseNumber('-.5')).toBe('-0.5')
+    expect(parseNumber('.')).toBeNull()
+  })
+  it('keeps percentages strict: "1,000" is no percentage either', () => {
+    expect(parseBar('1,000')).toBeNull()
+    expect(parseAdjusted('1,000')).toBeNull()
+  })
+  it('reads a number with an optional minus', () => {
+    expect(parseNumber('-12,50')).toBe('-12.5')
+    expect(parseNumber('0')).toBe('0')
+    expect(parseNumber('1e5')).toBeNull()
+    expect(parseNumber('abc')).toBeNull()
+    expect(parseNumber('')).toBeNull()
   })
 })

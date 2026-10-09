@@ -2,7 +2,7 @@
 
 ## Next step
 
-23.
+23b.
 
 ## Stack
 
@@ -34,6 +34,7 @@
 - 21a: howsure/21a-outcomes, PR #112 (base howsure/20-bucketing)
 - 21b: howsure/21b-numbers, PR #113 (base howsure/21a-outcomes)
 - 22a: howsure/22a-spot-checks, PR #114 (base howsure/21b-numbers)
+- 22b: howsure/22b-fixes, PR #115 (base howsure/22a-spot-checks)
 
 ## Log
 
@@ -468,7 +469,20 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   the checks reset and the "read the whole list again" reminder. Chromium E2E: outcomes spec 4
   tests, axe on the merge form.
 
+- **Step 23a (number claims: range and bars)**: the gate's "A number" is enabled. A number run
+  (`src/storage/continuousRun.ts`, sessionStorage `howsure.continuous`; one run of one kind per
+  tab) first asks for the plausible minimum and maximum, an optional unit and thresholds, then
+  shows a bar per bucket (`barBuckets`: thresholds plus round edges, at most 8). The percent list
+  with the live total, Normalize and focus handling is now `PercentList`, shared with the
+  categorical numbers view (refactored; the same tests pass). In the bars view a blank bar is 0, 0
+  and 100 are allowed (the bars view lets the user do anything), unlike categorical outcomes.
+  Chromium E2E (local workaround config): new `elicit-continuous.spec.ts`, axe on both screens.
+
 ## Decisions
+
+- Step 23a: "A number" is enabled at the gate now (least risky: the bars view is a complete input;
+  the curve and the questions come later in the stack, which lands as a whole). A number run ends
+  at the bars, like a categorical run ends at its sketch, until step 24.
 
 - Step 21b: the view can be switched only while the list is empty (an outcome has either a
   tier or a number; converting between them mid-list needs a rule nobody asked for). Percents
@@ -504,6 +518,16 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Steps 24 to 26 must replace the "More questions to refine this are coming" copy (categorical
+  sketch, numbers view, bars view) and carry the buckets (`barBuckets`, categorical outcomes) into
+  the questions and the result; the stack must not ship partway, because until step 24 both
+  multi-outcome kinds end at their first sketch or bars.
+
+- Step 23a [NEEDS PROTOTYPE]: the range form (minimum, maximum, unit, thresholds one at a time) and
+  the bars view (one percent field per range with a plain bar beside it). Buckets of the bars view
+  come from `barEdges`: the bar boundaries are not editable beyond the thresholds. The curve view
+  (23b) is the other way to draw.
 
 - Step 22b: with two problems on the verdict screen both fix forms can be open (each takes
   focus when opened); only one is expected in practice. Close-the-other is a small change if wanted.

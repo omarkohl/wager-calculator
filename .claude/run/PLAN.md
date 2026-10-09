@@ -190,7 +190,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
         "Everything else" again even if `declinedElse` is set. (The result-screen notice is
         step 25's: it shows the stored `kept` flag.)
 - [ ] 23. **Continuous input**:
-  - [ ] 23a. Min, max, thresholds; bars with the live total ("12 points too many" /
+  - [x] 23a. Min, max, thresholds; bars with the live total ("12 points too many" /
         "13 points not yet placed") and Normalize.
   - [ ] 23b. The curve [NEEDS PROTOTYPE]: relative-likelihood axis, live percentage
         per bucket underneath, a keyboard alternative (a value per point).

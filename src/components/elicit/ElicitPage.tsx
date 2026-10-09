@@ -24,6 +24,13 @@ import {
   saveMultiRun,
   type MultiRunData,
 } from '../../storage/multiRun'
+import ContinuousInput from './ContinuousInput'
+import {
+  clearContinuousRun,
+  loadContinuousRun,
+  saveContinuousRun,
+  type ContinuousRunData,
+} from '../../storage/continuousRun'
 import OutcomeDiscovery from './OutcomeDiscovery'
 import { emptyOutcomeList } from '../../domain/elicitation/model'
 import QuestionScreen from './QuestionScreen'
@@ -89,6 +96,7 @@ function readShared(): Shared | null {
 export default function ElicitPage() {
   const [run, setRun] = useState<RunData | null>(loadRun)
   const [multi, setMulti] = useState<MultiRunData | null>(loadMultiRun)
+  const [cont, setCont] = useState<ContinuousRunData | null>(loadContinuousRun)
   const [shared, setShared] = useState<Shared | null>(readShared)
   const [focusGate, setFocusGate] = useState(false)
   // The FAQ opens from its button or from a `#faq=<id>` link
@@ -128,9 +136,34 @@ export default function ElicitPage() {
     const criteria = shared?.type === 'invite' ? shared.criteria : ''
     if (shared) window.history.replaceState(null, '', window.location.pathname)
     setShared(null)
+    if (kind === 'continuous') {
+      clearRun()
+      clearMultiRun()
+      setRun(null)
+      setMulti(null)
+      const started: ContinuousRunData = {
+        kind,
+        claim,
+        criteria,
+        seed: generateSeed(),
+        unit: '',
+        min: '',
+        max: '',
+        thresholds: [],
+        phase: 'range',
+        edges: [],
+        percents: {},
+      }
+      saveContinuousRun(started)
+      setCont(started)
+      setFocusNext(true)
+      return
+    }
     if (kind === 'categorical') {
       clearRun()
+      clearContinuousRun()
       setRun(null)
+      setCont(null)
       const started: MultiRunData = {
         kind,
         claim,
@@ -152,7 +185,9 @@ export default function ElicitPage() {
       return
     }
     clearMultiRun()
+    clearContinuousRun()
     setMulti(null)
+    setCont(null)
     const base = { claim, criteria, seed: generateSeed(), dropped: [], adjusted: null }
     update(mode === 'quick' ? { ...base, mode, answers: [] } : { ...base, mode, answers: [] })
   }
@@ -160,9 +195,16 @@ export default function ElicitPage() {
   const startAgain = () => {
     clearRun()
     clearMultiRun()
+    clearContinuousRun()
     setRun(null)
     setMulti(null)
+    setCont(null)
     setFocusNext(false)
+  }
+
+  const changeCont = (next: ContinuousRunData) => {
+    saveContinuousRun(next)
+    setCont(next)
   }
 
   const changeMulti = (next: MultiRunData) => {
@@ -172,7 +214,8 @@ export default function ElicitPage() {
 
   const question = run && nextFlowQuestion(run)
   // Questions are on screen only when no share link has taken over the page
-  const asking = shared === null && multi === null && run !== null && question !== null
+  const asking =
+    shared === null && multi === null && cont === null && run !== null && question !== null
 
   const elicitOwn = (from: { claim: string; criteria: string }) => {
     const invite = { type: 'invite' as const, claim: from.claim, criteria: from.criteria }
@@ -208,7 +251,7 @@ export default function ElicitPage() {
           focusOnShow={false}
           onElicitOwn={() => elicitOwn(shared.run)}
         />
-      ) : shared?.type === 'invite' || (run === null && multi === null) ? (
+      ) : shared?.type === 'invite' || (run === null && multi === null && cont === null) ? (
         <div className="max-w-2xl">
           <p className="mt-2 mb-6 text-gray-700">
             Put a number on how likely you think something is, by comparing it with a spinner.
@@ -216,10 +259,17 @@ export default function ElicitPage() {
           <SetupGate
             onStart={start}
             invite={shared?.type === 'invite' ? shared : undefined}
-            replacesRun={run !== null || multi !== null}
+            replacesRun={run !== null || multi !== null || cont !== null}
             focusClaim={focusGate}
           />
         </div>
+      ) : cont ? (
+        <ContinuousInput
+          run={cont}
+          focusOnShow={focusNext}
+          onChange={changeCont}
+          onStartAgain={startAgain}
+        />
       ) : multi ? (
         <OutcomeDiscovery
           run={multi}

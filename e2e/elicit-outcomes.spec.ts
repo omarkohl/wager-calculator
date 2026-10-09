@@ -23,7 +23,7 @@ test.describe('Several outcomes: discovery', () => {
     page,
   }) => {
     await page.goto('/elicit')
-    await expect(page.getByRole('radio', { name: /A number/ })).toBeDisabled()
+    await expect(page.getByRole('radio', { name: /A number/ })).toBeEnabled()
     await page.getByRole('radio', { name: /One of several outcomes/ }).check()
     await expect(page.getByRole('radio', { name: /Quick/ })).toHaveCount(0)
     await page.getByRole('textbox', { name: 'Claim' }).fill('Who wins the vote?')

@@ -345,3 +345,21 @@ export function barEdges(
   }
   return dedupe(edges)
 }
+
+/**
+ * The buckets of the bars view: their edges (`barEdges`) and their labels ("below 0", "0 to
+ * 5", "5 or more"), with the unit after each number. Throws as `barEdges` does.
+ */
+export function barBuckets(
+  min: Decimal.Value,
+  max: Decimal.Value,
+  thresholds: readonly Decimal.Value[],
+  unit = ''
+): { edges: Decimal[]; labels: string[] } {
+  const edges = barEdges(min, max, thresholds)
+  const range = new Decimal(max).minus(min)
+  // Enough decimals to show every edge exactly: a typed threshold must read as typed, and two
+  // buckets must never share a label (the labels name the bars' fields)
+  const places = Math.max(placesFor(range), ...edges.map(e => e.decimalPlaces()))
+  return { edges, labels: labelBuckets(edges, unit, places) }
+}
