@@ -31,8 +31,13 @@ help:
 	@printf "  %-28s %s\n" "make clean"              "Remove build artifacts and test output"
 	@printf "  %-28s %s\n" "make clean-all"          "Clean + remove node_modules"
 
-install:
+install: node_modules/.install-stamp
+
+# Reinstall only when the manifest or lockfile changes. Cloud sessions install
+# with a fallback (see .claude/hooks/session-start.sh) and touch the stamp.
+node_modules/.install-stamp: package.json bun.lock
 	bun install --frozen-lockfile
+	touch $@
 
 install-playwright: install
 	bun x playwright install
