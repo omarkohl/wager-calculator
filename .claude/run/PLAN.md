@@ -154,7 +154,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [x] 16. **Model**: claim kinds (yes/no, categorical, continuous), outcomes, tiers,
       tier → first sketch, per-bucket provenance ("from your first guess" / "from N
       comparisons"), the outcome cap.
-- [ ] 17. **Coherent bands**: tightening to the reachable part, order constraints,
+- [x] 17. **Coherent bands**: tightening to the reachable part, order constraints,
       incoherent bounds flagged and widened minimally, never-asked buckets bounded by
       what is left. Tests include the doc's A/B/C example.
 - [ ] 18. **Questions**: "which is more likely" (with "about equally likely"); the
