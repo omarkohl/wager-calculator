@@ -110,7 +110,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 
 ### Tool 2 storage
 
-- [ ] 9. **Persistence and share formats**: the in-progress run in sessionStorage
+- [x] 9. **Persistence and share formats**: the in-progress run in sessionStorage
       (claim, criteria, mode, seed, answers, dropped, adjusted value); the stake
       preference in localStorage; invite and result URL formats with a format version
       (claim only on explicit share); decoding re-runs the algorithm. Round trips;
