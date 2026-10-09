@@ -41,7 +41,7 @@ export function hasEnoughOutcomes(outcomes: readonly ElicitOutcome[]): boolean {
 }
 
 /** A label in its stored form: trimmed, single-spaced, composed (NFC). */
-const tidy = (label: string) => label.trim().replace(/\s+/g, ' ').normalize('NFC')
+export const tidy = (label: string) => label.trim().replace(/\s+/g, ' ').normalize('NFC')
 
 const normalise = (label: string) => tidy(label).toLowerCase()
 

@@ -175,10 +175,13 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 
 ### Tool 2 UI, several outcomes
 
-- [ ] 21. **Kind and outcome discovery**: the gate offers the three kinds; categorical
-      outcomes one at a time, each into a tier [NEEDS PROTOTYPE]; "Is there another
-      outcome?"; "everything else" offered after two very-unlikely in a row; the claim
-      stays editable; switch to the bars view.
+- [ ] 21. **Kind and outcome discovery**:
+  - [x] 21a. The gate offers the kinds (yes/no, one of several outcomes, a number: the last
+        disabled until step 23); categorical outcomes one at a time, each into a tier
+        [NEEDS PROTOTYPE]; "Is there another outcome?"; "everything else" offered after two
+        very-unlikely in a row; the claim stays editable; the first sketch as the starting
+        result.
+  - [ ] 21b. Switch to the bars view (numbers instead of tiers) for categorical outcomes.
 - [ ] 22. **Disjoint and exhaustive**: pair and completeness questions, help to fix
       (rename, split, merge, add), review of the whole list, the wrong-tool message and
       the standing notice on the result.

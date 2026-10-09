@@ -18,6 +18,14 @@ import {
 import HelpModal from '../HelpSection'
 import { ELICIT_FAQ_ENTRIES, isElicitFaqId } from './faq'
 import { getFaqIdFromURL, removeFaqFromURL } from '../../storage/urlHash'
+import {
+  clearMultiRun,
+  loadMultiRun,
+  saveMultiRun,
+  type MultiRunData,
+} from '../../storage/multiRun'
+import OutcomeDiscovery from './OutcomeDiscovery'
+import { emptyOutcomeList } from '../../domain/elicitation/model'
 import QuestionScreen from './QuestionScreen'
 import ResultScreen from './ResultScreen'
 import SetupGate, { type SetupResult } from './SetupGate'
@@ -80,6 +88,7 @@ function readShared(): Shared | null {
 /** The elicitation tool: the setup gate, the questions of the run it starts, then the result. */
 export default function ElicitPage() {
   const [run, setRun] = useState<RunData | null>(loadRun)
+  const [multi, setMulti] = useState<MultiRunData | null>(loadMultiRun)
   const [shared, setShared] = useState<Shared | null>(readShared)
   const [focusGate, setFocusGate] = useState(false)
   // The FAQ opens from its button or from a `#faq=<id>` link
@@ -113,25 +122,51 @@ export default function ElicitPage() {
     setFocusNext(true)
   }
 
-  const start = ({ claim, mode }: SetupResult) => {
+  const start = ({ claim, kind, mode }: SetupResult) => {
     // From an invite the criteria come along; the invite has done its job, so the address
     // bar goes back to the plain page
     const criteria = shared?.type === 'invite' ? shared.criteria : ''
     if (shared) window.history.replaceState(null, '', window.location.pathname)
     setShared(null)
+    if (kind === 'categorical') {
+      clearRun()
+      setRun(null)
+      const started: MultiRunData = {
+        kind,
+        claim,
+        criteria,
+        seed: generateSeed(),
+        outcomes: emptyOutcomeList(),
+        declinedElse: false,
+        phase: 'discover',
+      }
+      saveMultiRun(started)
+      setMulti(started)
+      setFocusNext(true)
+      return
+    }
+    clearMultiRun()
+    setMulti(null)
     const base = { claim, criteria, seed: generateSeed(), dropped: [], adjusted: null }
     update(mode === 'quick' ? { ...base, mode, answers: [] } : { ...base, mode, answers: [] })
   }
 
   const startAgain = () => {
     clearRun()
+    clearMultiRun()
     setRun(null)
+    setMulti(null)
     setFocusNext(false)
+  }
+
+  const changeMulti = (next: MultiRunData) => {
+    saveMultiRun(next)
+    setMulti(next)
   }
 
   const question = run && nextFlowQuestion(run)
   // Questions are on screen only when no share link has taken over the page
-  const asking = shared === null && run !== null && question !== null
+  const asking = shared === null && multi === null && run !== null && question !== null
 
   const elicitOwn = (from: { claim: string; criteria: string }) => {
     const invite = { type: 'invite' as const, claim: from.claim, criteria: from.criteria }
@@ -167,7 +202,7 @@ export default function ElicitPage() {
           focusOnShow={false}
           onElicitOwn={() => elicitOwn(shared.run)}
         />
-      ) : shared?.type === 'invite' || run === null ? (
+      ) : shared?.type === 'invite' || (run === null && multi === null) ? (
         <div className="max-w-2xl">
           <p className="mt-2 mb-6 text-gray-700">
             Put a number on how likely you think something is, by comparing it with a spinner.
@@ -175,11 +210,18 @@ export default function ElicitPage() {
           <SetupGate
             onStart={start}
             invite={shared?.type === 'invite' ? shared : undefined}
-            replacesRun={run !== null}
+            replacesRun={run !== null || multi !== null}
             focusClaim={focusGate}
           />
         </div>
-      ) : question ? (
+      ) : multi ? (
+        <OutcomeDiscovery
+          run={multi}
+          focusOnShow={focusNext}
+          onChange={changeMulti}
+          onStartAgain={startAgain}
+        />
+      ) : run === null ? null : question ? (
         <QuestionScreen
           claim={run.claim}
           stake={stakeText()}
