@@ -122,11 +122,17 @@ export type SpotCheck = { type: 'pair'; first: string; second: string } | { type
  * The spot checks that the outcomes are disjoint and exhaustive, without asking about every
  * combination: `SPOT_CHECK_PAIRS` random pairs ("Can A and B both happen?"; fewer if fewer
  * pairs exist), then one completeness check ("Could it turn out to be none of these?").
- * Seeded, so a run can be replayed.
+ * Seeded, so a run can be replayed. An "Everything else" outcome (`catchAll`) is the rest by
+ * definition: it is left out of the pairs, and with it there is no completeness check, since
+ * both could only be answered "no".
  */
-export function selectSpotChecks(ids: readonly string[], seed: string): SpotCheck[] {
+export function selectSpotChecks(
+  ids: readonly string[],
+  seed: string,
+  catchAll?: string
+): SpotCheck[] {
   const draw = createSeededPRNG(`${seed}:spot`)
-  const pairs = allPairs(ids)
+  const pairs = allPairs(ids.filter(id => id !== catchAll))
   // seeded Fisher-Yates
   for (let i = pairs.length - 1; i > 0; i--) {
     const j = Math.floor(draw() * (i + 1))
@@ -137,7 +143,9 @@ export function selectSpotChecks(ids: readonly string[], seed: string): SpotChec
     .map(([a, b]) =>
       draw() < 0.5 ? { type: 'pair', first: a, second: b } : { type: 'pair', first: b, second: a }
     )
-  for (let i = 0; i < SPOT_CHECK_COMPLETENESS; i++) checks.push({ type: 'completeness' })
+  if (catchAll === undefined || !ids.includes(catchAll)) {
+    for (let i = 0; i < SPOT_CHECK_COMPLETENESS; i++) checks.push({ type: 'completeness' })
+  }
   return checks
 }
 

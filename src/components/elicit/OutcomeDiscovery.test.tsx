@@ -16,11 +16,32 @@ const START: MultiRunData = {
   phase: 'discover',
   view: 'tiers',
   percents: {},
+  checks: [],
+  kept: false,
+  reviewing: false,
 }
 
-function Harness({ initial = START }: { initial?: MultiRunData }) {
+function Harness({
+  initial = START,
+  onStartAgain = () => {},
+}: {
+  initial?: MultiRunData
+  onStartAgain?: () => void
+}) {
   const [run, setRun] = useState(initial)
-  return <OutcomeDiscovery run={run} onChange={setRun} onStartAgain={() => {}} />
+  return <OutcomeDiscovery run={run} onChange={setRun} onStartAgain={onStartAgain} />
+}
+
+/** Close the list and answer every spot check with "nothing is wrong". */
+async function closeAndPass(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+  for (;;) {
+    const no =
+      screen.queryByRole('button', { name: 'No, only one can happen' }) ??
+      screen.queryByRole('button', { name: 'No, one of these will happen' })
+    if (!no) return
+    await user.click(no)
+  }
 }
 
 async function add(user: ReturnType<typeof userEvent.setup>, label: string, tier: string) {
@@ -97,7 +118,7 @@ describe('OutcomeDiscovery', () => {
     await add(user, 'Alice', 'likely')
     expect(screen.queryByRole('button', { name: /That is all the outcomes/ })).toBeNull()
     await add(user, 'Bob', 'unlikely')
-    await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+    await closeAndPass(user)
     expect(screen.getByRole('heading', { name: 'First sketch' })).toBeInTheDocument()
     // 60 : 10 normalised
     expect(screen.getByText(/Alice/).closest('li')).toHaveTextContent('86%')
@@ -127,7 +148,7 @@ describe('OutcomeDiscovery', () => {
     expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
     await user.click(screen.getByRole('button', { name: 'Remove Carol' }))
     expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
-    await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+    await closeAndPass(user)
     expect(screen.getByRole('heading', { name: 'First sketch' })).toHaveFocus()
     await user.click(screen.getByRole('button', { name: 'Change the outcomes' }))
     expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
@@ -220,7 +241,7 @@ describe('OutcomeDiscovery', () => {
       await user.click(screen.getByRole('button', { name: 'Use numbers instead of tiers' }))
       await addNumber(user, 'Alice', '70')
       await addNumber(user, 'Bob', '42')
-      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      await closeAndPass(user)
       expect(screen.getByRole('heading', { name: 'Your numbers' })).toHaveFocus()
       expect(screen.getByRole('status')).toHaveTextContent('12 points too many')
       await user.clear(screen.getByRole('textbox', { name: 'Bob, percent' }))
@@ -263,7 +284,7 @@ describe('OutcomeDiscovery', () => {
       await addNumber(user, 'A', '0.01')
       await addNumber(user, 'B', '99')
       await addNumber(user, 'C', '99')
-      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      await closeAndPass(user)
       await user.click(screen.getByRole('button', { name: 'Normalize' }))
       expect(screen.getByRole('textbox', { name: 'A, percent' })).toHaveValue('0.01')
       expect(screen.getByRole('textbox', { name: 'A, percent' })).toBeValid()
@@ -276,10 +297,125 @@ describe('OutcomeDiscovery', () => {
       await user.click(screen.getByRole('button', { name: 'Use numbers instead of tiers' }))
       await addNumber(user, 'Alice', '70')
       await addNumber(user, 'Bob', '42')
-      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      await closeAndPass(user)
       await user.type(screen.getByRole('textbox', { name: 'Bob, percent' }), 'x')
       expect(screen.getByRole('textbox', { name: 'Bob, percent' })).toBeInvalid()
       expect(screen.queryByRole('button', { name: 'Normalize' })).toBeNull()
+    })
+  })
+
+  describe('spot checks', () => {
+    async function listTwo(user: ReturnType<typeof userEvent.setup>) {
+      await add(user, 'Rain', 'likely')
+      await add(user, 'Rain in the morning', 'unlikely')
+      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+    }
+
+    it('has a way out of every check: change the outcomes, or start again', async () => {
+      const user = userEvent.setup()
+      let started = 0
+      render(<Harness onStartAgain={() => started++} />)
+      await listTwo(user)
+      await user.click(screen.getByRole('button', { name: 'Change the outcomes' }))
+      expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
+      expect(screen.queryByRole('note')).toBeNull()
+      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      await user.click(screen.getByRole('button', { name: 'Start again' }))
+      expect(started).toBe(1)
+    })
+
+    it('ties the explanation to the question, and the reminder to the field', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await listTwo(user)
+      const heading = screen.getByRole('heading', { name: /both happen/ })
+      expect(heading).toHaveAccessibleDescription(/Check 1 of 2.*must not overlap/)
+      await user.click(screen.getByRole('button', { name: 'Yes, both can happen' }))
+      await user.click(screen.getByRole('button', { name: 'No, one of these will happen' }))
+      await user.click(screen.getByRole('button', { name: 'Change the outcomes' }))
+      expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveAccessibleDescription(
+        /Read the whole list again/
+      )
+    })
+
+    it('leaves "Everything else" out of the checks', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await add(user, 'Rain', 'likely')
+      await add(user, 'Sun', 'plausible')
+      await add(user, 'Everything else', 'unlikely')
+      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      // one pair, no completeness check
+      expect(screen.getByText(/Check 1 of 1/)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+      expect(screen.getByRole('heading', { name: 'First sketch' })).toBeInTheDocument()
+    })
+
+    it('goes straight to the sketch when there is nothing to ask', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await add(user, 'Rain', 'likely')
+      await add(user, 'Everything else', 'unlikely')
+      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      expect(screen.getByRole('heading', { name: 'First sketch' })).toHaveFocus()
+    })
+
+    it('asks about pairs and completeness before the sketch, one at a time', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await listTwo(user)
+      expect(screen.getByText(/Check 1 of 2/)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /Can “.+” and “.+” both happen\?/ })).toHaveFocus()
+      await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+      expect(
+        screen.getByRole('heading', { name: 'Could it turn out to be none of these?' })
+      ).toHaveFocus()
+      await user.click(screen.getByRole('button', { name: 'No, one of these will happen' }))
+      expect(screen.getByRole('heading', { name: 'First sketch' })).toHaveFocus()
+      expect(screen.queryByRole('note')).toBeNull()
+    })
+
+    it('says plainly that the tool is wrong for overlapping outcomes, and lets the user change the list', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await listTwo(user)
+      await user.click(screen.getByRole('button', { name: 'Yes, both can happen' }))
+      await user.click(screen.getByRole('button', { name: 'No, one of these will happen' }))
+      expect(screen.getByRole('heading', { name: 'This list has a problem' })).toHaveFocus()
+      expect(screen.getByText(/can both happen/)).toBeInTheDocument()
+      expect(screen.getByText(/wrong tool/)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Change the outcomes' }))
+      expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
+      expect(screen.getByRole('note')).toHaveTextContent(/Read the whole list again/)
+      // closing again starts the checks over, and the reminder is gone
+      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      expect(screen.getByText(/Check 1 of 2/)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+      expect(screen.queryByRole('note')).toBeNull()
+    })
+
+    it('flags a list that could turn out to be none of these', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await listTwo(user)
+      await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+      await user.click(screen.getByRole('button', { name: 'Yes, it could' }))
+      expect(screen.getByText(/none of these/, { selector: 'li' })).toBeInTheDocument()
+    })
+
+    it('keeps a flawed list with a standing notice on the numbers', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await listTwo(user)
+      await user.click(screen.getByRole('button', { name: 'Yes, both can happen' }))
+      await user.click(screen.getByRole('button', { name: 'No, one of these will happen' }))
+      await user.click(screen.getByRole('button', { name: 'Keep them as they are' }))
+      expect(screen.getByRole('heading', { name: 'First sketch' })).toHaveFocus()
+      expect(screen.getByRole('note')).toHaveTextContent(/do not mean anything/)
+      // changing the list drops the notice until the checks are passed again
+      await user.click(screen.getByRole('button', { name: 'Change the outcomes' }))
+      await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+      expect(screen.queryByRole('note')).toBeNull()
     })
   })
 })
