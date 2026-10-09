@@ -138,7 +138,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [x] 13. **Adjust after**: "your answers imply" (fixed) beside "your adjusted belief"
       (editable, empty for one-sided bands); neutral gap text; both kept in the trace
       and the result URL.
-- [ ] 14. **Sharing UI**: copy invite and result links. Opening an invite starts the
+- [x] 14. **Sharing UI**: copy invite and result links. Opening an invite starts the
       gate with claim and criteria filled in; opening a result shows the recomputed
       result and an "elicit your own" action that starts from the invite.
 - [ ] 15. **Handoff and launch**: "bet on this" opens `/wager` with a fresh wager

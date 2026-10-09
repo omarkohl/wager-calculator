@@ -31,15 +31,17 @@ export function adjustmentGap(adjusted: Decimal.Value, band: Band): AdjustmentGa
   return 'inside'
 }
 
-/** The gap in neutral words: it describes, it does not judge. */
-export function describeGap(gap: AdjustmentGap): string {
+/** The gap in neutral words: it describes, it does not judge. `other`: someone else's value. */
+export function describeGap(gap: AdjustmentGap, other = false): string {
+  const who = other ? 'This was set' : 'You set this'
+  const what = other ? 'the answers implied' : 'your answers implied'
   switch (gap) {
     case 'above':
-      return 'You set this above what your answers implied.'
+      return `${who} above what ${what}.`
     case 'below':
-      return 'You set this below what your answers implied.'
+      return `${who} below what ${what}.`
     default:
-      return 'You set this within what your answers implied.'
+      return `${who} within what ${what}.`
   }
 }
 

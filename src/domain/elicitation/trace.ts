@@ -33,6 +33,8 @@ export type TraceInput = {
   dropped?: readonly number[]
   /** The user's own value in percent ("47.5"), kept beside what the answers imply. */
   adjusted?: string | null
+  /** `other`: someone else's run (a shared result), so the wording does not say "you". */
+  voice?: 'own' | 'other'
 } & (
   | { mode: 'quick'; answers: readonly WedgeAnswer[] }
   | { mode: 'thorough'; answers: readonly ThoroughAnswer[] }
@@ -120,11 +122,14 @@ const complement = (p: Decimal.Value) => new Decimal(1).minus(p)
 
 function describe(
   a: Recorded,
-  frame: Frame
+  frame: Frame,
+  other: boolean
 ): Pick<TraceStep, 'question' | 'answer' | 'implication'> {
   const w = pct(a.wedge)
+  const c = pct(complement(a.wedge))
   const subject = frame === 'claim' ? 'the claim' : 'the claim being false'
   const question = `${subject} or a spinner that wins ${w} of the time`
+  const believe = other ? 'The claim was judged' : 'You think the claim is'
   switch (a.choice) {
     case 'claim':
       return {
@@ -132,8 +137,8 @@ function describe(
         answer: `Preferred ${subject}`,
         implication:
           frame === 'claim'
-            ? `You think the claim is more likely than ${w}.`
-            : `You think the claim is false with more than ${w}, so true with less than ${pct(complement(a.wedge))}.`,
+            ? `${believe} more likely than ${w}.`
+            : `${other ? 'The claim was judged false' : 'You think the claim is false'} with more than ${w}, so true with less than ${c}.`,
       }
     case 'wedge':
       return {
@@ -141,18 +146,19 @@ function describe(
         answer: `Preferred the ${w} spinner`,
         implication:
           frame === 'claim'
-            ? `You think the claim is less likely than ${w}.`
-            : `You think the claim is false with less than ${w}, so true with more than ${pct(complement(a.wedge))}.`,
+            ? `${believe} less likely than ${w}.`
+            : `${other ? 'The claim was judged false' : 'You think the claim is false'} with less than ${w}, so true with more than ${c}.`,
       }
-    default:
+    default: {
+      const what = frame === 'claim' ? 'the claim' : 'the claim being false'
       return {
         question,
         answer: 'Could not separate them',
-        implication:
-          frame === 'claim'
-            ? `You could not tell the claim and a ${w} spinner apart.`
-            : `You could not tell the claim being false and a ${w} spinner apart.`,
+        implication: other
+          ? `${what[0].toUpperCase()}${what.slice(1)} and a ${w} spinner could not be told apart.`
+          : `You could not tell ${what} and a ${w} spinner apart.`,
       }
+    }
   }
 }
 
@@ -264,7 +270,7 @@ export function buildTrace(input: TraceInput): RunTrace {
       armOrder: a.armOrder,
       dropped,
       outsideRange: outside.has(index),
-      ...describe(a, frame),
+      ...describe(a, frame, input.voice === 'other'),
       bandAfter,
     })
   })

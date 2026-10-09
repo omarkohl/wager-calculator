@@ -2,7 +2,7 @@
 
 ## Next step
 
-14.
+15.
 
 ## Stack
 
@@ -21,6 +21,7 @@
 - 11a: howsure/11a-lottery, PR #99 (base howsure/10-setup-gate)
 - 11b: howsure/11b-questions, PR #100 (base howsure/11a-lottery)
 - 12: howsure/12-result, PR #101 (base howsure/11b-questions)
+- 13: howsure/13-adjust, PR #102 (base howsure/12-result)
 
 ## Log
 
@@ -239,8 +240,38 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   the field (`aria-describedby`, joined with the error); the gap sentence is hidden while the
   text is not a valid value.
   Chromium E2E (local workaround config): 36 tests; new tests are all under 1 s locally.
+- **Step 14 (sharing UI)**: `ShareLinks.tsx` (a "Share" section under the criteria) has
+  "Copy invite link" and "Copy result link"; each builds the link on press (`shareLinks.ts`:
+  origin + the elicit path from the base + the hash from step 9), writes it to the clipboard,
+  says "Invite link copied" in a live region and shows the link in a read-only field so it can
+  be copied by hand ("Could not copy automatically" when the browser refuses or has no
+  clipboard). A note says the invite lets a friend put their own number on the claim without
+  seeing yours, the result link also carries the answers, and both contain the claim.
+  `ElicitPage` reads the address bar once at mount: an invite shows the gate with the claim
+  filled in (still editable) and a note with the criteria; starting carries the criteria
+  into the run and resets the address bar to the plain page. A result link shows the
+  recomputed result read-only (no edit, drop or share), with "The claim: ..." (new on every
+  result screen), a "This is a shared result" note and "Elicit your own belief on this
+  claim", which swaps the address bar to an invite hash (the other person's answers leave it)
+  and opens the gate from the claim and criteria. An invite or a shared result never touches
+  the run stored in the tab. A shared result that the algorithm would have continued is
+  shown as stopped (coarse). Unreadable hashes are ignored. Chromium E2E (local workaround
+  config): 41 tests, two browser contexts for sender and friend, axe on the shared view and
+  the share section; the E2E reads the shown link, not the clipboard, so it works in every
+  browser. Added after review: the hash is re-read on `hashchange`/`popstate` (a link pasted
+  into the same tab works and never touches the stored run); a shared result shows the
+  sender's criteria read-only and speaks about "the answers" (no "you"; `voice: 'other'` in
+  `buildTrace`, `other` in `AdjustBelief`, `describeGap(gap, true)`); "Elicit your own" puts
+  focus in the claim field; the gate warns that an invite replaces a run in progress; the
+  share link is built at render (a changed result says "Copy it again") and the status is
+  cleared while copying so a repeat is announced; a result of only "can't separate" answers
+  can be shared too.
 
 ## Decisions
+
+- Step 14: the criteria of an invite are carried into the friend's run even if they rewrite
+  the claim on the gate (the claim stays editable). Locking the claim, or dropping the
+  criteria when it changes, would be a one-line change in `ElicitPage.start`.
 
 - Step 12: an all-"can't separate" run is reported as the span of wedges the user could not
   separate (no band, no best guess); `computeBand` keeps returning null for it. The
@@ -257,6 +288,13 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 14: the share section (two buttons, a note, the link shown below) and the shared-result
+  banner are a first simple version. Open: whether the claim should stay editable when
+  opening an invite (it is, so a friend can change what it means; locking it would keep
+  the two answers about the same sentence), whether a native share sheet should be offered
+  on phones like the wager's Share button, and whether a shared result should show the
+  sender's claim more prominently.
 
 - Step 13: the adjust section (two blocks side by side, a plain text field for the
   percentage, a one-line gap sentence) is a first simple version. Open: a slider or

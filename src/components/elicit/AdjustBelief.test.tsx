@@ -189,6 +189,14 @@ describe('AdjustBelief', () => {
     expect(screen.getByText('You set this within what your answers implied.')).toBeInTheDocument()
   })
 
+  it('does not say "your" in someone else\'s result', () => {
+    render(<AdjustBelief band={two} pointEstimate={new Decimal(0.5)} adjusted="80" other />)
+    expect(screen.getByText('The answers imply')).toBeInTheDocument()
+    expect(screen.getAllByText('The adjusted belief').length).toBeGreaterThan(0)
+    expect(screen.getByText('This was set above what the answers implied.')).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/\byour?\b/i)
+  })
+
   it('says nothing about a gap until a value is set', () => {
     render(
       <AdjustBelief

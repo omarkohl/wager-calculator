@@ -1,13 +1,20 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ElicitPage from './ElicitPage'
-import { loadRun, saveRun, type RunData } from '../../storage/elicitation'
+import {
+  encodeInviteHash,
+  encodeResultHash,
+  loadRun,
+  saveRun,
+  type RunData,
+} from '../../storage/elicitation'
 import { answerQuestion, nextFlowQuestion } from './runFlow'
 
 beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
+  window.history.replaceState(null, '', '/')
 })
 
 async function start(mode: 'Quick' | 'Thorough' = 'Quick') {
@@ -171,5 +178,220 @@ describe('ElicitPage result actions', () => {
     expect(field).toHaveFocus()
     await userEvent.clear(field)
     expect(loadRun()!.adjusted).toBeNull()
+  })
+})
+
+function finishedQuickRun(): RunData {
+  let run = {
+    claim: 'The bridge opens',
+    criteria: 'By noon',
+    seed: 'share-1',
+    dropped: [],
+    adjusted: '55',
+    mode: 'quick',
+    answers: [],
+  } as RunData
+  for (let q = nextFlowQuestion(run); q; q = nextFlowQuestion(run)) {
+    run = answerQuestion(
+      run,
+      q,
+      q.wedge.lt(0.4) ? 'claim' : q.wedge.gt(0.6) ? 'wedge' : 'cant-separate'
+    )
+  }
+  return run
+}
+
+describe('ElicitPage shared links', () => {
+  it('opens an invite at the gate with the claim filled in and the criteria shown', async () => {
+    window.history.replaceState(
+      null,
+      '',
+      `/elicit${encodeInviteHash({ claim: 'Pineapple on pizza', criteria: 'Ask five people' })}`
+    )
+    render(<ElicitPage />)
+    expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveValue('Pineapple on pizza')
+    expect(screen.getByText(/Ask five people/)).toBeInTheDocument()
+    expect(screen.getByRole('note')).toHaveTextContent(/invited/)
+  })
+
+  it("carries the invite's criteria into the run, and clears the address bar when it starts", async () => {
+    window.history.replaceState(
+      null,
+      '',
+      `/elicit${encodeInviteHash({ claim: 'Pineapple on pizza', criteria: 'Ask five people' })}`
+    )
+    render(<ElicitPage />)
+    await userEvent.type(screen.getByRole('textbox', { name: 'Amount' }), '10')
+    await userEvent.click(screen.getByRole('button', { name: 'Start' }))
+    expect(loadRun()).toMatchObject({
+      claim: 'Pineapple on pizza',
+      criteria: 'Ask five people',
+      answers: [],
+    })
+    expect(window.location.hash).toBe('')
+    expect(window.location.pathname).toBe('/elicit')
+  })
+
+  it('shows an invite over a run in progress without touching that run', () => {
+    saveRun(finishedQuickRun())
+    window.history.replaceState(
+      null,
+      '',
+      `/elicit${encodeInviteHash({ claim: 'Other claim', criteria: '' })}`
+    )
+    render(<ElicitPage />)
+    expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveValue('Other claim')
+    expect(loadRun()!.claim).toBe('The bridge opens')
+  })
+
+  it('opens a shared result, recomputed, read-only and with the claim', () => {
+    const shared = finishedQuickRun()
+    window.history.replaceState(null, '', `/elicit${encodeResultHash(shared)}`)
+    render(<ElicitPage />)
+    expect(screen.getByText(/The claim:/)).toHaveTextContent('The bridge opens')
+    expect(
+      screen.getByRole('heading', { name: /The answers say the chance is/ })
+    ).toBeInTheDocument()
+    expect(screen.getByText(/shared result/)).toBeInTheDocument()
+    // not editable, not asking questions, nothing stored
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Stop here|drop it|Copy/ })).not.toBeInTheDocument()
+    expect(screen.getByText('55%')).toBeInTheDocument()
+    expect(loadRun()).toBeNull()
+  })
+
+  it('labels a shared result that was stopped early as coarse', () => {
+    const full = finishedQuickRun()
+    const early = { ...full, answers: full.answers.slice(0, 1) } as RunData
+    window.history.replaceState(null, '', `/elicit${encodeResultHash(early)}`)
+    render(<ElicitPage />)
+    expect(screen.getByText(/This is coarse/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /spinner lands/ })).not.toBeInTheDocument()
+  })
+
+  it('"Elicit your own" starts the gate from the shared claim, as an invite', async () => {
+    const shared = finishedQuickRun()
+    window.history.replaceState(null, '', `/elicit${encodeResultHash(shared)}`)
+    render(<ElicitPage />)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Elicit your own belief on this claim' })
+    )
+    expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveValue('The bridge opens')
+    expect(screen.getByText(/By noon/)).toBeInTheDocument()
+    // the address bar now holds an invite, not the other person's answers
+    expect(window.location.hash).toBe(
+      encodeInviteHash({ claim: 'The bridge opens', criteria: 'By noon' })
+    )
+    expect(window.location.hash).not.toContain('share-1')
+  })
+
+  it('ignores a hash it cannot read', () => {
+    window.history.replaceState(null, '', '/elicit#ev=9&t=i&c=x')
+    render(<ElicitPage />)
+    expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveValue('')
+  })
+
+  it('offers sharing on your own result', () => {
+    saveRun(finishedQuickRun())
+    render(<ElicitPage />)
+    expect(screen.getByRole('button', { name: 'Copy invite link' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copy result link' })).toBeInTheDocument()
+  })
+
+  it("shows the sender's criteria on a shared result, read-only", () => {
+    window.history.replaceState(null, '', `/elicit${encodeResultHash(finishedQuickRun())}`)
+    render(<ElicitPage />)
+    expect(screen.getByText(/Resolution criteria:/)).toHaveTextContent('By noon')
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  })
+
+  it('speaks about the answers, not to the viewer, on a shared result', () => {
+    for (const run of [finishedQuickRun(), contradictingRun()]) {
+      window.history.replaceState(
+        null,
+        '',
+        `/elicit${encodeResultHash({ ...run, adjusted: '55' })}`
+      )
+      const { container, unmount } = render(<ElicitPage />)
+      const text = container
+        .querySelector('section')!
+        .textContent!.replace('Elicit your own belief on this claim', '')
+      expect(text).not.toMatch(/\byou(r)?\b/i)
+      unmount()
+    }
+  })
+
+  it('reads a share link pasted into the same tab, without touching the stored run', () => {
+    saveRun(finishedQuickRun())
+    render(<ElicitPage />)
+    expect(screen.getByRole('button', { name: 'Copy invite link' })).toBeInTheDocument()
+
+    act(() => {
+      window.history.replaceState(
+        null,
+        '',
+        `/elicit${encodeInviteHash({ claim: 'Pasted claim', criteria: '' })}`
+      )
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveValue('Pasted claim')
+    expect(loadRun()!.claim).toBe('The bridge opens')
+
+    act(() => {
+      window.history.replaceState(null, '', `/elicit${encodeResultHash(finishedQuickRun())}`)
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    expect(screen.getByText(/shared result/)).toBeInTheDocument()
+    expect(loadRun()!.claim).toBe('The bridge opens')
+  })
+
+  it('warns on an invite that it replaces a run in progress, and only then', () => {
+    window.history.replaceState(
+      null,
+      '',
+      `/elicit${encodeInviteHash({ claim: 'X', criteria: '' })}`
+    )
+    const { unmount } = render(<ElicitPage />)
+    expect(screen.queryByText(/run in progress in this tab/)).not.toBeInTheDocument()
+    unmount()
+    saveRun(finishedQuickRun())
+    render(<ElicitPage />)
+    expect(
+      screen.getByText(/run in progress in this tab; starting here replaces it/)
+    ).toBeInTheDocument()
+  })
+
+  it('puts focus in the claim field after "Elicit your own", not on a plain invite', async () => {
+    window.history.replaceState(null, '', `/elicit${encodeResultHash(finishedQuickRun())}`)
+    const { unmount } = render(<ElicitPage />)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Elicit your own belief on this claim' })
+    )
+    expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveFocus()
+    unmount()
+
+    window.history.replaceState(
+      null,
+      '',
+      `/elicit${encodeInviteHash({ claim: 'X', criteria: '' })}`
+    )
+    render(<ElicitPage />)
+    expect(screen.getByRole('textbox', { name: 'Claim' })).not.toHaveFocus()
+  })
+
+  it('shares a result of only "can\'t separate" answers too', async () => {
+    let run = {
+      claim: 'Unsure',
+      criteria: '',
+      seed: 'unsure-1',
+      dropped: [],
+      adjusted: null,
+      mode: 'quick',
+      answers: [],
+    } as RunData
+    for (let i = 0; i < 3; i++) run = answerQuestion(run, nextFlowQuestion(run)!, 'cant-separate')
+    saveRun({ ...run, stopped: true })
+    render(<ElicitPage />)
+    expect(screen.getByRole('button', { name: 'Copy result link' })).toBeInTheDocument()
   })
 })

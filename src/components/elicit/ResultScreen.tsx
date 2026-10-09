@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef } from 'react'
 import { describeBand, describeGap } from '../../domain/elicitation/format'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import AdjustBelief from './AdjustBelief'
+import ShareLinks from './ShareLinks'
 import { buildTrace, type RunTrace, type TraceStep } from '../../domain/elicitation/trace'
 import { MAX_TEXT_LENGTH, type RunData } from '../../storage/elicitation'
 
@@ -16,6 +17,10 @@ interface ResultScreenProps {
   onAdjusted?: (adjusted: string | null) => void
   onRerun?: () => void
   onStartAgain?: () => void
+  /** Builders for the share links; without them there is no Share section. */
+  share?: { invite: () => string; result: () => string }
+  /** Set on a shared result: start the gate from its claim. */
+  onElicitOwn?: () => void
 }
 
 const BUTTON =
@@ -23,9 +28,11 @@ const BUTTON =
 const PRIMARY =
   'rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
 
-function buildTraceFor(run: RunData): RunTrace {
+function buildTraceFor(run: RunData, other: boolean): RunTrace {
+  const voice = other ? ('other' as const) : ('own' as const)
   return run.mode === 'quick'
     ? buildTrace({
+        voice,
         mode: 'quick',
         seed: run.seed,
         answers: run.answers,
@@ -33,6 +40,7 @@ function buildTraceFor(run: RunData): RunTrace {
         adjusted: run.adjusted,
       })
     : buildTrace({
+        voice,
         mode: 'thorough',
         seed: run.seed,
         answers: run.answers,
@@ -82,8 +90,13 @@ export default function ResultScreen({
   onAdjusted,
   onRerun,
   onStartAgain,
+  share,
+  onElicitOwn,
 }: ResultScreenProps) {
-  const trace = useMemo(() => buildTraceFor(run), [run])
+  // A shared result is someone else's: its wording does not say "you"
+  const other = onElicitOwn !== undefined
+  const say = (own: string, theirs: string) => (other ? theirs : own)
+  const trace = useMemo(() => buildTraceFor(run, onElicitOwn !== undefined), [run, onElicitOwn])
   const result = trace.result
   const headingRef = useRef<HTMLHeadingElement>(null)
   const hardHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -125,8 +138,27 @@ export default function ResultScreen({
     </div>
   )
 
+  const readOnlyCriteria = !onCriteria && run.criteria !== ''
+
   return (
     <section aria-labelledby={headingId} className="mt-6 space-y-6">
+      {onElicitOwn && (
+        <div role="note" className="rounded-lg bg-blue-50 p-4 text-gray-800">
+          <p>This is a shared result: someone else's answers about this claim.</p>
+          <button type="button" onClick={onElicitOwn} className={`${PRIMARY} mt-3`}>
+            Elicit your own belief on this claim
+          </button>
+        </div>
+      )}
+      <p className="text-gray-800">
+        The claim: <span className="font-semibold">&ldquo;{run.claim}&rdquo;</span>
+      </p>
+      {readOnlyCriteria && (
+        <p className="text-gray-800">
+          Resolution criteria: <span className="font-semibold">{run.criteria}</span>
+        </p>
+      )}
+
       {isHard && (
         <div role="note" className="rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
           <h2
@@ -134,12 +166,12 @@ export default function ResultScreen({
             tabIndex={-1}
             className="text-lg font-semibold text-gray-900 focus:outline-none"
           >
-            Your answers don&rsquo;t hang together
+            {say('Your answers don’t hang together', 'These answers don’t hang together')}
           </h2>
           <p className="mt-1 text-gray-800">
-            The usual cause is that the claim can mean more than one thing. Say what would settle it
-            below, then run it again with that in mind. The number below is still what your answers
-            say.
+            {other
+              ? 'The usual cause is that the claim can mean more than one thing. The number below is still what the answers say.'
+              : 'The usual cause is that the claim can mean more than one thing. Say what would settle it below, then run it again with that in mind. The number below is still what your answers say.'}
           </p>
           <div className="mt-3">{criteriaField}</div>
           {onRerun && (
@@ -155,7 +187,7 @@ export default function ResultScreen({
           {result ? (
             <>
               <span className="block text-sm font-medium text-gray-600">
-                Your answers say the chance is
+                {say('Your answers say the chance is', 'The answers say the chance is')}
               </span>{' '}
               <span className="mt-1 block text-5xl font-bold text-gray-900">
                 {describeBand(result.band)}
@@ -164,7 +196,10 @@ export default function ResultScreen({
           ) : span ? (
             <>
               <span className="block text-sm font-medium text-gray-600">
-                You could not tell the claim from spinners
+                {say(
+                  'You could not tell the claim from spinners',
+                  'The answers did not separate the claim from spinners'
+                )}
               </span>{' '}
               <span className="mt-1 block text-4xl font-bold text-gray-900">
                 {span.lo.eq(span.hi)
@@ -174,7 +209,9 @@ export default function ResultScreen({
             </>
           ) : (
             <>
-              <span className="block text-sm font-medium text-gray-600">Your answers say</span>{' '}
+              <span className="block text-sm font-medium text-gray-600">
+                {say('Your answers say', 'The answers say')}
+              </span>{' '}
               <span className="mt-1 block text-xl font-semibold text-gray-900">No range yet</span>
             </>
           )}
@@ -187,29 +224,45 @@ export default function ResultScreen({
               </p>
             ) : (
               <p className="mt-2 text-base text-gray-700">
-                No single best guess: your answers only bound one side.
+                {say(
+                  'No single best guess: your answers only bound one side.',
+                  'No single best guess: the answers only bound one side.'
+                )}
               </p>
             )}
             {isCoarse && (
               <p className="mt-2 text-sm text-gray-600">
                 {oneSided
-                  ? 'This is coarse: your answers only bound one side of your belief.'
+                  ? say(
+                      'This is coarse: your answers only bound one side of your belief.',
+                      'This is coarse: the answers only bound one side of the belief.'
+                    )
                   : run.stopped
-                    ? 'This is coarse: you stopped before the search was finished.'
-                    : 'This is coarse: answers you dropped leave the search unfinished.'}
+                    ? say(
+                        'This is coarse: you stopped before the search was finished.',
+                        'This is coarse: the search was stopped before it was finished.'
+                      )
+                    : say(
+                        'This is coarse: answers you dropped leave the search unfinished.',
+                        'This is coarse: answers that were dropped leave the search unfinished.'
+                      )}
               </p>
             )}
           </>
         ) : span ? (
           <p className="mt-2 text-base text-gray-700">
-            No single best guess: you never preferred either side, which is an honest answer when
-            you don&rsquo;t know.
+            {say(
+              'No single best guess: you never preferred either side, which is an honest answer when you don’t know.',
+              'No single best guess: neither side was ever preferred, which is an honest answer when someone does not know.'
+            )}
           </p>
         ) : (
           <>
             <p className="mt-2 text-base text-gray-700">
-              The answers you kept don&rsquo;t say which side of any spinner you prefer, so there is
-              nothing to report.
+              {say(
+                'The answers you kept don’t say which side of any spinner you prefer, so there is nothing to report.',
+                'The answers that were kept don’t say which side of any spinner was preferred, so there is nothing to report.'
+              )}
             </p>
             {onStartAgain && (
               <button type="button" onClick={onStartAgain} className={`${PRIMARY} mt-3`}>
@@ -228,6 +281,7 @@ export default function ResultScreen({
           pointEstimate={result.pointEstimate}
           adjusted={run.adjusted}
           onChange={onAdjusted}
+          other={other}
         />
       )}
 
@@ -235,10 +289,12 @@ export default function ResultScreen({
         <div role="note" className="rounded-lg bg-blue-50 p-4 text-gray-800">
           <h3 className="font-semibold">Something to ponder</h3>
           <p className="mt-1">
-            {result.subadditivity.kind === 'sub'
-              ? 'What you said about the claim and what you said about its being false add up to more than 100%.'
-              : 'What you said about the claim and what you said about its being false add up to less than 100%.'}{' '}
-            The range above is wider because of it.
+            {say(
+              'What you said about the claim and what you said about its being false add up to',
+              'What was said about the claim and what was said about its being false add up to'
+            )}{' '}
+            {result.subadditivity.kind === 'sub' ? 'more than 100%.' : 'less than 100%.'} The range
+            above is wider because of it.
           </p>
         </div>
       )}
@@ -255,7 +311,7 @@ export default function ResultScreen({
               return (
                 <ContradictionItem
                   key={`c-${pair.claimIndex}-${pair.wedgeIndex}`}
-                  text={`You preferred ${pair.frame === 'claim' ? 'the claim' : 'the claim being false'} to ${spinnerOf(claimStep.wedge)}, but ${spinnerOf(wedgeStep.wedge)} to it.`}
+                  text={`${say('You preferred', 'Preferred:')} ${pair.frame === 'claim' ? 'the claim' : 'the claim being false'} to ${spinnerOf(claimStep.wedge)}, but ${spinnerOf(wedgeStep.wedge)} to it.`}
                   steps={[claimStep, wedgeStep]}
                   onDrop={onDrop}
                 />
@@ -267,7 +323,7 @@ export default function ResultScreen({
               return (
                 <ContradictionItem
                   key={`r-${pair.originalIndex}-${pair.repeatIndex}`}
-                  text={`You answered the comparison with ${spinnerOf(original.wedge)} differently when it came back: first “${original.answer.toLowerCase()}”, then “${repeat.answer.toLowerCase()}”.`}
+                  text={`${say('You answered', 'Answered:')} the comparison with ${spinnerOf(original.wedge)} differently when it came back: first “${original.answer.toLowerCase()}”, then “${repeat.answer.toLowerCase()}”.`}
                   steps={[original, repeat]}
                   onDrop={onDrop}
                 />
@@ -279,9 +335,11 @@ export default function ResultScreen({
 
       {!isHard && criteriaField}
 
+      {share && (result || span) && <ShareLinks invite={share.invite} result={share.result} />}
+
       <details className="rounded-lg border border-gray-200 p-3">
         <summary className="cursor-pointer text-sm font-medium text-gray-800">
-          Show the full trace of your answers
+          {say('Show the full trace of your answers', 'Show the full trace of the answers')}
         </summary>
         <ol className="mt-3 space-y-3">
           {trace.steps.map(step => (
@@ -308,7 +366,10 @@ export default function ResultScreen({
               )}
               {step.outsideRange && !step.dropped && (
                 <p className="text-sm text-gray-600">
-                  This one sits outside the range your other answers point to.
+                  {say(
+                    'This one sits outside the range your other answers point to.',
+                    'This one sits outside the range the other answers point to.'
+                  )}
                 </p>
               )}
               {!step.dropped && step.bandAfter && (
@@ -321,9 +382,11 @@ export default function ResultScreen({
         </ol>
         {trace.adjustment && (
           <p className="mt-3 border-t border-gray-200 pt-3 text-gray-800">
-            Your answers implied {describeBand(trace.adjustment.implied)}. You then set your belief
-            to {trace.adjustment.adjusted.times(100).toString()}%.{' '}
-            {describeGap(trace.adjustment.gap)}
+            {say('Your answers implied', 'The answers implied')}{' '}
+            {describeBand(trace.adjustment.implied)}.{' '}
+            {say('You then set your belief to', 'The belief was then set to')}{' '}
+            {trace.adjustment.adjusted.times(100).toString()}%.{' '}
+            {describeGap(trace.adjustment.gap, other)}
           </p>
         )}
       </details>

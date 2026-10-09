@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { CURRENCY_OPTIONS } from '../../domain/stakes'
 import {
   getSavedElicitStake,
@@ -18,6 +18,12 @@ export interface SetupResult {
 
 interface SetupGateProps {
   onStart: (setup: SetupResult) => void
+  /** From an invite: the claim to start with, and the criteria it came with. */
+  invite?: { claim: string; criteria: string }
+  /** A run in this tab will be replaced when this one starts. */
+  replacesRun?: boolean
+  /** Put the cursor in the claim field on arrival (after the user acted, not on a plain load). */
+  focusClaim?: boolean
 }
 
 const DEFAULT_STAKE: ElicitStake = { amount: '', currency: 'usd' }
@@ -30,15 +36,18 @@ const FIELD =
  * the user take the questions seriously (remembered across sessions), and the mode.
  * Resolution criteria are deliberately not asked here.
  */
-export default function SetupGate({ onStart }: SetupGateProps) {
+export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: SetupGateProps) {
   const [saved] = useState(getSavedElicitStake)
-  const [claim, setClaim] = useState('')
+  const [claim, setClaim] = useState(invite?.claim ?? '')
   const [amount, setAmount] = useState(saved?.amount ?? DEFAULT_STAKE.amount)
   const [currency, setCurrency] = useState(saved?.currency ?? DEFAULT_STAKE.currency)
   const [mode, setMode] = useState<Mode>('quick')
   const [showErrors, setShowErrors] = useState(false)
   const claimRef = useRef<HTMLTextAreaElement>(null)
   const amountRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (focusClaim) claimRef.current?.focus()
+  }, [focusClaim])
 
   const ids = {
     claim: useId(),
@@ -74,6 +83,23 @@ export default function SetupGate({ onStart }: SetupGateProps) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
+      {invite && (
+        <p role="note" className="rounded-lg bg-blue-50 p-3 text-sm text-gray-800">
+          You were invited to put your own number on this claim. Your answers stay with you.
+          {replacesRun && (
+            <span className="mt-1 block">
+              You have a run in progress in this tab; starting here replaces it.
+            </span>
+          )}
+          {invite.criteria && (
+            <span className="mt-1 block">
+              <span className="font-medium">Resolution criteria from the invite:</span>{' '}
+              {invite.criteria}
+            </span>
+          )}
+        </p>
+      )}
+
       <div>
         <label htmlFor={ids.claim} className="mb-1 block text-sm font-medium text-gray-700">
           Claim

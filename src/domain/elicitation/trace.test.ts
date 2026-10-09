@@ -334,3 +334,38 @@ describe('buildTrace adjustment', () => {
     expect(t.adjustment!.gap).toBe('inside')
   })
 })
+
+describe('buildTrace in the voice of someone else', () => {
+  it('does not say "you" about a shared run', () => {
+    const answers = [claim(0.5), wedge(0.65), unsure(0.58)]
+    const own = buildTrace({ mode: 'quick', seed: 's', answers })
+    const other = buildTrace({ mode: 'quick', seed: 's', answers, voice: 'other' })
+    expect(own.steps[0].implication).toBe('You think the claim is more likely than 50%.')
+    expect(other.steps[0].implication).toBe('The claim was judged more likely than 50%.')
+    expect(other.steps[1].implication).toBe('The claim was judged less likely than 65%.')
+    expect(other.steps[2].implication).toBe('The claim and a 58% spinner could not be told apart.')
+    for (const step of other.steps)
+      expect(step.implication + step.answer).not.toMatch(/\byou(r)?\b/i)
+    // the same numbers either way
+    expect(other.result).toEqual(own.result)
+  })
+
+  it('does so for negation answers too', () => {
+    const t = buildTrace({
+      mode: 'thorough',
+      seed: 's',
+      answers: [
+        hand(0.3, 'claim', 'negation'),
+        hand(0.55, 'wedge', 'negation'),
+        hand(0.4, 'cant-separate', 'negation'),
+      ],
+      voice: 'other',
+    })
+    expect(t.steps[0].implication).toBe(
+      'The claim was judged false with more than 30%, so true with less than 70%.'
+    )
+    expect(t.steps[2].implication).toBe(
+      'The claim being false and a 40% spinner could not be told apart.'
+    )
+  })
+})

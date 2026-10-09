@@ -18,6 +18,8 @@ interface AdjustBeliefProps {
   adjusted: string | null
   /** Without it the section is read-only (a shared result). */
   onChange?: (adjusted: string | null) => void
+  /** Someone else's result: the labels do not say "your". */
+  other?: boolean
 }
 
 /**
@@ -32,6 +34,7 @@ export default function AdjustBelief({
   pointEstimate,
   adjusted,
   onChange,
+  other = false,
 }: AdjustBeliefProps) {
   const fieldId = useId()
   const errorId = useId()
@@ -76,11 +79,13 @@ export default function AdjustBelief({
       className="rounded-lg border border-gray-200 p-4"
     >
       <h3 id={`${fieldId}-heading`} className="sr-only">
-        {onChange ? 'Adjust your belief' : 'Your belief'}
+        {onChange ? 'Adjust your belief' : other ? 'The adjusted belief' : 'Your belief'}
       </h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <p className="text-sm font-medium text-gray-600">Your answers imply</p>
+          <p className="text-sm font-medium text-gray-600">
+            {other ? 'The answers imply' : 'Your answers imply'}
+          </p>
           <p className="mt-1 text-2xl font-bold text-gray-900">{describeBand(band)}</p>
         </div>
         <div>
@@ -109,13 +114,15 @@ export default function AdjustBelief({
             </>
           ) : (
             <>
-              <p className="text-sm font-medium text-gray-600">Your adjusted belief</p>
+              <p className="text-sm font-medium text-gray-600">
+                {other ? 'The adjusted belief' : 'Your adjusted belief'}
+              </p>
               <p className="mt-1 text-2xl font-bold text-gray-900">{adjusted}%</p>
             </>
           )}
         </div>
       </div>
-      {gap && <p className="mt-3 text-sm text-gray-700">{describeGap(gap)}</p>}
+      {gap && <p className="mt-3 text-sm text-gray-700">{describeGap(gap, other)}</p>}
       {showHint && (
         <p id={hintId} className="mt-3 text-sm text-gray-600">
           Your answers only bound one side, so there is no starting value: set your own.
