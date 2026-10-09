@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { execSync } from 'child_process'
+import { normalizeBasePath } from './scripts/basePath.ts'
 
 function getBuildInfo() {
   try {
@@ -37,6 +38,7 @@ function getBuildInfo() {
 }
 
 const buildInfo = getBuildInfo()
+const basePath = normalizeBasePath(process.env.BASE_PATH)
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -51,6 +53,8 @@ export default defineConfig({
         description: 'Calculate fair betting odds for friendly wagers using Brier scoring',
         theme_color: '#18181b',
         background_color: '#18181b',
+        start_url: basePath,
+        scope: basePath,
         display: 'standalone',
         icons: [
           {
@@ -78,6 +82,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Deep links such as /wager open the SPA offline too.
+        navigateFallback: `${basePath}index.html`,
         globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
         runtimeCaching: [
           {
@@ -98,7 +104,7 @@ export default defineConfig({
       },
     }),
   ],
-  base: './',
+  base: basePath,
   define: {
     __COMMIT_HASH__: JSON.stringify(buildInfo.commitHash),
     __COMMIT_DATE__: JSON.stringify(buildInfo.commitDate),
