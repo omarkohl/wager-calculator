@@ -118,7 +118,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 
 ### Tool 2 UI, yes/no
 
-- [ ] 10. **Setup gate** at `/elicit`: claim (required), stake amount and currency
+- [x] 10. **Setup gate** at `/elicit`: claim (required), stake amount and currency
       (required, remembered, "an amount big enough that you'd genuinely think", nothing
       suggesting it feeds a calculation), mode quick (default) / thorough. Resolution
       criteria not asked here.

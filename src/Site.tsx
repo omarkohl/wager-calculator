@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import App from './App'
 import Footer from './components/Footer'
+import ElicitPage from './components/elicit/ElicitPage'
 import { ROUTE_CHANGE_EVENT } from './routeTable'
 import { legacyRedirect, pathFor, routeFromPath, type RouteId } from './routes'
 
@@ -70,24 +71,13 @@ function NotFound() {
   )
 }
 
-function Elicit() {
-  return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900">Coming soon</h1>
-      <p className="mt-2">
-        <Link to="landing">Home</Link>
-      </p>
-    </div>
-  )
-}
-
 const SITE_NAME = 'Wager Calculator'
 
 /** Tab title of the routes that do not set their own (the calculator shows its claim). */
 function titleFor(route: RouteId): string {
   switch (route) {
     case 'elicit':
-      return `Coming soon – ${SITE_NAME}`
+      return `How sure are you? – ${SITE_NAME}`
     case 'notFound':
       return `Page not found – ${SITE_NAME}`
     case 'landing':
@@ -162,7 +152,7 @@ function Site() {
       page = <App />
       break
     case 'elicit':
-      page = <Elicit />
+      page = <ElicitPage />
       break
     case 'landing':
       page = <Landing />
