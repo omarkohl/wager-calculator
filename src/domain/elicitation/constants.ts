@@ -43,3 +43,27 @@ export const MIN_OUTCOMES = 2
 
 /** After this many outcomes in a row at "very unlikely", "everything else" is offered. */
 export const EVERYTHING_ELSE_AFTER = 2
+
+/** Several outcomes: a run never asks more than this many questions. */
+export const MAX_MULTI_QUESTIONS = 40
+
+/** Several outcomes: stop when no question is worth more than this many points (as a fraction). */
+export const MULTI_STOP_BELOW = 0.02
+
+/** Extra weight on a first lottery for a bucket in the very unlikely or near-certain tier. */
+export const TAIL_WEIGHT = 2
+
+/** A tail bucket's first lottery is always worth at least this much: one tail check each. */
+export const TAIL_CHECK_SCORE = 0.05
+
+/** A sketch whose largest and smallest chances are this close looks like "no idea". */
+export const NEAR_EVEN_SPREAD = 0.15
+
+/** Extra weight on the first lotteries when the sketch is near-even. */
+export const NEAR_EVEN_WEIGHT = 1.5
+
+/** A group lottery is worth this share of the mean width of its members. */
+export const GROUP_WEIGHT = 0.75
+
+/** Several outcomes: this many "about equally likely" in a row end the comparisons. */
+export const EQUAL_RUN_STOP = 3

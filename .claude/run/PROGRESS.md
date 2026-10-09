@@ -2,7 +2,7 @@
 
 ## Next step
 
-18b.
+19.
 
 ## Stack
 
@@ -27,6 +27,7 @@
 - 15b: howsure/15b-faq, PR #105 (base howsure/15a-handoff)
 - 16: howsure/16-model, PR #106 (base howsure/15b-faq)
 - 17: howsure/17-coherent-bands, PR #107 (base howsure/16-model)
+- 18a: howsure/18a-comparisons, PR #108 (base howsure/17-coherent-bands)
 
 ## Log
 
@@ -350,6 +351,39 @@ bands?, answers, seed})` chooses the pair whose order is least clear (nearest es
   stopping rule of its own: with eight outcomes an all-"equal" run would ask all 28 pairs (the
   "useful at any length" rule says the user may stop, but the selection should also stop when
   further pairs cannot change the result). A sketch missing an outcome is an error.
+- **Step 18b (lotteries and the next question)**: `domain/elicitation/multiRun.ts`. A `MultiRun`
+  is outcomes (with tiers), a seed and answers: `compare` (an 18a comparison) or `lottery`
+  {targets, wedge, choice}. The lottery on a target reuses the yes/no search: each target (a
+  bucket, or a group) has its own run, seed `<seed>:target:<sorted ids>`, `nextQuestion` for the
+  wedge, `computeBand` for its band (`targetBand`). Bucket bands before coherence: the bucket's own
+  band (or [0, 1] if never asked alone, `asked: false`), narrowed by the group bands (members
+  bounded by the group's top and by what the others' bottoms leave; the non-members take what is
+  left) through three passes; then `makeCoherent` with the orders from the comparisons
+  (`analyse`). `nextMultiQuestion(run)` scores candidates in the same unit (a fraction of
+  probability): a single-bucket lottery is worth its coherent band width (a bucket never asked
+  alone: at most twice its sketch, so big buckets come first; x1.5 while the sketch is near-even
+  within 15 points; a first lottery on a very unlikely or near-certain bucket x2 and never
+  below 5 points: one tail check each); the least clear pair's comparison is worth how far
+  their bands overlap; once every bucket was asked alone, a group lottery on the two widest
+  buckets not asked together is worth 0.75 x their mean width. Stopping rule: nothing worth 2
+  points, or 40 questions, or three "about equally likely" in a row end the comparisons (an
+  indifferent respondent with 8 outcomes no longer gets 28 pairs), and a target's own search
+  ends by itself (12 questions). Constants are in `constants.ts`. `answersInvolving` counts the
+  answers touching a bucket for "from N comparisons". Tested with a respondent who knows the
+  truth (4 outcomes: every bucket asked, tail included, ends coherent and holds the truth),
+  indifference, the cap and the group narrowing. No UI yet, so no E2E.
+  Added after review: group lotteries are applied with `applySumBand` (new in `coherence.ts`):
+  members whose lows cannot add up to the group's top (a > 30%, b > 30%, a + b < 40%) are
+  flagged (`analyse().groupIncoherences`) and widened minimally, never forced to a point; the
+  side widened is not tightened back (`makeCoherent`'s new `lockedSide`); the buckets outside
+  the group take what it leaves. A target's search skips wedges the coherent bands already
+  settle (implied answers, not recorded), so a tail bucket is not asked about 60%. A comparison
+  involving a bucket never asked alone is worth at most twice the smaller sketch (a decisive
+  8-outcome run asks every bucket alone before the cap). Gaps for later: the multi run has no
+  mode, so a thorough multi-outcome run would use the quick search per target (fine for v1,
+  see For review); step 9's codec stores only `WedgeAnswer[]`, so step 26 needs a codec for
+  multi answers (kind, targets, pick) and its replay check (the implied answers depend on the
+  whole run, which `nextMultiQuestion` recomputes deterministically).
 
 ## Decisions
 
@@ -381,6 +415,10 @@ bands?, answers, seed})` chooses the pair whose order is least clear (nearest es
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 18b: the multi-outcome run has no quick/thorough mode (the per-target search is the quick
+  one); decide whether thorough multi-outcome runs are wanted for v1 (the plan does not ask for
+  them).
 
 - Step 17: (a) incoherent bounds are shown as extra width by not tightening the widened side
   back against itself (see Decisions); (b) which conflicting order answer is dropped is decided

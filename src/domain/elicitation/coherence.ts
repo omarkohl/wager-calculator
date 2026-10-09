@@ -138,10 +138,17 @@ function shift(value: Decimal, delta: Decimal): Decimal {
  * the group), bands never asked about first; a group that cannot fix it alone is pushed to
  * the limit (0 or 1) and the next group takes over.
  */
-function widen(ranges: Range[], asked: readonly boolean[], kind: Incoherence['kind']): Range[] {
+function widen(
+  ranges: Range[],
+  asked: readonly boolean[],
+  kind: Incoherence['kind'],
+  /** Which bands take part (default all) and what their bounds must add up to. */
+  part: readonly number[] = ranges.map((_, i) => i),
+  target: Decimal = ONE
+): Range[] {
   const lowers = kind === 'lowers-exceed'
   const coherent = (rs: readonly Range[]) =>
-    lowers ? sum(rs.map(r => r.lo)).lte(ONE) : sum(rs.map(r => r.hi)).gte(ONE)
+    lowers ? sum(part.map(i => rs[i].lo)).lte(target) : sum(part.map(i => rs[i].hi)).gte(target)
   const limitOf = (r: Range): Range => (lowers ? { lo: ZERO, hi: r.hi } : { lo: r.lo, hi: ONE })
   const shifted = (r: Range, delta: Decimal): Range =>
     lowers
@@ -150,7 +157,7 @@ function widen(ranges: Range[], asked: readonly boolean[], kind: Incoherence['ki
 
   let current = ranges.map(r => ({ ...r }))
   for (const group of [false, true]) {
-    const members = current.map((_, i) => i).filter(i => asked[i] === group)
+    const members = part.filter(i => asked[i] === group)
     if (members.length === 0) continue
     const apply = (f: (r: Range) => Range) =>
       current.map((r, i) => (members.includes(i) ? f(r) : r))
@@ -174,10 +181,66 @@ function widen(ranges: Range[], asked: readonly boolean[], kind: Incoherence['ki
   return current
 }
 
-// --------------------------------------------------------------------- tightening
-
 /** Which bounds the sums may tighten: both, or (after widening one side) only the other. */
-type Side = 'both' | 'lo-only' | 'hi-only'
+export type TightenSide = 'both' | 'lo-only' | 'hi-only'
+
+export interface SumBandResult {
+  bands: BucketBand[]
+  /** Set if the members' bounds could not add up to the band and were widened. */
+  incoherence: Incoherence | null
+  /** Which side was widened to the boundary: the sums must not tighten it back to a point. */
+  widenedSide: 'lo' | 'hi' | null
+}
+
+/**
+ * Apply a band on the SUM of some buckets (a group lottery: "Rain or Snow" is between L and
+ * H). Where the members' own bounds cannot add up to it (subadditive answers) that is
+ * flagged and the members are widened minimally, never forced to a point; where they can,
+ * each member is narrowed to its reachable part. The caller does the same for the buckets
+ * outside the group, with the band 1 - H to 1 - L.
+ */
+export function applySumBand(
+  bands: readonly BucketBand[],
+  memberIds: readonly string[],
+  lo: Decimal,
+  hi: Decimal
+): SumBandResult {
+  const part = bands.map((b, i) => (memberIds.includes(b.id) ? i : -1)).filter(i => i >= 0)
+  let ranges: Range[] = bands.map(b => ({ lo: b.lo, hi: b.hi }))
+  const asked = bands.map(b => b.asked)
+  const lows = sum(part.map(i => ranges[i].lo))
+  const highs = sum(part.map(i => ranges[i].hi))
+  let incoherence: Incoherence | null = null
+  let widenedSide: 'lo' | 'hi' | null = null
+  if (lows.gt(hi)) {
+    incoherence = { kind: 'lowers-exceed', amount: lows.minus(hi) }
+    ranges = widen(ranges, asked, incoherence.kind, part, hi)
+    widenedSide = 'lo'
+  } else if (highs.lt(lo)) {
+    incoherence = { kind: 'uppers-short', amount: lo.minus(highs) }
+    ranges = widen(ranges, asked, incoherence.kind, part, lo)
+    widenedSide = 'hi'
+  }
+  const sumLo = sum(part.map(i => ranges[i].lo))
+  const sumHi = sum(part.map(i => ranges[i].hi))
+  const next = ranges.map(r => ({ ...r }))
+  for (const i of part) {
+    // never tighten against the bound that was just widened to the boundary
+    if (widenedSide !== 'hi')
+      next[i].lo = Decimal.max(ranges[i].lo, lo.minus(sumHi.minus(ranges[i].hi)))
+    next[i].hi = Decimal.min(ranges[i].hi, hi)
+    if (widenedSide !== 'lo')
+      next[i].hi = Decimal.min(next[i].hi, hi.minus(sumLo.minus(ranges[i].lo)))
+    if (next[i].lo.gt(next[i].hi)) next[i].lo = next[i].hi
+  }
+  return {
+    bands: bands.map((b, i) => ({ ...b, lo: next[i].lo, hi: next[i].hi })),
+    incoherence,
+    widenedSide,
+  }
+}
+
+// --------------------------------------------------------------------- tightening
 
 /**
  * Tighten to the fixpoint; null if some band comes out impossible (the orders cannot hold),
@@ -186,7 +249,7 @@ type Side = 'both' | 'lo-only' | 'hi-only'
 function tighten(
   ranges: readonly Range[],
   edges: readonly [number, number][],
-  side: Side
+  side: TightenSide
 ): Range[] | null {
   let cur = ranges.map(r => ({ ...r }))
   for (let pass = 0; pass < MAX_PASSES; pass++) {
@@ -242,7 +305,9 @@ function* subsets(count: number, size: number, from = 0): Generator<number[]> {
 
 export function makeCoherent(
   bands: readonly BucketBand[],
-  orders: readonly OrderAnswer[] = []
+  orders: readonly OrderAnswer[] = [],
+  /** A side the caller already widened to a boundary: the sums must not tighten it back. */
+  lockedSide: TightenSide = 'both'
 ): CoherentResult {
   validate(bands, orders)
   const index = new Map(bands.map((b, i) => [b.id, i]))
@@ -284,8 +349,8 @@ export function makeCoherent(
       i => [index.get(orders[i].moreLikely)!, index.get(orders[i].lessLikely)!] as [number, number]
     )
   // After widening one side the sums must not shrink the widened bands back to points
-  const side: Side =
-    incoherence?.kind === 'lowers-exceed' ? 'lo-only' : incoherence ? 'hi-only' : 'both'
+  const side: TightenSide =
+    incoherence?.kind === 'lowers-exceed' ? 'lo-only' : incoherence ? 'hi-only' : lockedSide
   let result = tighten(widened, edgesOf(live), side)
   if (result === null) {
     search: for (let size = 1; size <= Math.min(MAX_DROPPED_TRIED, live.length); size++) {
