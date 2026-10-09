@@ -1,18 +1,25 @@
 #!/usr/bin/env node
 
 /**
- * Post-build script to inject VITE_SITE_URL into meta tags in dist/index.html
+ * Post-build script: injects VITE_SITE_URL (plus BASE_PATH) into the meta tags
+ * and the analytics code into dist/index.html, then copies it to dist/404.html so
+ * GitHub Pages serves the SPA for deep links.
  */
 
-import { readFileSync, writeFileSync } from 'fs'
+import { copyFileSync, readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { normalizeBasePath } from './basePath.ts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const indexPath = join(__dirname, '..', 'dist', 'index.html')
-const siteUrl = process.env.VITE_SITE_URL || ''
+const basePath = normalizeBasePath(process.env.BASE_PATH)
+// The site URL is the origin; the meta tags need origin + base path (no trailing slash).
+const siteUrl = process.env.VITE_SITE_URL
+  ? process.env.VITE_SITE_URL.replace(/\/+$/, '') + basePath.replace(/\/$/, '')
+  : ''
 const goatcounterSite = process.env.VITE_GOATCOUNTER_SITE || ''
 
 if (!siteUrl) {
@@ -54,6 +61,7 @@ try {
   html = html.replace(/\s*<!-- TRACKING_CODE -->/g, trackingCode)
 
   writeFileSync(indexPath, html, 'utf8')
+  copyFileSync(indexPath, join(dirname(indexPath), '404.html'))
   console.log(`✓ Injected VITE_SITE_URL into ${indexPath}`)
   if (goatcounterSite) {
     console.log(`✓ Injected GoatCounter tracking code for ${goatcounterSite}`)

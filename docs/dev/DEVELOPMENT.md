@@ -43,6 +43,14 @@ VITE_SITE_URL=https://yourdomain.com bun run build
 
 If not set, meta tags will have empty URLs (local development is unaffected).
 
+#### `BASE_PATH` (Optional)
+
+Path the site is served under, default `/` (a domain root, as with the custom domain). Set it for a sub-path deployment, e.g. `BASE_PATH=/wager-calculator/` (slashes are added if missing). It sets Vite's `base`, the PWA `scope` and `start_url`, the service worker's navigation fallback and the absolute URLs in the meta tags (`VITE_SITE_URL` must be the origin only: a path in it would be doubled by `BASE_PATH`). The build also writes `dist/404.html` as a copy of `index.html`, so GitHub Pages serves the app for deep links such as `/wager`. The post-build script runs TypeScript directly and needs Node 22.19 or newer.
+
+```bash
+BASE_PATH=/wager-calculator/ VITE_SITE_URL=https://user.github.io bun run build
+```
+
 #### `VITE_GITHUB_REPO_URL`
 
 GitHub repository URL, automatically set in CI for repository info display.

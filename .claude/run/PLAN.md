@@ -67,14 +67,14 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 
 ### Setup
 
-- [ ] 0. **Environment check** (no own commit; record in PROGRESS.md with step 1):
+- [x] 0. **Environment check** (no own commit; record in PROGRESS.md with step 1):
       node ≥ 22.19, dependencies installed, `make format-check lint typecheck test`
       green, whether `bun x playwright test --project=chromium` runs. A failure that
       blocks every step goes under `## Blocked`.
 
 ### Shell
 
-- [ ] 1. **Base path and SPA fallback**: `BASE_PATH` → Vite `base`, PWA scope and
+- [x] 1. **Base path and SPA fallback**: `BASE_PATH` → Vite `base`, PWA scope and
       `start_url`, `404.html` in the build output, `navigateFallback`; meta injection
       and asset paths still work. DEVELOPMENT.md documents `BASE_PATH`.
 - [ ] 2. **Routes**: the router, `/wager` renders today's app, `/` a minimal landing
