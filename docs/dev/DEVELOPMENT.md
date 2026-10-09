@@ -76,3 +76,23 @@ If not set, no tracking code is added (recommended for forks and local developme
 - React + TypeScript + Vite, Tailwind CSS
 - Vitest + React Testing Library for unit and component tests, Playwright for E2E
 - PWA with service worker
+
+## Claude Code cloud sessions
+
+Autonomous runs (see `CLAUDE.md`) execute in Claude Code cloud sessions. The repo's
+`.claude/` holds the agents and hooks; the SessionStart hook installs dependencies.
+The cloud environment itself is configured at claude.ai/code:
+
+- **Network access**: Custom, with the default list plus `cdn.playwright.dev` and
+  `playwright.download.prss.microsoft.com` (Playwright browsers).
+- **Setup script** (Node 24, as in CI; the image ships Node 22, maybe below 22.19).
+  The SessionStart hook puts `/opt/node24/bin` first in `PATH`:
+
+  ```bash
+  #!/bin/bash
+  curl -fsSL https://nodejs.org/dist/latest-v24.x/SHASUMS256.txt |
+    grep -o 'node-v24[^ ]*-linux-x64.tar.xz' | head -1 |
+    xargs -I{} curl -fsSL https://nodejs.org/dist/latest-v24.x/{} -o /tmp/node.tar.xz &&
+    mkdir -p /opt/node24 && tar -xJf /tmp/node.tar.xz -C /opt/node24 --strip-components=1 || true
+  npx -y playwright@1 install-deps chromium || true
+  ```
