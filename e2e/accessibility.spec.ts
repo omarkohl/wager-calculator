@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 
 test.describe('Accessibility', () => {
   test('should not have any automatically detectable accessibility issues', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     const accessibilityScanResults = await new AxeBuilder({ page }).analyze()
 
@@ -11,7 +11,7 @@ test.describe('Accessibility', () => {
   })
 
   test('should support keyboard navigation through interactive elements', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Find and focus the stakes listbox button directly
     const stakesButton = page.getByRole('button', { name: /stakes/i })
@@ -37,7 +37,7 @@ test.describe('Accessibility', () => {
   })
 
   test('should have proper ARIA labels and roles', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Check heading structure
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
@@ -59,7 +59,7 @@ test.describe('Accessibility', () => {
   })
 
   test('should support resolution listbox keyboard navigation', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Navigate to resolution section - it's a Headless UI Listbox
     // Find the Resolution heading and then the button in its parent container
@@ -81,7 +81,7 @@ test.describe('Accessibility', () => {
   })
 
   test('should have sufficient color contrast', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     const accessibilityScanResults = await new AxeBuilder({ page }).withTags(['wcag2aa']).analyze()
 

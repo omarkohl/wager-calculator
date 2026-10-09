@@ -34,7 +34,7 @@ test.describe('Auto-distribute and Normalize Workflow', () => {
   test('should auto-distribute remaining probability and normalize when needed', async ({
     page,
   }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Add a third outcome
     await page.getByRole('button', { name: /add outcome/i }).click()

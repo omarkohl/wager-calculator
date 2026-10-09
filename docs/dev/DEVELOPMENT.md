@@ -63,7 +63,7 @@ VITE_GITHUB_REPO_URL=https://github.com/yourusername/wager-calculator bun run bu
 
 GoatCounter site name for analytics tracking. If set, tracking code will be injected during build.
 
-**Privacy:** Only page views are tracked (FAQ pages as `/faq/<id>`, main page as `/`). Wager data in the URL hash is never sent to analytics.
+**Privacy:** Only page views are tracked (route paths `/`, `/wager`, `/elicit`; FAQ pages as `/faq/<id>`). Wager data in the URL hash is never sent to analytics.
 
 **GitHub Actions:**
 
