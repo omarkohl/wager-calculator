@@ -3,6 +3,8 @@ import { CURRENCY_OPTIONS } from '../../domain/stakes'
 import type { Choice } from '../../domain/elicitation/bandRule'
 import {
   clearRun,
+  decodeElicitationHash,
+  encodeInviteHash,
   generateSeed,
   getSavedElicitStake,
   loadRun,
@@ -12,6 +14,7 @@ import {
 import QuestionScreen from './QuestionScreen'
 import ResultScreen from './ResultScreen'
 import SetupGate, { type SetupResult } from './SetupGate'
+import { inviteLink, resultLink } from './shareLinks'
 import { answerQuestion, nextFlowQuestion, questionsLeft, stopRun } from './runFlow'
 
 function stakeText(): string | null {
@@ -49,11 +52,39 @@ function NoResult({
   )
 }
 
+/** What the address bar held when the page opened: a shared invite or a shared result. */
+type Shared = { type: 'invite'; claim: string; criteria: string } | { type: 'result'; run: RunData }
+
+function readShared(): Shared | null {
+  const decoded = decodeElicitationHash(window.location.hash)
+  if (!decoded) return null
+  if (decoded.type === 'invite') return decoded
+  // A shared result may have been stopped early: the link does not say, but the algorithm does
+  const run = decoded.run
+  return { type: 'result', run: nextFlowQuestion(run) ? { ...run, stopped: true } : run }
+}
+
 /** The elicitation tool: the setup gate, the questions of the run it starts, then the result. */
 export default function ElicitPage() {
   const [run, setRun] = useState<RunData | null>(loadRun)
+  const [shared, setShared] = useState<Shared | null>(readShared)
+  const [focusGate, setFocusGate] = useState(false)
   // Focus moves to a question or the result only after the user acted, not on a plain reload
   const [focusNext, setFocusNext] = useState(false)
+
+  // A share link pasted into this tab changes only the hash: read it again
+  useEffect(() => {
+    const reread = () => {
+      setShared(readShared())
+      setFocusGate(false)
+    }
+    window.addEventListener('hashchange', reread)
+    window.addEventListener('popstate', reread)
+    return () => {
+      window.removeEventListener('hashchange', reread)
+      window.removeEventListener('popstate', reread)
+    }
+  }, [])
 
   const update = (next: RunData) => {
     saveRun(next)
@@ -62,7 +93,12 @@ export default function ElicitPage() {
   }
 
   const start = ({ claim, mode }: SetupResult) => {
-    const base = { claim, criteria: '', seed: generateSeed(), dropped: [], adjusted: null }
+    // From an invite the criteria come along; the invite has done its job, so the address
+    // bar goes back to the plain page
+    const criteria = shared?.type === 'invite' ? shared.criteria : ''
+    if (shared) window.history.replaceState(null, '', window.location.pathname)
+    setShared(null)
+    const base = { claim, criteria, seed: generateSeed(), dropped: [], adjusted: null }
     update(mode === 'quick' ? { ...base, mode, answers: [] } : { ...base, mode, answers: [] })
   }
 
@@ -74,15 +110,34 @@ export default function ElicitPage() {
 
   const question = run && nextFlowQuestion(run)
 
+  const elicitOwn = (from: { claim: string; criteria: string }) => {
+    const invite = { type: 'invite' as const, claim: from.claim, criteria: from.criteria }
+    window.history.replaceState(null, '', encodeInviteHash(invite))
+    setShared(invite)
+    setFocusGate(true)
+    setFocusNext(false)
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="font-['Space_Grotesk'] text-3xl font-bold text-gray-900">How sure are you?</h1>
-      {run === null ? (
+      {shared?.type === 'result' ? (
+        <ResultScreen
+          run={shared.run}
+          focusOnShow={false}
+          onElicitOwn={() => elicitOwn(shared.run)}
+        />
+      ) : shared?.type === 'invite' || run === null ? (
         <div className="max-w-2xl">
           <p className="mt-2 mb-6 text-gray-700">
             Put a number on how likely you think something is, by comparing it with a spinner.
           </p>
-          <SetupGate onStart={start} />
+          <SetupGate
+            onStart={start}
+            invite={shared?.type === 'invite' ? shared : undefined}
+            replacesRun={run !== null}
+            focusClaim={focusGate}
+          />
         </div>
       ) : question ? (
         <QuestionScreen
@@ -132,6 +187,7 @@ export default function ElicitPage() {
             )
           }}
           onStartAgain={startAgain}
+          share={{ invite: () => inviteLink(run), result: () => resultLink(run) }}
         />
       )}
     </div>

@@ -43,6 +43,12 @@ describe('adjustmentGap and describeGap', () => {
     expect(adjustmentGap(0.5, bandBelow(0.2))).toBe('above')
   })
 
+  it('words the gap for someone else\'s value without "you"', () => {
+    expect(describeGap('above', true)).toBe('This was set above what the answers implied.')
+    expect(describeGap('below', true)).toBe('This was set below what the answers implied.')
+    expect(describeGap('inside', true)).toBe('This was set within what the answers implied.')
+  })
+
   it('words the gap neutrally', () => {
     expect(describeGap('above')).toBe('You set this above what your answers implied.')
     expect(describeGap('below')).toBe('You set this below what your answers implied.')
