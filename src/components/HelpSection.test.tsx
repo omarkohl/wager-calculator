@@ -64,4 +64,15 @@ describe('HelpModal', () => {
     await user.click(brierButton)
     expect(screen.queryByText(/proper scoring rule/i)).not.toBeInTheDocument()
   })
+
+  it('shows the entries it is given instead of the default FAQ', async () => {
+    const entries = [
+      { id: 'only-one', question: 'Why a tool-specific question?', answer: 'Because.' },
+    ]
+    render(<HelpModal isOpen={true} onClose={vi.fn()} entries={entries} />)
+    expect(
+      await screen.findByRole('button', { name: /Why a tool-specific question\?/ })
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Why use Brier scoring/i })).not.toBeInTheDocument()
+  })
 })

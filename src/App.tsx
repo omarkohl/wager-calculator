@@ -9,7 +9,6 @@ import Resolution from './components/Resolution'
 import HelpModal from './components/HelpSection'
 import { isFaqId, type FaqId } from './components/faq'
 import ConfirmDialog from './components/ConfirmDialog'
-import Footer from './components/Footer'
 import { calculateResults } from './domain/brier'
 import type { CalculationResult, Wager } from './domain/wager'
 import {
@@ -154,9 +153,9 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-4 sm:px-6 lg:px-8">
-        <header className="mb-4 flex items-center gap-3 sm:gap-4">
+    <>
+      <div className="mx-auto w-full max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mb-4 flex items-center gap-3 sm:gap-4">
           <img
             src={`${import.meta.env.BASE_URL}icon-180.png`}
             alt=""
@@ -170,9 +169,9 @@ function App() {
               Betting is a tax on bullshit
             </p>
           </div>
-        </header>
+        </div>
 
-        <main className="rounded-lg bg-white p-6 shadow-sm">
+        <section className="rounded-lg bg-white p-6 shadow-sm">
           <ActionBar
             position="top"
             onOpenFaq={() => openFaq(null)}
@@ -263,7 +262,7 @@ function App() {
             onReset={handleReset}
             onShare={handleShare}
           />
-        </main>
+        </section>
       </div>
 
       <HelpModal
@@ -297,9 +296,7 @@ function App() {
           {toastMessage}
         </div>
       )}
-
-      <Footer commitDate={__COMMIT_DATE__} commitHash={__COMMIT_HASH__} repoUrl={__REPO_URL__} />
-    </div>
+    </>
   )
 }
 

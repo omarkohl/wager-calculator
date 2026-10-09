@@ -2,13 +2,14 @@
 
 ## Next step
 
-3.
+4.
 
 ## Stack
 
 <!-- step: branch, PR number -->
 
 - 1: `howsure/01-base-path`, PR #89 (base `main`)
+- 2: howsure/02-routes, PR #90 (base howsure/01-base-path)
 
 ## Log
 
@@ -37,6 +38,18 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   local `executablePath` workaround config from step 0 (not committed). The route table
   and event name live in `src/routeTable.ts`, shared with `inject-meta.js`; analytics
   skips a path equal to the last one counted.
+- **Step 3 (shared shell)**: `Site` renders the header (`Main` nav: Home, Wager Calculator;
+  `aria-current` on the current page), one `<main>`, the shared `Footer` and a polite live
+  region. `App` no longer has its own header/main/footer wrapper (its card is a `<section>`
+  so the E2E selectors on `div.rounded-lg` still find only participant cards). After a
+  navigation (not the first render) the page's `main h1` gets focus and its text is
+  announced. Tab titles: the calculator keeps its claim title; other routes are set by
+  `Site`. `HelpModal` takes an `entries` prop (defaults to the calculator's FAQ) and a
+  string `openFaqId`. axe scans cover `/`, `/elicit`, `/no-such-page` as well as `/wager`.
+  Chromium E2E ran via the local workaround config (18 tests). The wager page now has
+  two `role="status"` regions (the shell's announcer and the calculator's toast), so
+  tests must filter by text. Clicking the nav link of the current page does nothing
+  (a push would drop the hash holding the wager).
 
 ## Decisions
 

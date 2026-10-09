@@ -90,4 +90,29 @@ test.describe('Accessibility', () => {
     )
     expect(contrastViolations).toEqual([])
   })
+  for (const [name, path] of [
+    ['landing page', '/'],
+    ['elicitation page', '/elicit'],
+    ['not-found page', '/no-such-page'],
+  ]) {
+    test(`the ${name} has no automatically detectable accessibility issues`, async ({ page }) => {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+
+      const results = await new AxeBuilder({ page }).analyze()
+
+      expect(results.violations).toEqual([])
+    })
+  }
+
+  test('navigating with the keyboard moves focus to the new page heading', async ({ page }) => {
+    await page.goto('/')
+    const nav = page.getByRole('navigation', { name: 'Main' })
+    await nav.getByRole('link', { name: 'Wager Calculator' }).focus()
+    await page.keyboard.press('Enter')
+
+    await expect(page).toHaveURL(/\/wager$/)
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused()
+    await expect(page.getByRole('status').filter({ hasText: 'Wager Calculator' })).toBeAttached()
+  })
 })
