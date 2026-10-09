@@ -104,7 +104,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       PRNG; swapped-arm repeats; the negation probes (band for not-X → 1 − ·, union
       with the direct band, subadditivity gap); thorough target width. ~14–18 questions
       for a consistent respondent (test it).
-- [ ] 8. **Trace**: step-by-step account of a run, like `explanation.ts`: each
+- [x] 8. **Trace**: step-by-step account of a run, like `explanation.ts`: each
       question, answer and what it implied; contradicting pairs; subadditivity;
       recomputation with answers dropped as misclicks.
 

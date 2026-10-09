@@ -2,7 +2,7 @@
 
 ## Next step
 
-8.
+9.
 
 ## Stack
 
@@ -14,6 +14,7 @@
 - 4: howsure/04-log-odds, PR #92 (base howsure/03-shell)
 - 5: howsure/05-band-rule, PR #93 (base howsure/04-log-odds)
 - 6: howsure/06-quick-search, PR #94 (base howsure/05-band-rule)
+- 7: howsure/07-thorough, PR #95 (base howsure/06-quick-search)
 
 ## Log
 
@@ -108,6 +109,23 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   steps 9 and 11 must handle that (hide it, or add an estimate then).
   Measured over 20 seeds: 50% believers 16-19 questions, 30-70% 15-18, 20-80% 14-16,
   tails 2-3% avg 20.8 (max 23), 90-95% 18.5.
+- **Step 8 (trace)**: `trace.ts` `buildTrace({mode, seed, answers, dropped})` returns every
+  recorded step (question, answer and implication in words, the band after it from the
+  kept answers, a `dropped` flag), the contradicting pairs (a claim win above a wedge win
+  within one frame, sized in logits, largest first, `isHard`), repeats that disagree with
+  their original, and the result of the kept answers only (band, point estimate,
+  contradiction, subadditivity). `wouldAskMore` says whether the algorithm would ask
+  further questions after the kept answers: a drop may leave a run unfinished, and what
+  the result screen does then (offer to continue, or accept the coarser band) is step 12's
+  call. The trace shows the answers as recorded, not a replay, so it never disagrees with
+  what the user was shown. Cross-frame conflicts (claim vs negation) are the subadditivity
+  gap, not contradicting pairs. `buildTrace` takes per-mode input (quick: plain answers;
+  thorough: the full recorded `ThoroughAnswer`s, whose tags rebuild the staircases for
+  `wouldAskMore`). A "could not separate" outside the [H, S] its frame's other answers
+  bracket gets `outsideRange` (a mild flag; the wording never claims it is inside).
+  The largest claim-frame pair is the band rule's contradiction, so `isHard` agrees
+  with the result's flag (tested). Invalid `dropped` indexes are ignored; step 9
+  validates the URL.
 
 ## Decisions
 
