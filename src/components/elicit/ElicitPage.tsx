@@ -139,6 +139,8 @@ export default function ElicitPage() {
         outcomes: emptyOutcomeList(),
         declinedElse: false,
         phase: 'discover',
+        view: 'tiers',
+        percents: {},
       }
       saveMultiRun(started)
       setMulti(started)
