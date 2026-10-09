@@ -2,7 +2,7 @@
 
 ## Next step
 
-5.
+6.
 
 ## Stack
 
@@ -11,6 +11,7 @@
 - 1: `howsure/01-base-path`, PR #89 (base `main`)
 - 2: howsure/02-routes, PR #90 (base howsure/01-base-path)
 - 3: howsure/03-shell, PR #91 (base howsure/02-routes)
+- 4: howsure/04-log-odds, PR #92 (base howsure/03-shell)
 
 ## Log
 
@@ -60,12 +61,28 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   whole percent when the nearer tail is >= 10%, one decimal down to 0.1%, two beyond.
   `snapToGrid`/`stepWedge` put wedges on that same grid, so the label is the exact value;
   p and 1 - p display as complements.
+- **Step 5 (band rule)**: `bandRule.ts` `computeBand(answers)` takes wedge answers
+  (`claim` / `wedge` / `cant-separate`; the last says nothing about the edges) and returns
+  H, S, the band (ordered, also when H > S), the point estimate (null when one-sided), the
+  contradiction in logits (only when H > S) and the hard flag (strictly > 1 logit).
+  Null without any claim/wedge answer. Dropped (misclick) answers are the caller's to
+  filter out; step 8 does that.
 
 ## Decisions
+
+- Step 5: a run with only "can't separate" answers gives `computeBand` = null (no band,
+  no result). The doc says only that stopping before the first answer gives no result and
+  that few answers may give a one-sided band; it does not cover this case. Alternative
+  (reversible, for steps 8/12 to pick up): a result carrying the range of wedges the user
+  could not separate, without a band. A "can't separate" answer outside [H, S] is a
+  contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 5: only "can't separate" answers give no result (see Decisions); the alternative is a
+  result with the indifference range but no band.
 
 - Pre-existing, untouched: the wager's cap of 8 outcomes is a literal `8` in the
   components; `MAX_OUTCOMES` in the elicitation constants duplicates it.

@@ -91,7 +91,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [x] 4. **Log-odds core**: `logit`/`expit`, the wedge grid (log-odds steps, floor and
       ceiling from the constants), the percent ↔ logit conversion boundary and display
       rounding, a band type that may be one-sided, log-odds midpoint, width in logits.
-- [ ] 5. **Band rule**: from answers compute H, S, the band (also when H > S),
+- [x] 5. **Band rule**: from answers compute H, S, the band (also when H > S),
       contradiction size, hard-contradiction flag, one-sided bands without point
       estimate, "no answers → no result". Tests cover every example in the doc's Band
       rule and Edge cases sections.
