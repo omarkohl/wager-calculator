@@ -13,7 +13,7 @@ import {
   type Tier,
 } from '../../domain/elicitation/model'
 import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
-import { parseAdjusted } from '../../domain/elicitation/format'
+import { parsePercent } from '../../domain/elicitation/format'
 import {
   describeTotal,
   normalizePercentsAtLeast,
@@ -36,10 +36,6 @@ const PERCENT_PROBLEM = 'Enter a percentage above 0 and below 100, with at most 
 
 /** The percentage typed for an outcome, or null if it is not a usable one. */
 const percentOf = (run: MultiRunData, id: string) => parsePercent(run.percents[id] ?? '')
-
-/** A typed percentage: a decimal comma and a trailing percent sign are fine. */
-const parsePercent = (text: string) =>
-  parseAdjusted(text.trim().replace(/%$/, '').replace(',', '.'))
 
 /** The standing notice on numbers whose outcomes the checks found overlapping or incomplete. */
 export function KeptNotice() {
@@ -187,7 +183,9 @@ export default function OutcomeDiscovery({
           focusOnShow={checkFocus}
           onChange={next => {
             // Where the cursor goes when the checks hand over
-            if (next.phase === 'discover') focusRequest.current = 'label'
+            if (next.phase === 'discover') {
+              focusRequest.current = isAtCap(next.outcomes.items) ? 'cap' : 'label'
+            }
             if (next.phase === 'sketch') focusRequest.current = 'sketch'
             onChange(next)
           }}
@@ -398,6 +396,7 @@ export default function OutcomeDiscovery({
         <p id={ids.review} role="note" className="rounded-lg bg-blue-50 p-3 text-sm text-gray-800">
           You are changing a list the checks found a problem with. Read the whole list again: the
           same problem may be somewhere else in it.
+          {run.replaced !== null && ` Add the narrower outcomes that replace “${run.replaced}”.`}
         </p>
       )}
       {/* The offer appears while focus stays in the form: say so */}
@@ -543,7 +542,7 @@ export default function OutcomeDiscovery({
                 onChange({ ...run })
                 return
               }
-              const reset = { checks: [], kept: false, reviewing: false }
+              const reset = { checks: [], kept: false, reviewing: false, replaced: null }
               if (spotChecksOf(run.outcomes, run.seed).length === 0) {
                 // Only "Everything else" and one other: nothing to ask
                 focusRequest.current = 'sketch'

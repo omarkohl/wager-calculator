@@ -4,6 +4,7 @@ import {
   type SpotCheck,
   type SpotCheckAnswer,
 } from '../../domain/elicitation/comparisons'
+import ListFixes from './ListFixes'
 import { spotChecksOf, type MultiRunData } from '../../storage/multiRun'
 
 interface SpotChecksProps {
@@ -40,7 +41,14 @@ export default function SpotChecks({ run, focusOnShow, onChange, onStartAgain }:
   }, [run.checks.length])
 
   const changeOutcomes = () =>
-    onChange({ ...run, phase: 'discover', checks: [], kept: false, reviewing: false })
+    onChange({
+      ...run,
+      phase: 'discover',
+      checks: [],
+      kept: false,
+      reviewing: false,
+      replaced: null,
+    })
 
   /** Always a way out: back to the list, or to the beginning. */
   const exits = (
@@ -59,7 +67,13 @@ export default function SpotChecks({ run, focusOnShow, onChange, onStartAgain }:
     const checks = [...run.checks, a]
     // Finished and clean: on to the sketch. Finished with a problem: the verdict screen
     const clean = checks.length === asked.length && spotCheckProblems(checks).length === 0
-    onChange({ ...run, checks, phase: clean ? 'sketch' : 'check', reviewing: false })
+    onChange({
+      ...run,
+      checks,
+      phase: clean ? 'sketch' : 'check',
+      reviewing: false,
+      replaced: null,
+    })
   }
 
   if (!current) {
@@ -80,6 +94,7 @@ export default function SpotChecks({ run, focusOnShow, onChange, onStartAgain }:
               {p.type === 'overlap'
                 ? `“${labelOf(p.first)}” and “${labelOf(p.second)}” can both happen.`
                 : 'It could turn out to be none of these.'}
+              <ListFixes run={run} problem={p} onChange={onChange} />
             </li>
           ))}
         </ul>
@@ -93,7 +108,14 @@ export default function SpotChecks({ run, focusOnShow, onChange, onStartAgain }:
             type="button"
             className={PRIMARY}
             onClick={() =>
-              onChange({ ...run, phase: 'discover', checks: [], kept: false, reviewing: true })
+              onChange({
+                ...run,
+                phase: 'discover',
+                checks: [],
+                kept: false,
+                reviewing: true,
+                replaced: null,
+              })
             }
           >
             Change the outcomes

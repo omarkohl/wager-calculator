@@ -2,7 +2,7 @@
 
 ## Next step
 
-22b.
+23.
 
 ## Stack
 
@@ -33,6 +33,7 @@
 - 20: howsure/20-bucketing, PR #111 (base howsure/19-insights)
 - 21a: howsure/21a-outcomes, PR #112 (base howsure/20-bucketing)
 - 21b: howsure/21b-numbers, PR #113 (base howsure/21a-outcomes)
+- 22a: howsure/22a-spot-checks, PR #114 (base howsure/21b-numbers)
 
 ## Log
 
@@ -459,6 +460,14 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   outcome nothing is asked and the sketch follows. Every check screen has "Change the outcomes"
   and "Start again". 22b: a "yes" to completeness must offer "Everything else" again.
 
+- **Step 22b (help to fix)**: each problem on the verdict screen has its fixes (`ListFixes`,
+  pure parts in `fixes.ts`): rename both outcomes; merge them (new id, the likelier tier, or the
+  sum of the percents capped at 99.99); replace one with narrower outcomes (it is removed, the
+  user adds the new ones); for a gap "Add “Everything else”" (also after it was declined; asks
+  for a percent in the numbers view) or "Add another outcome". Every fix returns to the list with
+  the checks reset and the "read the whole list again" reminder. Chromium E2E: outcomes spec 4
+  tests, axe on the merge form.
+
 ## Decisions
 
 - Step 21b: the view can be switched only while the list is empty (an outcome has either a
@@ -495,6 +504,9 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 22b: with two problems on the verdict screen both fix forms can be open (each takes
+  focus when opened); only one is expected in practice. Close-the-other is a small change if wanted.
 
 - Step 22a: the checks run on every close of the list, also after small edits (no memory of
   "already checked this pair"); decide whether a changed list should re-ask only checks that

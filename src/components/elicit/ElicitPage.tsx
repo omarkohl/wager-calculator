@@ -144,6 +144,7 @@ export default function ElicitPage() {
         checks: [],
         kept: false,
         reviewing: false,
+        replaced: null,
       }
       saveMultiRun(started)
       setMulti(started)
