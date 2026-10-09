@@ -9,6 +9,7 @@ import {
   saveRun,
   type RunData,
 } from '../../storage/elicitation'
+import { decodeWagerFromHash } from '../../storage/urlHash'
 import { answerQuestion, nextFlowQuestion } from './runFlow'
 
 beforeEach(() => {
@@ -393,5 +394,25 @@ describe('ElicitPage shared links', () => {
     saveRun({ ...run, stopped: true })
     render(<ElicitPage />)
     expect(screen.getByRole('button', { name: 'Copy result link' })).toBeInTheDocument()
+  })
+
+  it('"Bet on this" opens a fresh wager on the wager page, with the provenance in the history entry', async () => {
+    localStorage.setItem('howsure.stake', JSON.stringify({ amount: '10', currency: 'eur' }))
+    saveRun(finishedQuickRun())
+    render(<ElicitPage />)
+    await userEvent.click(screen.getByRole('button', { name: 'Bet on this' }))
+    expect(window.location.pathname).toBe('/wager')
+    const wager = decodeWagerFromHash(window.location.hash)!
+    expect(wager.claim).toBe('The bridge opens')
+    expect(wager.details).toBe('By noon')
+    expect(wager.stakes).toBe('eur')
+    // finishedQuickRun has an adjusted value of 55
+    const mine = wager.predictions.filter(p => p.participantId === wager.participants[0].id)
+    expect(mine.map(p => p.probability.toString())).toEqual(['55', '45'])
+    expect((window.history.state as { provenance: string }).provenance).toMatch(
+      / from elicitation$/
+    )
+    // the run in the tab is left alone
+    expect(loadRun()!.claim).toBe('The bridge opens')
   })
 })

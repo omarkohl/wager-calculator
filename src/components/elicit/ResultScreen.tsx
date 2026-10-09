@@ -1,6 +1,8 @@
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import Decimal from 'decimal.js'
 import { describeBand, describeGap } from '../../domain/elicitation/format'
-import { formatPercent } from '../../domain/elicitation/logOdds'
+import { handoffProbability } from '../../domain/elicitation/handoff'
+import { formatPercent, type Band } from '../../domain/elicitation/logOdds'
 import AdjustBelief from './AdjustBelief'
 import ShareLinks from './ShareLinks'
 import { buildTrace, type RunTrace, type TraceStep } from '../../domain/elicitation/trace'
@@ -19,6 +21,8 @@ interface ResultScreenProps {
   onStartAgain?: () => void
   /** Builders for the share links; without them there is no Share section. */
   share?: { invite: () => string; result: () => string }
+  /** "Bet on this": hand the belief over to the wager calculator. */
+  onBet?: (bet: { probability: Decimal; band: Band }) => void
   /** Set on a shared result: start the gate from its claim. */
   onElicitOwn?: () => void
 }
@@ -91,6 +95,7 @@ export default function ResultScreen({
   onRerun,
   onStartAgain,
   share,
+  onBet,
   onElicitOwn,
 }: ResultScreenProps) {
   // A shared result is someone else's: its wording does not say "you"
@@ -103,6 +108,17 @@ export default function ResultScreen({
   const headingId = useId()
   const criteriaId = useId()
   const criteriaRef = useRef<HTMLTextAreaElement>(null)
+  const adjustRef = useRef<HTMLInputElement>(null)
+  // Why "Bet on this" did not go anywhere, if it did not: the adjusted field needs attention
+  const [blocked, setBlocked] = useState<'one-sided' | 'invalid' | null>(null)
+  const [textValid, setTextValid] = useState(true)
+  const [lastAdjusted, setLastAdjusted] = useState(run.adjusted)
+  if (lastAdjusted !== run.adjusted) {
+    // The value changed: whatever was said about it earlier no longer applies
+    setLastAdjusted(run.adjusted)
+    setBlocked(null)
+  }
+  const adjustedHintId = useId()
 
   // Dropping or restoring an answer removes the button that had focus: land on the new result
   const droppedKey = run.dropped.join(',')
@@ -282,6 +298,11 @@ export default function ResultScreen({
           adjusted={run.adjusted}
           onChange={onAdjusted}
           other={other}
+          inputRef={adjustRef}
+          onTextValidity={valid => {
+            setTextValid(valid)
+            if (valid) setBlocked(null)
+          }}
         />
       )}
 
@@ -334,6 +355,46 @@ export default function ResultScreen({
       )}
 
       {!isHard && criteriaField}
+
+      {onBet && result && (
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!textValid) {
+                // The field shows something that is not a value: do not bet on an older one
+                setBlocked('invalid')
+                adjustRef.current?.focus()
+                return
+              }
+              const probability = handoffProbability(result.pointEstimate, run.adjusted)
+              if (probability === null) {
+                // One-sided and not adjusted: there is no number to bet on yet
+                setBlocked('one-sided')
+                adjustRef.current?.focus()
+                return
+              }
+              onBet({ probability, band: result.band })
+            }}
+            aria-describedby={blocked ? adjustedHintId : undefined}
+            className={PRIMARY}
+          >
+            Bet on this
+          </button>
+          {blocked === 'one-sided' && (
+            <p id={adjustedHintId} role="alert" className="mt-2 text-sm text-gray-800">
+              Your answers only bound one side, so there is no single number yet. Set your own
+              belief above, then bet on it.
+            </p>
+          )}
+          {blocked === 'invalid' && (
+            // the field announces its own error; this says why the button did nothing
+            <p id={adjustedHintId} className="mt-2 text-sm text-gray-800">
+              The adjusted belief above is not a percentage yet. Fix it, then bet.
+            </p>
+          )}
+        </div>
+      )}
 
       {share && (result || span) && <ShareLinks invite={share.invite} result={share.result} />}
 

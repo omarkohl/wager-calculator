@@ -22,9 +22,11 @@ describe('Site routing', () => {
     expect(link).toHaveAttribute('href', '/wager')
   })
 
-  it('does not link the elicitation tool yet', () => {
+  it('links the elicitation tool from the landing page', () => {
     render(<Site />)
-    expect(screen.queryByRole('link', { name: /elicit/i })).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole('main')).getByRole('link', { name: 'How sure are you?' })
+    ).toHaveAttribute('href', '/elicit')
   })
 
   it('follows the link without a reload', async () => {
@@ -92,7 +94,10 @@ describe('Site routing', () => {
         'href',
         '/wager'
       )
-      expect(within(nav).queryByRole('link', { name: /elicit/i })).not.toBeInTheDocument()
+      expect(within(nav).getByRole('link', { name: 'How sure are you?' })).toHaveAttribute(
+        'href',
+        '/elicit'
+      )
       expect(screen.getAllByRole('main')).toHaveLength(1)
       expect(screen.getByRole('contentinfo')).toBeInTheDocument()
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)

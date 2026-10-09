@@ -13,6 +13,8 @@ interface PredictionsGridProps {
   outcomes: Outcome[]
   predictions: Prediction[]
   onChange: (predictions: Prediction[]) => void
+  /** Where the first participant's numbers came from ("45–62% from elicitation"). */
+  provenance?: string | null
 }
 
 export default function PredictionsGrid({
@@ -20,6 +22,7 @@ export default function PredictionsGrid({
   outcomes,
   predictions,
   onChange,
+  provenance,
 }: PredictionsGridProps) {
   const getPrediction = (participantId: string, outcomeId: string): Prediction => {
     return (
@@ -42,7 +45,7 @@ export default function PredictionsGrid({
 
   return (
     <div className="space-y-6">
-      {participants.map(participant => {
+      {participants.map((participant, participantIndex) => {
         const total = participantTotal(predictions, participant.id)
         const showWarning = !isCompleteTotal(total)
 
@@ -51,6 +54,9 @@ export default function PredictionsGrid({
             <h3 className="mb-4 text-sm font-semibold text-gray-900">
               {participant.name || 'Unnamed participant'}
             </h3>
+            {provenance && participantIndex === 0 && (
+              <p className="-mt-2 mb-3 text-sm text-gray-600">{provenance}</p>
+            )}
 
             <div className="space-y-3">
               {outcomes.map(outcome => {

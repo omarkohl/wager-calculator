@@ -2,7 +2,7 @@
 
 ## Next step
 
-15.
+15b.
 
 ## Stack
 
@@ -22,6 +22,7 @@
 - 11b: howsure/11b-questions, PR #100 (base howsure/11a-lottery)
 - 12: howsure/12-result, PR #101 (base howsure/11b-questions)
 - 13: howsure/13-adjust, PR #102 (base howsure/12-result)
+- 14: howsure/14-sharing, PR #103 (base howsure/13-adjust)
 
 ## Log
 
@@ -266,6 +267,23 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   share link is built at render (a changed result says "Copy it again") and the status is
   cleared while copying so a repeat is announced; a result of only "can't separate" answers
   can be shared too.
+- **Step 15a (handoff and launch)**: step 15 split in PLAN.md: 15a is this commit, 15b is
+  the FAQ entries for tool 2 and the full `make precommit`. `/elicit` is now in the nav
+  ("How sure are you?", the placeholder name) and on the landing page. "Bet on this" (own
+  results only) builds a fresh wager with `domain/elicitation/handoff.ts`: claim, criteria as
+  details, the gate's currency as stakes (default if none), Yes/No, first participant Yes = p
+  and No = 100 - p at two decimals summing to exactly 100 (touched), the other participant
+  left to the wager calculator. p is the adjusted value if set, else the point estimate. It
+  goes to `/wager` in the wager's own URL hash (`navigation.ts` `navigate`), with the
+  provenance ("45-62% from elicitation", from `describeBand`) in the history entry's state.
+  `App` reads it once, shows it under the first participant's name, and takes it out of the
+  history entry at once; it disappears as soon as the first participant's numbers change,
+  and is gone after a reload (the wager URL format is unchanged). One-sided band without an
+  adjusted value: "Bet on this" does not go anywhere, shows "Set your own belief above"
+  (an alert) and focuses the adjusted field. The elicitation run in the tab is left alone.
+  Chromium E2E (local workaround config): 42 tests, including `e2e/elicit-to-wager.spec.ts`
+  (landing -> gate -> questions -> result -> adjusted -> wager, the point-estimate path, the
+  one-sided path, reload).
 
 ## Decisions
 
@@ -288,6 +306,19 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 15a (for the PR text): clicking "Bet on this" puts the claim, criteria, stake and the
+  first participant's numbers in the address bar, because the wager calculator's URL is its
+  state. That is the one place the claim reaches the address bar from the elicitation without
+  an explicit share; the provenance ("45-62% from elicitation") is not in the URL. Also:
+  "Bet on this" refuses while the adjusted field shows text that is not a percentage, so it
+  never bets on an older valid value.
+
+- Step 15a: the handoff button ("Bet on this", under the result) and the provenance line under
+  the first participant's name are a first simple version. Open: the provenance wording, whether
+  it should also show the adjusted value or the point estimate, whether the handed-over
+  wager should carry the stake amount (it does not: the amount has no effect on any output),
+  and whether "Bet on this" should also be offered on a shared result.
 
 - Step 14: the share section (two buttons, a note, the link shown below) and the shared-result
   banner are a first simple version. Open: whether the claim should stay editable when

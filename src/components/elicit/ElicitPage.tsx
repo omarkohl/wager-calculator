@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { CURRENCY_OPTIONS } from '../../domain/stakes'
+import { buildHandoff } from '../../domain/elicitation/handoff'
+import { navigate } from '../../navigation'
+import { pathFor } from '../../routes'
+import { encodeWagerToHash } from '../../storage/urlHash'
 import type { Choice } from '../../domain/elicitation/bandRule'
 import {
   clearRun,
@@ -188,6 +192,19 @@ export default function ElicitPage() {
           }}
           onStartAgain={startAgain}
           share={{ invite: () => inviteLink(run), result: () => resultLink(run) }}
+          onBet={({ probability, band }) => {
+            const { wager, provenance } = buildHandoff({
+              claim: run.claim,
+              criteria: run.criteria,
+              currency: getSavedElicitStake()?.currency ?? null,
+              probability,
+              band,
+            })
+            // The provenance rides in the history entry: transient, gone on the first edit or reload
+            navigate(`${pathFor('wager', import.meta.env.BASE_URL)}${encodeWagerToHash(wager)}`, {
+              provenance,
+            })
+          }}
         />
       )}
     </div>
