@@ -11,8 +11,8 @@ on:
       - '.claude/**'
       - '*.md'
       - 'LICENSE'
+  # Any base branch, so PRs stacked on other PRs get checked too.
   pull_request:
-    branches: [main]
     paths-ignore:
       - 'docs/**'
       - 'design/**'
