@@ -8,17 +8,24 @@ import {
   DisclosurePanel,
 } from '@headlessui/react'
 import { ChevronDownIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline'
-import { FAQ_ENTRIES, type FaqId } from './faq'
+import { FAQ_ENTRIES, type FaqEntry } from './faq'
 
 interface HelpModalProps {
   isOpen: boolean
   onClose: () => void
-  openFaqId?: FaqId | null
+  openFaqId?: string | null
+  /** The questions to show; each tool brings its own. Defaults to the wager calculator's. */
+  entries?: readonly FaqEntry[]
 }
 
-export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps) {
-  const questionRefs = useRef<Partial<Record<FaqId, HTMLButtonElement | null>>>({})
-  const [copiedFaqId, setCopiedFaqId] = useState<FaqId | null>(null)
+export default function HelpModal({
+  isOpen,
+  onClose,
+  openFaqId,
+  entries = FAQ_ENTRIES,
+}: HelpModalProps) {
+  const questionRefs = useRef<Partial<Record<string, HTMLButtonElement | null>>>({})
+  const [copiedFaqId, setCopiedFaqId] = useState<string | null>(null)
 
   // Scroll to the requested question once the modal and its disclosures have rendered
   useEffect(() => {
@@ -38,7 +45,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
     }
   }, [copiedFaqId])
 
-  const handleCopyLink = async (faqId: FaqId, e: React.MouseEvent) => {
+  const handleCopyLink = async (faqId: string, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent disclosure toggle
     const url = `${window.location.origin}${window.location.pathname}#faq=${faqId}`
     try {
@@ -69,7 +76,7 @@ export default function HelpModal({ isOpen, onClose, openFaqId }: HelpModalProps
           </div>
 
           <div className="space-y-3">
-            {FAQ_ENTRIES.map(entry => (
+            {entries.map(entry => (
               <Disclosure key={entry.id} defaultOpen={openFaqId === entry.id}>
                 {({ open }) => (
                   <>

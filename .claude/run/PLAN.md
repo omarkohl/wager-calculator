@@ -82,7 +82,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       the legacy redirect (`/#v=2…`, v1, `#faq=` → `/wager#…`), unknown paths → a
       not-found message with a link home. Analytics path per route. E2E specs move to
       `/wager`; new E2E: a v2 and a v1 legacy link open the wager unchanged.
-- [ ] 3. **Shared shell**: header with nav, shared footer, `<title>` per route, focus
+- [x] 3. **Shared shell**: header with nav, shared footer, `<title>` per route, focus
       to the page heading and an announcement on route change. The help/FAQ modal
       accepts per-tool content. The wager looks as before. axe scan of every route.
 

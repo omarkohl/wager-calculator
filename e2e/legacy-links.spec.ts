@@ -49,12 +49,12 @@ test.describe('Links from before the site had routes', () => {
     page,
   }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: 'Wager Calculator' }).click()
+    await page.getByRole('main').getByRole('link', { name: 'Wager Calculator' }).click()
     await expect(page).toHaveURL(/\/wager$/)
 
     await page.goto('/no-such-page')
     await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible()
-    await page.getByRole('link', { name: /home/i }).click()
+    await page.getByRole('main').getByRole('link', { name: /home/i }).click()
     await expect(page).toHaveURL(/\/$/)
   })
 })
