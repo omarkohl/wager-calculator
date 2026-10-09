@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { describeBand } from '../../domain/elicitation/format'
+import { describeBand, describeGap } from '../../domain/elicitation/format'
 import { formatPercent } from '../../domain/elicitation/logOdds'
+import AdjustBelief from './AdjustBelief'
 import { buildTrace, type RunTrace, type TraceStep } from '../../domain/elicitation/trace'
 import { MAX_TEXT_LENGTH, type RunData } from '../../storage/elicitation'
 
@@ -12,6 +13,7 @@ interface ResultScreenProps {
   onDrop?: (index: number) => void
   onRestore?: (index: number) => void
   onCriteria?: (criteria: string) => void
+  onAdjusted?: (adjusted: string | null) => void
   onRerun?: () => void
   onStartAgain?: () => void
 }
@@ -23,8 +25,20 @@ const PRIMARY =
 
 function buildTraceFor(run: RunData): RunTrace {
   return run.mode === 'quick'
-    ? buildTrace({ mode: 'quick', seed: run.seed, answers: run.answers, dropped: run.dropped })
-    : buildTrace({ mode: 'thorough', seed: run.seed, answers: run.answers, dropped: run.dropped })
+    ? buildTrace({
+        mode: 'quick',
+        seed: run.seed,
+        answers: run.answers,
+        dropped: run.dropped,
+        adjusted: run.adjusted,
+      })
+    : buildTrace({
+        mode: 'thorough',
+        seed: run.seed,
+        answers: run.answers,
+        dropped: run.dropped,
+        adjusted: run.adjusted,
+      })
 }
 
 /** "a 40% spinner", "an 8% spinner", "an 18% spinner". */
@@ -65,6 +79,7 @@ export default function ResultScreen({
   onDrop,
   onRestore,
   onCriteria,
+  onAdjusted,
   onRerun,
   onStartAgain,
 }: ResultScreenProps) {
@@ -205,6 +220,17 @@ export default function ResultScreen({
         )}
       </div>
 
+      {result && (onAdjusted || run.adjusted !== null) && (
+        <AdjustBelief
+          // a fresh field when the result underneath changes (a drop moves the band)
+          key={`${result.band.lo?.toString()}-${result.band.hi?.toString()}`}
+          band={result.band}
+          pointEstimate={result.pointEstimate}
+          adjusted={run.adjusted}
+          onChange={onAdjusted}
+        />
+      )}
+
       {result?.subadditivity && (
         <div role="note" className="rounded-lg bg-blue-50 p-4 text-gray-800">
           <h3 className="font-semibold">Something to ponder</h3>
@@ -293,6 +319,13 @@ export default function ResultScreen({
             </li>
           ))}
         </ol>
+        {trace.adjustment && (
+          <p className="mt-3 border-t border-gray-200 pt-3 text-gray-800">
+            Your answers implied {describeBand(trace.adjustment.implied)}. You then set your belief
+            to {trace.adjustment.adjusted.times(100).toString()}%.{' '}
+            {describeGap(trace.adjustment.gap)}
+          </p>
+        )}
       </details>
     </section>
   )

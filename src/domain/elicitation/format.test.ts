@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeBand } from './format'
+import { adjustmentGap, defaultAdjusted, describeBand, describeGap, parseAdjusted } from './format'
 import { bandAbove, bandBelow, bandBetween } from './logOdds'
 
 describe('describeBand', () => {
@@ -21,5 +21,68 @@ describe('describeBand', () => {
 
   it('has a fallback for no bounds', () => {
     expect(describeBand({ lo: null, hi: null })).toBe('no range yet')
+  })
+})
+
+describe('adjustmentGap and describeGap', () => {
+  const band = bandBetween(0.4, 0.6)
+
+  it('is no gap inside the band, edges included', () => {
+    for (const v of [0.4, 0.5, 0.6]) expect(adjustmentGap(v, band)).toBe('inside')
+  })
+
+  it('says above or below outside it', () => {
+    expect(adjustmentGap(0.61, band)).toBe('above')
+    expect(adjustmentGap(0.39, band)).toBe('below')
+  })
+
+  it('only knows the side a one-sided band bounds', () => {
+    expect(adjustmentGap(0.99, bandAbove(0.52))).toBe('inside')
+    expect(adjustmentGap(0.3, bandAbove(0.52))).toBe('below')
+    expect(adjustmentGap(0.01, bandBelow(0.2))).toBe('inside')
+    expect(adjustmentGap(0.5, bandBelow(0.2))).toBe('above')
+  })
+
+  it('words the gap neutrally', () => {
+    expect(describeGap('above')).toBe('You set this above what your answers implied.')
+    expect(describeGap('below')).toBe('You set this below what your answers implied.')
+    for (const gap of ['above', 'below', 'inside'] as const) {
+      expect(describeGap(gap)).not.toMatch(/wrong|should|mistake|error|irrational|too /i)
+    }
+  })
+})
+
+describe('parseAdjusted and defaultAdjusted', () => {
+  it('accepts a percentage with up to two decimals and writes it without trailing zeros', () => {
+    expect(parseAdjusted('47.5')).toBe('47.5')
+    expect(parseAdjusted(' 47.50 ')).toBe('47.5')
+    expect(parseAdjusted('07')).toBe('7')
+    expect(parseAdjusted('0.05')).toBe('0.05')
+    expect(parseAdjusted('99.99')).toBe('99.99')
+  })
+
+  it('rejects everything else', () => {
+    for (const text of [
+      '',
+      ' ',
+      '0',
+      '0.00',
+      '100',
+      '120',
+      '-5',
+      'abc',
+      '4,5',
+      '1.234',
+      '12%',
+      '.5',
+    ])
+      expect(parseAdjusted(text), text).toBeNull()
+  })
+
+  it('shows the point estimate in percent with at most two decimals', () => {
+    expect(defaultAdjusted(0.5)).toBe('50')
+    expect(defaultAdjusted(0.5768)).toBe('57.68')
+    expect(defaultAdjusted(0.0324)).toBe('3.24')
+    expect(parseAdjusted(defaultAdjusted(0.0324))).toBe('3.24')
   })
 })

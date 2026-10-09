@@ -294,3 +294,43 @@ describe('buildTrace details', () => {
     expect(t.result).toEqual(base.result)
   })
 })
+
+describe('buildTrace adjustment', () => {
+  const answers = [claim(0.4), wedge(0.6)]
+
+  it('keeps what the answers implied beside what the user set, with the gap', () => {
+    const t = buildTrace({ mode: 'quick', seed: 's', answers, adjusted: '75' })
+    expect(t.adjustment).not.toBeNull()
+    expect(n(t.adjustment!.adjusted)).toBe(0.75)
+    expect([n(t.adjustment!.implied.lo), n(t.adjustment!.implied.hi)]).toEqual([0.4, 0.6])
+    expect(t.adjustment!.impliedPointEstimate!.toNumber()).toBeCloseTo(0.5, 10)
+    expect(t.adjustment!.gap).toBe('above')
+    expect(buildTrace({ mode: 'quick', seed: 's', answers, adjusted: '45' }).adjustment!.gap).toBe(
+      'inside'
+    )
+    expect(buildTrace({ mode: 'quick', seed: 's', answers, adjusted: '10' }).adjustment!.gap).toBe(
+      'below'
+    )
+  })
+
+  it('has none when nothing was set, when it is invalid, or when there is no band', () => {
+    expect(buildTrace({ mode: 'quick', seed: 's', answers }).adjustment).toBeNull()
+    expect(buildTrace({ mode: 'quick', seed: 's', answers, adjusted: null }).adjustment).toBeNull()
+    expect(buildTrace({ mode: 'quick', seed: 's', answers, adjusted: 'abc' }).adjustment).toBeNull()
+    expect(
+      buildTrace({ mode: 'quick', seed: 's', answers: [unsure(0.5)], adjusted: '50' }).adjustment
+    ).toBeNull()
+  })
+
+  it('compares against the band of the kept answers', () => {
+    const all = [claim(0.4), wedge(0.6), claim(0.7)]
+    const t = buildTrace({ mode: 'quick', seed: 's', answers: all, dropped: [2], adjusted: '75' })
+    expect(t.adjustment!.gap).toBe('above')
+  })
+
+  it('a one-sided band gives a gap only on the side it bounds', () => {
+    const t = buildTrace({ mode: 'quick', seed: 's', answers: [claim(0.5)], adjusted: '90' })
+    expect(t.adjustment!.impliedPointEstimate).toBeNull()
+    expect(t.adjustment!.gap).toBe('inside')
+  })
+})

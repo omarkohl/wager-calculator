@@ -110,8 +110,21 @@ export default function ElicitPage() {
             setRun({ ...run, criteria })
             setFocusNext(false)
           }}
+          onAdjusted={adjusted => {
+            // Typing is not an "arrival": keep focus where it is
+            saveRun({ ...run, adjusted })
+            setRun({ ...run, adjusted })
+            setFocusNext(false)
+          }}
           onRerun={() => {
-            const fresh = { ...run, seed: generateSeed(), dropped: [], stopped: undefined }
+            // A new run starts clean: an old adjusted belief says nothing about the new answers
+            const fresh = {
+              ...run,
+              seed: generateSeed(),
+              dropped: [],
+              adjusted: null,
+              stopped: undefined,
+            }
             update(
               run.mode === 'quick'
                 ? { ...fresh, mode: 'quick', answers: [] }

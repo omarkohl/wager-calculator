@@ -37,7 +37,9 @@ test.describe('Elicitation result', () => {
     await expect(
       page.getByRole('heading', { name: /Your answers say the chance is/ })
     ).toBeFocused()
-    await expect(page.getByText(/^\d+(\.\d)?–\d+(\.\d)?%$|^(about|above|below) /)).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: /chance is (\d+(\.\d)?–\d+(\.\d)?%|(about|above|below) )/ })
+    ).toBeVisible()
     await expect(page.getByText(/Best single guess: \d/)).toBeVisible()
     await expect(page.getByRole('textbox', { name: /Resolution criteria/ })).toBeVisible()
     // the claim stays out of the address bar
@@ -144,11 +146,64 @@ test.describe('Elicitation result', () => {
     ).toBeVisible()
   })
 
+  test('the user can set their own belief beside what the answers imply, and it stays', async ({
+    page,
+  }) => {
+    await startRun(page, 'Quick')
+    await answerAll(page, true)
+
+    await expect(page.getByText('Your answers imply')).toBeVisible()
+    const field = page.getByRole('textbox', { name: 'Your adjusted belief (%)' })
+    // it starts at the point estimate
+    const guess = /Best single guess: ([\d.]+)%/.exec(
+      (await page.getByText(/Best single guess/).textContent())!
+    )![1]
+    // (the headline rounds for reading; the field keeps two decimals)
+    expect(Math.abs(Number(await field.inputValue()) - Number(guess))).toBeLessThan(0.51)
+
+    await field.fill('97')
+    await expect(
+      page.getByText('You set this above what your answers implied.', { exact: true })
+    ).toBeVisible()
+    await field.fill('3')
+    await expect(
+      page.getByText('You set this below what your answers implied.', { exact: true })
+    ).toBeVisible()
+
+    // an invalid value is flagged once the field is left, and the last valid one stays
+    await field.fill('abc')
+    await field.blur()
+    await expect(page.getByRole('alert')).toContainText(/above 0 and below 100/)
+    await field.fill('62.5')
+    await expect(page.getByRole('alert')).toHaveCount(0)
+
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
+
+    await page.reload()
+    await expect(page.getByRole('textbox', { name: 'Your adjusted belief (%)' })).toHaveValue(
+      '62.5'
+    )
+    // both values are in the trace
+    await page.getByText('Show the full trace of your answers').click()
+    await expect(
+      page.getByText(/Your answers implied .* You then set your belief to 62\.5%/)
+    ).toBeVisible()
+  })
+
+  test('a one-sided result starts with an empty adjusted belief', async ({ page }) => {
+    await startRun(page, 'Quick')
+    await page.getByRole('button', { name: /if this is true/ }).click()
+    await page.getByRole('button', { name: 'Stop here' }).click()
+    await expect(page.getByRole('textbox', { name: 'Your adjusted belief (%)' })).toHaveValue('')
+    await expect(page.getByText(/there is no starting value/)).toBeVisible()
+  })
+
   test('stopping after the first answer gives a coarse, one-sided result', async ({ page }) => {
     await startRun(page, 'Quick')
     await page.getByRole('button', { name: /if this is true/ }).click()
     await page.getByRole('button', { name: 'Stop here' }).click()
-    await expect(page.getByText(/^(above|below) /)).toBeVisible()
+    await expect(page.getByRole('heading', { name: /chance is (above|below) / })).toBeVisible()
     await expect(page.getByText(/No single best guess/)).toBeVisible()
     await expect(page.getByText(/This is coarse/)).toBeVisible()
   })

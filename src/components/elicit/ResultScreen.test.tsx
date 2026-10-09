@@ -105,6 +105,23 @@ describe('ResultScreen', () => {
     expect(screen.getByRole('heading', { name: /Your answers say/ })).toHaveFocus()
   })
 
+  it('shows an adjusted belief set earlier, read-only, and keeps it in the trace', async () => {
+    const run = { ...play('quick', coherent(0.4, 0.6)), adjusted: '80' } as RunData
+    render(<ResultScreen run={run} {...props} />)
+    expect(screen.getByText('Your answers imply')).toBeInTheDocument()
+    expect(screen.getByText('80%')).toBeInTheDocument()
+    expect(screen.getByText('You set this above what your answers implied.')).toBeInTheDocument()
+    await userEvent.click(screen.getByText('Show the full trace of your answers'))
+    expect(
+      screen.getByText(/Your answers implied .* You then set your belief to 80%\./)
+    ).toBeInTheDocument()
+  })
+
+  it('offers the adjusted belief only when it can be edited or has been set', () => {
+    render(<ResultScreen run={play('quick', coherent(0.4, 0.6))} {...props} />)
+    expect(screen.queryByText('Your answers imply')).not.toBeInTheDocument()
+  })
+
   it('is read-only without handlers', () => {
     render(<ResultScreen run={play('quick', coherent(0.4, 0.6))} {...props} />)
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()

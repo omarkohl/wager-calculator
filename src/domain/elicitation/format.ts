@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import { type Band, formatPercent } from './logOdds'
 
 /**
@@ -14,4 +15,47 @@ export function describeBand(band: Band): string {
   if (lo) return `above ${formatPercent(lo)}`
   if (hi) return `below ${formatPercent(hi)}`
   return 'no range yet'
+}
+
+/** Where the user's own value sits against what the answers imply. */
+export type AdjustmentGap = 'inside' | 'above' | 'below'
+
+/**
+ * Compare the adjusted value with the elicited band. Inside the band (edges
+ * included) is no gap; a one-sided band only has the side it bounds.
+ */
+export function adjustmentGap(adjusted: Decimal.Value, band: Band): AdjustmentGap {
+  const value = new Decimal(adjusted)
+  if (band.hi && value.gt(band.hi)) return 'above'
+  if (band.lo && value.lt(band.lo)) return 'below'
+  return 'inside'
+}
+
+/** The gap in neutral words: it describes, it does not judge. */
+export function describeGap(gap: AdjustmentGap): string {
+  switch (gap) {
+    case 'above':
+      return 'You set this above what your answers implied.'
+    case 'below':
+      return 'You set this below what your answers implied.'
+    default:
+      return 'You set this within what your answers implied.'
+  }
+}
+
+/**
+ * The adjusted value as the field shows and stores it: a percentage with at most two
+ * decimals, strictly between 0 and 100, no trailing zeros ("47.5"). Null if the text
+ * is not one.
+ */
+export function parseAdjusted(text: string): string | null {
+  const trimmed = text.trim()
+  if (!/^\d{1,2}(\.\d{1,2})?$/.test(trimmed)) return null
+  const value = new Decimal(trimmed)
+  return value.gt(0) && value.lt(100) ? value.toString() : null
+}
+
+/** What an untouched adjusted field shows: the point estimate in percent, two decimals at most. */
+export function defaultAdjusted(pointEstimate: Decimal.Value): string {
+  return new Decimal(pointEstimate).times(100).toDecimalPlaces(2).toString()
 }
