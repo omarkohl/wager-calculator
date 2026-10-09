@@ -2,7 +2,7 @@
 
 ## Next step
 
-4.
+5.
 
 ## Stack
 
@@ -10,6 +10,7 @@
 
 - 1: `howsure/01-base-path`, PR #89 (base `main`)
 - 2: howsure/02-routes, PR #90 (base howsure/01-base-path)
+- 3: howsure/03-shell, PR #91 (base howsure/02-routes)
 
 ## Log
 
@@ -50,12 +51,24 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   two `role="status"` regions (the shell's announcer and the calculator's toast), so
   tests must filter by text. Clicking the nav link of the current page does nothing
   (a push would drop the hash holding the wager).
+- **Step 4 (log-odds core)**: `src/domain/elicitation/constants.ts` holds every settled
+  value (targets, contradiction threshold, grid, probes, caps, spot checks, tier sketch,
+  opening range); `logOdds.ts` has `logit`/`expit` (decimal.js, RangeError outside the open
+  interval), the grid clamp and `stepWedge`, the percent boundary (`fromPercent`,
+  `toPercent`, `formatPercent`) and the one-sided-capable `Band` (`bandBetween`,
+  `bandWidthLogit`, `bandMidpoint`; null width/midpoint when one-sided). Display rounding:
+  whole percent when the nearer tail is >= 10%, one decimal down to 0.1%, two beyond.
+  `snapToGrid`/`stepWedge` put wedges on that same grid, so the label is the exact value;
+  p and 1 - p display as complements.
 
 ## Decisions
 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Pre-existing, untouched: the wager's cap of 8 outcomes is a literal `8` in the
+  components; `MAX_OUTCOMES` in the elicitation constants duplicates it.
 
 - Step 1/2: `start_url` is the base, so installed PWAs now open on the landing page, not
   the calculator.
