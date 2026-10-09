@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import OutcomeDiscovery from './OutcomeDiscovery'
-import { emptyOutcomeList } from '../../domain/elicitation/model'
+import { addOutcome, emptyOutcomeList } from '../../domain/elicitation/model'
 import type { MultiRunData } from '../../storage/multiRun'
 
 const START: MultiRunData = {
@@ -19,6 +19,7 @@ const START: MultiRunData = {
   checks: [],
   kept: false,
   reviewing: false,
+  replaced: null,
 }
 
 function Harness({
@@ -416,6 +417,196 @@ describe('OutcomeDiscovery', () => {
       await user.click(screen.getByRole('button', { name: 'Change the outcomes' }))
       await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
       expect(screen.queryByRole('note')).toBeNull()
+    })
+
+    describe('help to fix', () => {
+      async function overlapping(user: ReturnType<typeof userEvent.setup>) {
+        await add(user, 'Rain', 'likely')
+        await add(user, 'Wet', 'plausible')
+        await add(user, 'Sun', 'unlikely')
+        await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+        // Yes to every pair, no to completeness: the first pair shown is a problem
+        for (;;) {
+          const yes = screen.queryByRole('button', { name: 'Yes, both can happen' })
+          if (!yes) break
+          await user.click(yes)
+        }
+        await user.click(screen.getByRole('button', { name: 'No, one of these will happen' }))
+      }
+      const outcomes = () =>
+        within(screen.getByRole('list', { name: 'Outcomes so far' }))
+          .getAllByRole('listitem')
+          .map(li => li.textContent)
+
+      it('renames the two outcomes in place and goes back to the list with the reminder', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await overlapping(user)
+        const [rename] = screen.getAllByRole('button', { name: /^Rename / })
+        await user.click(rename)
+        const fields = screen.getAllByRole('textbox', { name: /^New name for/ })
+        expect(fields[0]).toHaveFocus()
+        await user.clear(fields[0])
+        await user.type(fields[0], 'Rain all day')
+        await user.click(screen.getByRole('button', { name: 'Save names' }))
+        expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
+        expect(screen.getByRole('note')).toHaveTextContent(/Read the whole list again/)
+        expect(outcomes().join()).toMatch(/Rain all day/)
+      })
+
+      it('refuses a name another outcome has, and can be cancelled back to its button', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await overlapping(user)
+        const [rename] = screen.getAllByRole('button', { name: /^Rename / })
+        await user.click(rename)
+        const fields = screen.getAllByRole('textbox', { name: /^New name for/ })
+        // the first one takes the other's name
+        await user.clear(fields[0])
+        await user.type(fields[0], (fields[1] as HTMLInputElement).value)
+        await user.click(screen.getByRole('button', { name: 'Save names' }))
+        expect(screen.getByRole('alert')).toHaveTextContent(/already has that name/)
+        await user.click(screen.getByRole('button', { name: 'Cancel' }))
+        expect(screen.getAllByRole('button', { name: /^Rename / })[0]).toHaveFocus()
+      })
+
+      it('merges the two into one outcome in the likelier tier', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await overlapping(user)
+        const [merge] = screen.getAllByRole('button', { name: /^Merge “/ })
+        await user.click(merge)
+        const name = screen.getByRole('textbox', { name: 'Name of the merged outcome' })
+        await user.clear(name)
+        await user.type(name, 'Rain or wet')
+        await user.click(screen.getByRole('button', { name: 'Merge them' }))
+        expect(outcomes()).toHaveLength(2)
+        expect(outcomes().join()).toMatch(/Rain or wet — likely/)
+      })
+
+      it('replaces one with narrower outcomes: removes it and returns to the list', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await overlapping(user)
+        const [replace] = screen.getAllByRole('button', { name: /^Replace “/ })
+        await user.click(replace)
+        expect(outcomes()).toHaveLength(2)
+        expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
+      })
+
+      it('offers “Everything else” for a gap even after it was declined', async () => {
+        const user = userEvent.setup()
+        render(<Harness initial={{ ...START, declinedElse: true }} />)
+        await add(user, 'Rain', 'likely')
+        await add(user, 'Sun', 'plausible')
+        await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+        await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+        await user.click(screen.getByRole('button', { name: 'Yes, it could' }))
+        await user.click(screen.getByRole('button', { name: 'Add “Everything else”' }))
+        expect(outcomes().join()).toMatch(/Everything else — unlikely/)
+        expect(screen.getByRole('note')).toBeInTheDocument()
+      })
+
+      it('swaps the names of the two outcomes', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await overlapping(user)
+        await user.click(screen.getAllByRole('button', { name: /^Rename / })[0])
+        const fields = screen.getAllByRole('textbox', { name: /^New name for/ })
+        const [a, b] = fields.map(f => (f as HTMLInputElement).value)
+        await user.clear(fields[0])
+        await user.type(fields[0], b)
+        await user.clear(fields[1])
+        await user.type(fields[1], a)
+        await user.click(screen.getByRole('button', { name: 'Save names' }))
+        expect(outcomes().join()).toContain(`${b} —`)
+      })
+
+      it('refuses a name too long to store, and an empty one, with the reason', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await overlapping(user)
+        await user.click(screen.getAllByRole('button', { name: /^Merge “/ })[0])
+        const name = screen.getByRole('textbox', { name: 'Name of the merged outcome' })
+        expect(name).toHaveAttribute('maxlength', '2000')
+        await user.clear(name)
+        await user.click(screen.getByRole('button', { name: 'Merge them' }))
+        expect(screen.getByRole('alert')).toHaveTextContent('Give it a name first.')
+        // a pasted value bypasses maxlength in some browsers: the check still holds
+        fireEvent.change(name, { target: { value: 'x'.repeat(2001) } })
+        await user.click(screen.getByRole('button', { name: 'Merge them' }))
+        expect(screen.getByRole('alert')).toHaveTextContent(/Shorten the outcome to 2000/)
+      })
+
+      it('tells the user to add the narrower outcomes after a replacement', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await overlapping(user)
+        await user.click(screen.getAllByRole('button', { name: /^Replace “/ })[0])
+        expect(screen.getByRole('note')).toHaveTextContent(/Add the narrower outcomes that replace/)
+      })
+
+      it('puts the cursor on the notice when “Everything else” fills the list', async () => {
+        const user = userEvent.setup()
+        let l = emptyOutcomeList()
+        for (let i = 1; i <= 7; i++) l = addOutcome(l, `Outcome ${i}`, 'plausible')
+        render(<Harness initial={{ ...START, outcomes: l }} />)
+        await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+        for (let i = 0; i < 3; i++) {
+          await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+        }
+        await user.click(screen.getByRole('button', { name: 'Yes, it could' }))
+        await user.click(screen.getByRole('button', { name: 'Add “Everything else”' }))
+        expect(screen.getByText(/most outcomes the tool handles/)).toHaveFocus()
+      })
+
+      it('says the full list is fixed through “Change the outcomes”', async () => {
+        const user = userEvent.setup()
+        let l = emptyOutcomeList()
+        for (let i = 1; i <= 8; i++) l = addOutcome(l, `Outcome ${i}`, 'plausible')
+        render(<Harness initial={{ ...START, outcomes: l }} />)
+        await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+        for (let i = 0; i < 3; i++) {
+          await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+        }
+        await user.click(screen.getByRole('button', { name: 'Yes, it could' }))
+        expect(screen.getByText(/The list is full/)).toHaveTextContent(/Change the outcomes/)
+      })
+
+      it('asks for a percent when adding “Everything else” in the numbers view', async () => {
+        const user = userEvent.setup()
+        render(<Harness initial={{ ...START, view: 'numbers' }} />)
+        for (const [label, pct] of [
+          ['Rain', '60'],
+          ['Sun', '30'],
+        ]) {
+          await user.type(screen.getByRole('textbox', { name: 'Outcome' }), label)
+          await user.type(screen.getByRole('textbox', { name: 'Percent' }), pct)
+          await user.click(screen.getByRole('button', { name: 'Add outcome' }))
+        }
+        await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+        await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+        await user.click(screen.getByRole('button', { name: 'Yes, it could' }))
+        await user.click(screen.getByRole('button', { name: 'Add “Everything else”' }))
+        await user.click(screen.getByRole('button', { name: 'Add it' }))
+        expect(screen.getByRole('alert')).toHaveTextContent(/above 0 and below 100/)
+        await user.type(screen.getByRole('textbox', { name: /Percent for/ }), '10')
+        await user.click(screen.getByRole('button', { name: 'Add it' }))
+        expect(outcomes().join()).toMatch(/Everything else — 10%/)
+      })
+
+      it('adds another outcome by going back to the list', async () => {
+        const user = userEvent.setup()
+        render(<Harness />)
+        await add(user, 'Rain', 'likely')
+        await add(user, 'Sun', 'plausible')
+        await user.click(screen.getByRole('button', { name: /That is all the outcomes/ }))
+        await user.click(screen.getByRole('button', { name: 'No, only one can happen' }))
+        await user.click(screen.getByRole('button', { name: 'Yes, it could' }))
+        await user.click(screen.getByRole('button', { name: 'Add another outcome' }))
+        expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
+        expect(outcomes()).toHaveLength(2)
+      })
     })
   })
 })

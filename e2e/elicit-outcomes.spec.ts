@@ -139,4 +139,38 @@ test.describe('Several outcomes: discovery', () => {
     await page.getByRole('button', { name: 'Keep them as they are' }).click()
     await expect(page.getByRole('note')).toContainText('do not mean anything')
   })
+
+  test('help to fix: merge two overlapping outcomes, then check the list again', async ({
+    page,
+  }) => {
+    await page.goto('/elicit')
+    await page.getByRole('radio', { name: /One of several outcomes/ }).check()
+    await page.getByRole('textbox', { name: 'Claim' }).fill('What is the weather tomorrow?')
+    await page.getByRole('textbox', { name: 'Amount' }).fill('10')
+    await page.getByRole('button', { name: 'Start' }).click()
+    for (const [label, tier] of [
+      ['Rain', 'likely'],
+      ['Wet', 'plausible'],
+    ]) {
+      await page.getByRole('textbox', { name: 'Outcome' }).fill(label)
+      await page.getByRole('radio', { name: tier, exact: true }).check()
+      await page.getByRole('button', { name: 'Add outcome' }).click()
+    }
+    await page.getByRole('button', { name: 'That is all the outcomes' }).click()
+    await page.getByRole('button', { name: 'Yes, both can happen' }).click()
+    await page.getByRole('button', { name: 'Yes, it could' }).click()
+
+    await page.getByRole('button', { name: /^Merge “/ }).click()
+    await expect(page.getByRole('textbox', { name: 'Name of the merged outcome' })).toBeFocused()
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
+    await page.getByRole('textbox', { name: 'Name of the merged outcome' }).fill('Rain or wet')
+    await page.getByRole('button', { name: 'Merge them' }).click()
+
+    await expect(page.getByRole('textbox', { name: 'Outcome' })).toBeFocused()
+    await expect(page.getByRole('note')).toContainText('Read the whole list again')
+    const list = page.getByRole('list', { name: 'Outcomes so far' })
+    await expect(list.getByRole('listitem')).toHaveCount(1)
+    await expect(list).toContainText('Rain or wet')
+  })
 })

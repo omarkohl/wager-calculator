@@ -39,6 +39,7 @@ function sample(): MultiRunData {
     checks: answersFor(['o1', 'o2'], 'abc-1'),
     kept: false,
     reviewing: false,
+    replaced: null,
   }
 }
 
@@ -126,6 +127,15 @@ describe('multi-outcome run storage', () => {
       save(patch)
       expect(loadMultiRun()).toBeNull()
     })
+  })
+
+  it('keeps the outcome being replaced, and rejects a replaced that is not text', () => {
+    saveMultiRun({ ...sample(), phase: 'discover', checks: [], reviewing: true, replaced: 'Wet' })
+    expect(loadMultiRun()?.replaced).toBe('Wet')
+    const raw = JSON.parse(sessionStorage.getItem('howsure.multi')!)
+    raw.replaced = 7
+    sessionStorage.setItem('howsure.multi', JSON.stringify(raw))
+    expect(loadMultiRun()).toBeNull()
   })
 
   it('returns null when nothing is stored, after clearing, and for junk', () => {

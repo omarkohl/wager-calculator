@@ -61,3 +61,8 @@ export function parseAdjusted(text: string): string | null {
 export function defaultAdjusted(pointEstimate: Decimal.Value): string {
   return new Decimal(pointEstimate).times(100).toDecimalPlaces(2).toString()
 }
+
+/** A typed percentage, as `parseAdjusted` reads it, but a decimal comma and a trailing "%" are fine. */
+export function parsePercent(text: string): string | null {
+  return parseAdjusted(text.trim().replace(/%$/, '').replace(',', '.'))
+}

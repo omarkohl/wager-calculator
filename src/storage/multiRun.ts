@@ -49,6 +49,8 @@ export interface MultiRunData {
   kept: boolean
   /** The user is changing a list that had a problem: remind them to read all of it again. */
   reviewing: boolean
+  /** The outcome the user is replacing with narrower ones, for the reminder; else null. */
+  replaced: string | null
 }
 
 const KEY = 'howsure.multi'
@@ -170,6 +172,12 @@ export function loadMultiRun(): MultiRunData | null {
     if (!percents) return null
     if (raw.phase !== 'discover' && !hasEnoughOutcomes(outcomes.items)) return null
     if (typeof raw.kept !== 'boolean' || typeof raw.reviewing !== 'boolean') return null
+    if (
+      raw.replaced !== null &&
+      (typeof raw.replaced !== 'string' || raw.replaced.length > MAX_TEXT_LENGTH)
+    ) {
+      return null
+    }
     const checks = parseChecks(raw.checks, outcomes, raw.seed)
     if (!checks) return null
     const total = spotChecksOf(outcomes, raw.seed).length
@@ -194,6 +202,7 @@ export function loadMultiRun(): MultiRunData | null {
       checks,
       kept: raw.kept,
       reviewing: raw.reviewing,
+      replaced: raw.replaced,
     }
   } catch {
     return null

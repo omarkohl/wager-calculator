@@ -182,11 +182,11 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
         very-unlikely in a row; the claim stays editable; the first sketch as the starting
         result.
   - [x] 21b. Switch to the bars view (numbers instead of tiers) for categorical outcomes.
-- [ ] 22. **Disjoint and exhaustive**:
+- [x] 22. **Disjoint and exhaustive**:
   - [x] 22a. Pair and completeness questions after the list is closed; on a problem the
         wrong-tool message with "Change the outcomes" (back to the list, with a reminder to
         review the whole list) or "Keep them as they are" (standing notice on the numbers).
-  - [ ] 22b. Help to fix a problem in place (rename, split, merge, add). When the completeness answer is "yes", the fix "add an outcome" offers
+  - [x] 22b. Help to fix a problem in place (rename, split, merge, add). When the completeness answer is "yes", the fix "add an outcome" offers
         "Everything else" again even if `declinedElse` is set. (The result-screen notice is
         step 25's: it shows the stored `kept` flag.)
 - [ ] 23. **Continuous input**:
