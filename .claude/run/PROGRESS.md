@@ -2,7 +2,7 @@
 
 ## Next step
 
-11b.
+12.
 
 ## Stack
 
@@ -18,6 +18,7 @@
 - 8: howsure/08-trace, PR #96 (base howsure/07-thorough)
 - 9: howsure/09-persistence, PR #97 (base howsure/08-trace)
 - 10: howsure/10-setup-gate, PR #98 (base howsure/09-persistence)
+- 11a: howsure/11a-lottery, PR #99 (base howsure/10-setup-gate)
 
 ## Log
 
@@ -108,8 +109,7 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   answers leave the band exactly as the direct answers give it, and one-sided bands keep
   what they know), the hull of all edges when they conflict (so incoherence shows up as
   extra width). The gap is returned as `subadditivity` (`sub`: P(X)+P(not-X) > 1,
-  `super`: < 1). Cap 24. There is no "approx. N questions left" for thorough mode yet:
-  steps 9 and 11 must handle that (hide it, or add an estimate then).
+  `super`: < 1). Cap 24. (Its "approx. N questions left" came in step 11b.)
   Measured over 20 seeds: 50% believers 16-19 questions, 30-70% 15-18, 20-80% 14-16,
   tails 2-3% avg 20.8 (max 23), 90-95% 18.5.
 - **Step 8 (trace)**: `trace.ts` `buildTrace({mode, seed, answers, dropped})` returns every
@@ -145,8 +145,7 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   localStorage `howsure.stake` as `{amount, currency}` (amount > 0 with up to 2
   decimals, currency in `CURRENCY_OPTIONS`). `generateSeed()` gives a fresh 16-char seed
   (crypto, never derived from the claim). Adjusted value is a percent string with up to 2
-  decimals, strictly between 0 and 100. Thorough runs still have no "approx. N left":
-  step 11 hides it in thorough mode.
+  decimals, strictly between 0 and 100.
 - **Step 10 (setup gate)**: `components/elicit/SetupGate.tsx` (native, labelled form: claim
   textarea, stake amount + currency select from `CURRENCY_OPTIONS`, quick/thorough radios,
   Start) and `ElicitPage.tsx`, which `Site` renders at `/elicit` (title "How sure are
@@ -171,6 +170,24 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   opening wedge so the E2E (accessible name, visible number, axe) has something to open;
   11b replaces that page. Tails are covered by unit tests only, since the opening wedge is
   35-65%.
+- **Step 11b (question flow)**: `components/elicit/runFlow.ts` (pure: `nextFlowQuestion`,
+  `answerQuestion`, `stopRun`, `questionsLeft`), `QuestionScreen.tsx`, and `ElicitPage`
+  now runs gate -> questions -> a one-line "Your answers are in" placeholder (step 12
+  replaces it). Each question: two arm buttons, "Win 20 USD if this is true: "claim"" and
+  "Win 20 USD if the spinner lands in the shaded part" (with the lottery inside), in the
+  question's arm order (quick: drawn from the seed per question index via `armFor`; thorough:
+  the question's own, swapped on repeats), plus "I can't separate these" and "Stop here";
+  the prize is the remembered stake ("the prize" if none). A negation probe reads "...if this
+  is false: ..." with nothing else changed, and the page never says what a question is for
+  (tested). No band, range or question counter. Quick runs show "Approx. N questions left"
+  (thorough runs too: `approxThoroughQuestionsLeft` adds up the staircases' expected remaining steps and refinements and the repeats and negation probes still to come; the requirements ask for it in both modes; a short sentence explains a rise). Focus goes to the question heading
+  after the user acted, not on a plain reload. The answer is saved after every click, so a
+  reload resumes; "Stop here" is stored as `stopped` in the tab's run only (`RunData.stopped`,
+  never in a URL; result URLs re-encode identically with or without it). The lottery E2E
+  test moved into `e2e/elicit-questions.spec.ts`. Chromium E2E via the local workaround
+  config: 29 tests. Stopping before the first answer says "You stopped before answering, so there
+  is no result" with a "Start again" button (requirements: no answer, no result); the end
+  message takes focus after the user acted; true/false are bold in the arm text.
 
 ## Decisions
 
@@ -184,6 +201,14 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 11b: the question screen's layout and wording are a first simple version: two
+  card-buttons (arms) plus a smaller "I can't separate these" below, "Stop here" and the
+  estimate at the bottom. Open: whether the arms should be labelled A/B, whether the
+  prize should show the stake at all (it is shown as the entered amount and currency), and
+  how "I can't separate these" is worded. The thorough "approx. N left" is a
+  simple expected-remaining-steps sum: it is within about 6 of the truth in tests, and
+  may rise while a staircase is still walking.
 
 - [NEEDS PROTOTYPE] Reference lottery visual (step 11a): pie wedge for 10-90%, ball field
   (100 or 1000) in the tails, number always shown. `ReferenceLottery.tsx` is the one

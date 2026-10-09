@@ -78,7 +78,8 @@ function draw(seed: string, label: string, index: number): number {
   return createSeededPRNG(`${seed}:${label}:${index}`)()
 }
 
-function armFor(seed: string, index: number): ArmOrder {
+/** Which arm the question at `index` shows first, drawn from the seed. */
+export function armFor(seed: string, index: number): ArmOrder {
   return draw(seed, 'arm', index) < 0.5 ? 'claim-first' : 'wedge-first'
 }
 
@@ -334,4 +335,47 @@ export function thoroughResult(answers: readonly ThoroughAnswer[]): ThoroughResu
     pointEstimate: bandMidpoint(band),
     subadditivity: direct && negation ? subadditivityOf(direct.band, negation) : null,
   }
+}
+
+/** Questions a staircase is still expected to need, from where it stands. */
+function stairCost(next: StairStep | null): number {
+  if (next === null) return 0
+  if (next.kind === 'anchor') return 6 // the anchor, a couple of steps, about three refinements
+  if (next.kind === 'step') return 4 // this step, then about three refinements
+  return Math.max(1, Math.ceil(Math.log2(next.bracket!.div(EDGE_TOLERANCE_LOGIT).toNumber())))
+}
+
+function rawThoroughLeft(answers: readonly ThoroughAnswer[], seed: string): number {
+  const repeatsLeft = REPEATS_THOROUGH - answers.filter(a => a.kind === 'repeat').length
+  const negationsLeft =
+    NEGATION_PROBES_THOROUGH - answers.filter(a => a.frame === 'negation').length
+  return (
+    stairCost(stairNext(answers, 'low', seed)) +
+    stairCost(stairNext(answers, 'high', seed)) +
+    Math.max(0, repeatsLeft) +
+    Math.max(0, negationsLeft)
+  )
+}
+
+/**
+ * "Approx. N questions left" for a thorough run: the expected remaining staircase
+ * steps and refinements plus the repeats and negation probes still to come. Held
+ * non-increasing except after a staircase step or anchor, where the walk may turn out
+ * longer than hoped.
+ */
+export function approxThoroughQuestionsLeft(
+  answers: readonly ThoroughAnswer[],
+  seed: string
+): number {
+  let shown = rawThoroughLeft([], seed)
+  // The question asked at each prefix is needed once for the rule and once as the previous one
+  let previous = nextThoroughQuestion([], seed)
+  for (let i = 1; i <= answers.length; i++) {
+    const prefix = answers.slice(0, i)
+    const raw = rawThoroughLeft(prefix, seed)
+    const walking = previous?.kind === 'anchor' || previous?.kind === 'step'
+    shown = walking ? raw : Math.min(shown, raw)
+    previous = nextThoroughQuestion(prefix, seed)
+  }
+  return previous === null ? 0 : Math.max(1, shown)
 }

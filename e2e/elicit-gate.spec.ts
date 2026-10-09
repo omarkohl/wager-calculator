@@ -35,13 +35,19 @@ test.describe('Elicitation setup gate', () => {
     await page.getByRole('radio', { name: /Thorough/ }).check()
     await page.getByRole('button', { name: 'Start' }).click()
 
-    await expect(page.getByText(/thorough run on/)).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+    ).toBeVisible()
     // the claim is not in the address bar
     expect(page.url()).not.toContain('Berlin')
     expect(page.url()).not.toContain('#')
 
     await page.reload()
-    await expect(page.getByText(/It rains in Berlin tomorrow/)).toBeVisible()
+    await expect(
+      page
+        .getByRole('button', { name: /if this is true: “It rains in Berlin tomorrow”/ })
+        .or(page.getByRole('button', { name: /if this is false: “It rains in Berlin tomorrow”/ }))
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Start' })).toHaveCount(0)
   })
 
@@ -51,7 +57,7 @@ test.describe('Elicitation setup gate', () => {
     await page.getByRole('textbox', { name: 'Amount' }).fill('15')
     await page.getByRole('combobox', { name: 'Currency' }).selectOption({ label: 'GBP (£)' })
     await page.getByRole('button', { name: 'Start' }).click()
-    await expect(page.getByText(/First claim/)).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2 })).toBeVisible()
 
     // a new run: the tab's run is gone, the stake preference stays
     await page.evaluate(() => sessionStorage.clear())
@@ -59,26 +65,5 @@ test.describe('Elicitation setup gate', () => {
     await expect(page.getByRole('textbox', { name: 'Amount' })).toHaveValue('15')
     await expect(page.getByRole('combobox', { name: 'Currency' })).toHaveValue('gbp')
     await expect(page.getByRole('textbox', { name: 'Claim' })).toHaveValue('')
-  })
-  // Step 11b moves this into the question-screen spec, where the lottery belongs.
-  test('shows the reference lottery with its number and an accessible name, and passes axe', async ({
-    page,
-  }) => {
-    await page.goto('/elicit')
-    await page.getByRole('textbox', { name: 'Claim' }).fill('The bridge opens on time')
-    await page.getByRole('textbox', { name: 'Amount' }).fill('10')
-    await page.getByRole('button', { name: 'Start' }).click()
-
-    const lottery = page.getByRole('img', {
-      name: /spinner with a shaded wedge that wins \d+% of the time/,
-    })
-    await expect(lottery).toBeVisible()
-    const name = (await lottery.getAttribute('aria-label'))!
-    const chance = /wins (\d+%) of the time/.exec(name)![1]
-    // the number is on screen too, not only in the name
-    await expect(page.getByText(chance, { exact: true })).toBeVisible()
-
-    const results = await new AxeBuilder({ page }).analyze()
-    expect(results.violations).toEqual([])
   })
 })

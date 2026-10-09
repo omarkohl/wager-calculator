@@ -267,6 +267,15 @@ describe('the run in sessionStorage', () => {
     expect(localStorage.length).toBe(0)
   })
 
+  it('remembers that the user stopped, in the tab only', () => {
+    const run = quickRun('stop-1')
+    saveRun({ ...run, stopped: true })
+    expect(loadRun()!.stopped).toBe(true)
+    saveRun(run)
+    expect(loadRun()!.stopped).toBeUndefined()
+    expect(encodeResultHash({ ...run, stopped: true })).toBe(encodeResultHash(run))
+  })
+
   it('is gone after clearRun, and absent at first', () => {
     expect(loadRun()).toBeNull()
     saveRun(quickRun())

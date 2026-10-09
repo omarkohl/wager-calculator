@@ -122,11 +122,11 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       (required, remembered, "an amount big enough that you'd genuinely think", nothing
       suggesting it feeds a calculation), mode quick (default) / thorough. Resolution
       criteria not asked here.
-- [ ] 11. **Question screen**:
+- [x] 11. **Question screen**:
   - [x] 11a. The reference lottery visual [NEEDS PROTOTYPE]: one component, shows the
         number, accessible name with the probability; between 10% and 90% an area, in
         the tails a count ("3 winning balls out of 100", down to 1 in 1000).
-  - [ ] 11b. The flow: prefer the claim / prefer the spinner / "I can't separate
+  - [x] 11b. The flow: prefer the claim / prefer the spinner / "I can't separate
         these"; arm order per question (swapped repeats); neutral negation wording
         with no hint it is a check; "stop here" always visible; "approx. N questions
         left"; no live band; a reload resumes the run.
