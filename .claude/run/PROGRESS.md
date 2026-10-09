@@ -2,7 +2,7 @@
 
 ## Next step
 
-12.
+13.
 
 ## Stack
 
@@ -19,6 +19,7 @@
 - 9: howsure/09-persistence, PR #97 (base howsure/08-trace)
 - 10: howsure/10-setup-gate, PR #98 (base howsure/09-persistence)
 - 11a: howsure/11a-lottery, PR #99 (base howsure/10-setup-gate)
+- 11b: howsure/11b-questions, PR #100 (base howsure/11a-lottery)
 
 ## Log
 
@@ -188,8 +189,42 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   config: 29 tests. Stopping before the first answer says "You stopped before answering, so there
   is no result" with a "Start again" button (requirements: no answer, no result); the end
   message takes focus after the user acted; true/false are bold in the arm text.
+- **Step 12 (result screen)**: `ResultScreen.tsx` (+ `domain/elicitation/format.ts`
+  `describeBand`), shown by `ElicitPage` once the questions end (the 11b "answers are in"
+  placeholder is gone; "Start again" for no answers stays). Headline: the interval in big
+  type ("45–62%", "about 50%", "above 52%", "below 20%"); "Best single guess: N%" smaller
+  below, or "No single best guess" for one-sided bands. A line says "This is coarse" when
+  the band is one-sided, the user stopped early or dropped answers leave the search
+  unfinished (`wouldAskMore`). Subadditivity: a "Something to ponder" note, neutral, saying
+  the two sets of answers add up to more/less than 100% and that the range is wider
+  because of it. Contradicting pairs are listed with, per answer, "That was a misclick,
+  drop it" (aria-label names the answer); dropped answers show struck in the trace with
+  "Bring it back"; dropping or restoring recomputes (`RunData.dropped`, stored) and puts
+  focus on the result heading. A hard contradiction puts the "Your answers don't hang
+  together ... can mean more than one thing" note first, with the resolution criteria field
+  inside it and "Run it again" (fresh seed, same claim, criteria and mode, answers cleared);
+  the number is still shown. Otherwise the criteria field sits below the result
+  ("offered after"), saved as typed. The trace is a native `<details>`, collapsed by
+  default. Read-only without handlers, ready for shared results in step 14. Not done: an
+  "answer more questions" offer when a drop leaves `wouldAskMore` true (the algorithm's
+  sequence is defined over all recorded answers, dropped included, so resuming would be a
+  new design); the result just says it is coarse. Added after review: repeats answered
+  differently are listed like contradicting pairs (drop offer for both answers; each drop
+  button's name names the other answer); the interval sits inside the result `<h2>` so
+  focusing it reads the number; on a hard contradiction focus lands on the lead note's
+  heading; "an" before 8, 11 and 18; ids from `useId`.
+  `computeBand` still returns null when every answer was "can't separate" (step 5
+  decision); the result screen instead shows "You could not tell the claim from spinners
+  between X% and Y%" (the span of those wedges) with no best guess, as honest ignorance,
+  and "No range yet" only when nothing usable is left (all dropped). Chromium E2E (local workaround config):
+  33 tests, axe on both a normal and a contradicting result.
 
 ## Decisions
+
+- Step 12: an all-"can't separate" run is reported as the span of wedges the user could not
+  separate (no band, no best guess); `computeBand` keeps returning null for it. The
+  alternative, a result type that carries this span, would be a change in `bandRule.ts` and
+  `trace.ts`; for now it lives in `ResultScreen`.
 
 - Step 5: a run with only "can't separate" answers gives `computeBand` = null (no band,
   no result). The doc says only that stopping before the first answer gives no result and
@@ -201,6 +236,16 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 12: all-"can't separate" runs show the indifference span instead of a band (see
+  Decisions); whether that should be a real result type is open.
+
+- Step 12: the result screen layout and wording are a first simple version (interval
+  headline, smaller best guess, a plain "coarse" line, one amber note for a hard
+  contradiction, a native `<details>` trace, "That was a misclick, drop it" buttons under
+  each contradicting pair). Open: how loud the contradiction note should be, whether a
+  coarse result after a drop should offer more questions, and how much of the trace's
+  per-step band ("After this, the range was ...") is useful rather than noise.
 
 - Step 11b: the question screen's layout and wording are a first simple version: two
   card-buttons (arms) plus a smaller "I can't separate these" below, "Stop here" and the
