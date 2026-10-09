@@ -36,6 +36,8 @@ interface RunBase {
   dropped: number[]
   /** The user's own value in percent ("45.5"), kept beside what the answers imply. */
   adjusted: string | null
+  /** The user pressed "stop here". Kept in the tab's stored run only, never in a URL. */
+  stopped?: boolean
 }
 export type RunData = RunBase &
   ({ mode: 'quick'; answers: WedgeAnswer[] } | { mode: 'thorough'; answers: ThoroughAnswer[] })
@@ -140,6 +142,7 @@ interface RawRun {
   answers: unknown
   dropped: unknown
   adjusted: unknown
+  stopped?: unknown
 }
 
 function parseDropped(text: unknown, count: number): number[] | null {
@@ -181,7 +184,8 @@ function parseRun(raw: RawRun): RunData | null {
   const adjusted = parseAdjusted(raw.adjusted)
   if (adjusted === undefined) return null
 
-  return { claim, criteria, seed, dropped, adjusted, mode, answers } as RunData
+  const run = { claim, criteria, seed, dropped, adjusted, mode, answers } as RunData
+  return raw.stopped === '1' ? { ...run, stopped: true } : run
 }
 
 // ------------------------------------------------------------------- the URLs
@@ -249,6 +253,7 @@ export function saveRun(run: RunData): void {
     answers: encodeAnswers(run),
     dropped: run.dropped.join(','),
     adjusted: run.adjusted ?? '',
+    stopped: run.stopped ? '1' : '',
   })
   try {
     sessionStorage.setItem(RUN_STORAGE_KEY, stored)

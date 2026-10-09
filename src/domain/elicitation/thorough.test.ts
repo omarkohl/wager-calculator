@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
 import { bandWidthLogit, logit } from './logOdds'
 import {
+  approxThoroughQuestionsLeft,
   MAX_THOROUGH_QUESTIONS,
   nextThoroughQuestion,
   thoroughResult,
@@ -374,6 +375,34 @@ describe('thorough runs and the negation probes', () => {
     // every staircase question after it is a refinement of a narrow bracket
     for (const q of questions.slice(firstProbe)) {
       if (q.stair) expect(q.kind).toBe('refine')
+    }
+  })
+})
+
+describe('approxThoroughQuestionsLeft', () => {
+  it('starts near the length of a thorough run and ends at zero', () => {
+    for (const seed of ['q1', 'q2', 'q3']) {
+      const { answers } = run(coherent(0.4, 0.6), seed)
+      expect(approxThoroughQuestionsLeft([], seed)).toBeGreaterThanOrEqual(12)
+      expect(approxThoroughQuestionsLeft([], seed)).toBeLessThanOrEqual(20)
+      expect(approxThoroughQuestionsLeft(answers, seed)).toBe(0)
+    }
+  })
+
+  it('stays within a small margin of the truth and only rises while a staircase walks', () => {
+    // two respondents and one seed keep this cheap: every prefix replays the whole run
+    for (const [a, b] of [
+      [0.45, 0.55],
+      [0.2, 0.8],
+    ]) {
+      const { answers, questions } = run(coherent(a, b), 'm1')
+      let previous = approxThoroughQuestionsLeft([], 'm1')
+      for (let i = 1; i <= answers.length; i++) {
+        const n = approxThoroughQuestionsLeft(answers.slice(0, i), 'm1')
+        expect(Math.abs(n - (answers.length - i))).toBeLessThanOrEqual(6)
+        if (n > previous) expect(['anchor', 'step']).toContain(questions[i - 1].kind)
+        previous = n
+      }
     }
   })
 })
