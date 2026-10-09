@@ -77,7 +77,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [x] 1. **Base path and SPA fallback**: `BASE_PATH` → Vite `base`, PWA scope and
       `start_url`, `404.html` in the build output, `navigateFallback`; meta injection
       and asset paths still work. DEVELOPMENT.md documents `BASE_PATH`.
-- [ ] 2. **Routes**: the router, `/wager` renders today's app, `/` a minimal landing
+- [x] 2. **Routes**: the router, `/wager` renders today's app, `/` a minimal landing
       page (site name, one line and a link per tool; elicit link hidden until step 15),
       the legacy redirect (`/#v=2…`, v1, `#faq=` → `/wager#…`), unknown paths → a
       not-found message with a link home. Analytics path per route. E2E specs move to

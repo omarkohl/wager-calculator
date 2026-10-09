@@ -26,7 +26,7 @@ async function setPrediction(
 
 test.describe('Complete Happy Path', () => {
   test('should create, predict, resolve, and share a wager', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Verify the app loads
     await expect(page.locator('h1')).toContainText('Wager')

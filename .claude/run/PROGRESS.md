@@ -2,11 +2,12 @@
 
 ## Next step
 
-2.
+3.
 
 ## Stack
 
 <!-- step: branch, PR number -->
+
 - 1: `howsure/01-base-path`, PR #89 (base `main`)
 
 ## Log
@@ -25,12 +26,26 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   and `scope` equal the base (at the root: `/`, same URL as the former `./`; no `id` added,
   so identity is unchanged). `VITE_SITE_URL` stays the origin; the meta tags get origin +
   base path. `dist/404.html` is a copy of the injected `index.html`.
+- **Step 2 (routes)**: `src/routes.ts` (route table, `routeFromPath`, `legacyRedirect`) and
+  `src/Site.tsx` (History-API router, landing, not-found, a "Coming soon" stub at
+  `/elicit`) wrap `App`, which stays the wager page. Any non-empty hash at the landing
+  path that is `#v=`, decodes as v1, or carries `faq=` is redirected to `/wager` with
+  the hash kept. Analytics: the injected script counts `/`, `/wager`, `/elicit`,
+  `/not-found`, or `/faq/<id>`; it now also listens to `popstate` and a `routechange`
+  event the router fires. The old FAQ regex missed `#faq=` (needed `?` or `&` before);
+  fixed in passing. Existing E2E specs now start at `/wager`. Chromium E2E ran via the
+  local `executablePath` workaround config from step 0 (not committed). The route table
+  and event name live in `src/routeTable.ts`, shared with `inject-meta.js`; analytics
+  skips a path equal to the last one counted.
 
 ## Decisions
 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 1/2: `start_url` is the base, so installed PWAs now open on the landing page, not
+  the calculator.
 
 - Step 1: no automated test that `dist/404.html` equals `dist/index.html` or that the
   manifest scope/start_url equal the base (needs a build; too heavy for a step); checked

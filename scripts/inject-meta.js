@@ -10,6 +10,7 @@ import { copyFileSync, readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { normalizeBasePath } from './basePath.ts'
+import { ROUTE_CHANGE_EVENT, ROUTE_SEGMENTS } from '../src/routeTable.ts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -44,16 +45,29 @@ try {
     <script>
       window.goatcounter = {no_onload: true}
 
+      // Count the route path only: never the claim, answers or any other hash content.
+      var lastCounted = null
       function trackPage() {
-        const hash = window.location.hash
-        const faqMatch = hash.match(/[?&]faq=([^&]+)/)
-        const path = faqMatch ? '/faq/' + faqMatch[1] : '/'
+        var root = ${JSON.stringify(basePath.replace(/\/$/, ''))}
+        var known = ${JSON.stringify(Object.values(ROUTE_SEGMENTS))}
+        var path = window.location.pathname
+        var segment = null
+        if (path === root || path.indexOf(root + '/') === 0) {
+          segment = path.slice(root.length).replace(/^\\/+|\\/+$/g, '').replace(/^index\\.html$/, '')
+        }
+        path = segment !== null && known.indexOf(segment) !== -1 ? '/' + segment : '/not-found'
+        var faqMatch = window.location.hash.match(/[#?&]faq=([^&]+)/)
+        if (faqMatch) path = '/faq/' + faqMatch[1]
+        if (path === lastCounted) return
+        lastCounted = path
         if (window.goatcounter && window.goatcounter.count) {
           window.goatcounter.count({path: path})
         }
       }
 
       window.addEventListener('hashchange', trackPage)
+      window.addEventListener('popstate', trackPage)
+      window.addEventListener(${JSON.stringify(ROUTE_CHANGE_EVENT)}, trackPage)
       window.addEventListener('load', trackPage)
     </script>
     <script data-goatcounter="${goatcounterUrl}" async src="//gc.zgo.at/count.js"></script>`

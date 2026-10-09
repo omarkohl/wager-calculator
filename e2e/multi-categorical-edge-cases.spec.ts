@@ -23,7 +23,7 @@ async function setPrediction(
 
 test.describe('Multi-categorical with Edge Cases', () => {
   test('should handle 4 participants with 3 outcomes and custom stakes', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Set custom stakes (Cookies)
     const stakesButton = page.getByRole('button', { name: /stakes/i })
@@ -89,7 +89,7 @@ test.describe('Multi-categorical with Edge Cases', () => {
   })
 
   test('should handle identical predictions edge case', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Set up two participants with identical predictions
     const participantInputs = page.locator('input[placeholder="Participant name"]')
@@ -111,7 +111,7 @@ test.describe('Multi-categorical with Edge Cases', () => {
   })
 
   test('should handle settlement minimization with multiple transactions', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     // Add third participant
     await page.getByRole('button', { name: /add participant/i }).click()

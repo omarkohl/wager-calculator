@@ -14,7 +14,7 @@ test.describe('Transparency: preview, expected value and calculation details', (
   test('a user can preview every outcome, test honesty and read the calculation', async ({
     page,
   }) => {
-    await page.goto('/')
+    await page.goto('/wager')
 
     const preview = page.getByRole('button', { name: /preview payouts for each outcome/i })
     await expect(preview).toHaveAttribute('aria-expanded', 'false')
