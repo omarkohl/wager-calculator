@@ -165,7 +165,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
   - [x] 18b. The lottery on one bucket or a group (reusing the yes/no search per target);
         next-question choice across all kinds (widest band in percentage points, extra weight
         on the extreme tiers, a near-even sketch and unclear pairs).
-- [ ] 19. **Insights and adjustments**: top-k coverage, "1-in-N" for tiny buckets,
+- [x] 19. **Insights and adjustments**: top-k coverage, "1-in-N" for tiny buckets,
       order vs. sketch disagreements; merge rare outcomes into "everything else"
       (offered only); Normalize for adjusted values.
 - [ ] 20. **Continuous bucketing**: from min, max, thresholds and a curve through N

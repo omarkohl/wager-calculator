@@ -67,3 +67,12 @@ export const GROUP_WEIGHT = 0.75
 
 /** Several outcomes: this many "about equally likely" in a row end the comparisons. */
 export const EQUAL_RUN_STOP = 3
+
+/** Insights: how many top outcomes the coverage line names. */
+export const TOP_K = 2
+
+/** Insights: a bucket below this is called a "1-in-N" claim. */
+export const TINY_BELOW = 0.05
+
+/** Merging: outcomes below this chance each may be offered as "everything else". */
+export const MERGE_BELOW = 0.03
