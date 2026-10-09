@@ -123,7 +123,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       suggesting it feeds a calculation), mode quick (default) / thorough. Resolution
       criteria not asked here.
 - [ ] 11. **Question screen**:
-  - [ ] 11a. The reference lottery visual [NEEDS PROTOTYPE]: one component, shows the
+  - [x] 11a. The reference lottery visual [NEEDS PROTOTYPE]: one component, shows the
         number, accessible name with the probability; between 10% and 90% an area, in
         the tails a count ("3 winning balls out of 100", down to 1 in 1000).
   - [ ] 11b. The flow: prefer the claim / prefer the spinner / "I can't separate

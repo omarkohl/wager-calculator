@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { generateSeed, loadRun, saveRun, type RunData } from '../../storage/elicitation'
+import ReferenceLottery from './ReferenceLottery'
+import { openingWedge } from '../../domain/elicitation/quickSearch'
 import SetupGate, { type SetupResult } from './SetupGate'
 
 /** The elicitation tool: today the setup gate, then the run it starts. */
@@ -25,9 +27,14 @@ export default function ElicitPage() {
           <SetupGate onStart={start} />
         </>
       ) : (
-        <p className="mt-4 text-gray-700">
-          Your {run.mode} run on &ldquo;{run.claim}&rdquo; has started.
-        </p>
+        <>
+          <p className="mt-4 text-gray-700">
+            Your {run.mode} run on &ldquo;{run.claim}&rdquo; has started.
+          </p>
+          <div className="mt-6">
+            <ReferenceLottery probability={openingWedge(run.seed)} />
+          </div>
+        </>
       )}
     </div>
   )

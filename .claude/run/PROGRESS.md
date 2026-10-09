@@ -2,7 +2,7 @@
 
 ## Next step
 
-11.
+11b.
 
 ## Stack
 
@@ -17,6 +17,7 @@
 - 7: howsure/07-thorough, PR #95 (base howsure/06-quick-search)
 - 8: howsure/08-trace, PR #96 (base howsure/07-thorough)
 - 9: howsure/09-persistence, PR #97 (base howsure/08-trace)
+- 10: howsure/10-setup-gate, PR #98 (base howsure/09-persistence)
 
 ## Log
 
@@ -158,6 +159,18 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   (E2E-checked). Chromium E2E via the local workaround config: 21 tests, axe on the gate
   in its error state. A failed Start focuses the first invalid field; a claim over 2000
   characters is refused with a message (the storage cap), not truncated.
+- **Step 11a (reference lottery)**: `domain/elicitation/lottery.ts` (`lotteryForm`,
+  `describeLottery`) decides the form; `components/elicit/ReferenceLottery.tsx` draws it.
+  From 10% to 90% (boundaries included) a spinner: grey disc, blue pie wedge from 12
+  o'clock clockwise. Below 10% or above 90% a field of balls with the winners filled:
+  100 balls (10 x 10) for whole percents, 1000 (50 x 20) for the rest, down to "1 winning
+  ball out of 1000". The drawing is `aria-hidden`; the wrapper is `role=img` with a name
+  that always carries the probability ("A spinner with a shaded wedge that wins 45% of the
+  time", "3 winning balls out of 100, 3% of the time"); the number (and the count in the
+  tails) is also visible text. The started-run placeholder on `/elicit` shows it with the
+  opening wedge so the E2E (accessible name, visible number, axe) has something to open;
+  11b replaces that page. Tails are covered by unit tests only, since the opening wedge is
+  35-65%.
 
 ## Decisions
 
@@ -171,6 +184,14 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- [NEEDS PROTOTYPE] Reference lottery visual (step 11a): pie wedge for 10-90%, ball field
+  (100 or 1000) in the tails, number always shown. `ReferenceLottery.tsx` is the one
+  component to swap; the 10%/90% switch is `COUNT_BELOW` in `lottery.ts`. Open design
+  questions: dot size and contrast of the 1000-ball field (now 8 px pitch, grey-500
+  outlines); the upper tail also states the losing count ("97 winning balls and 3 losing
+  balls out of 100") so a large count is not read as a small one. Off-grid chances are
+  snapped first, so counts and label always agree.
 
 - Step 7: thorough runs take 14-19 questions for typical respondents, ~21 for tail beliefs
   (the doc says 14-18). Negation probes are the only thorough question that depends on the
