@@ -72,3 +72,28 @@ test.describe('Elicitation setup gate', () => {
     await expect(page.getByRole('textbox', { name: 'Claim' })).toHaveValue('')
   })
 })
+
+test.describe('Elicitation FAQ', () => {
+  test('opens from the gate and passes axe', async ({ page }) => {
+    await page.goto('/elicit')
+    await page.getByRole('button', { name: 'How does this work?' }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByRole('button', { name: 'Why a range and not one number?' }).click()
+    await expect(dialog.getByText(/honest uncertainty/)).toBeVisible()
+
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
+
+    await dialog.getByRole('button', { name: /close help dialog/i }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+  })
+
+  test('a #faq link opens at that question', async ({ page }) => {
+    await page.goto('/elicit#faq=why-log-odds')
+    await expect(
+      page
+        .getByRole('dialog')
+        .getByRole('button', { name: 'Why do the spinner chances jump in odd steps?' })
+    ).toHaveAttribute('aria-expanded', 'true')
+  })
+})

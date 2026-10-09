@@ -2,7 +2,7 @@
 
 ## Next step
 
-15b.
+16.
 
 ## Stack
 
@@ -23,6 +23,7 @@
 - 12: howsure/12-result, PR #101 (base howsure/11b-questions)
 - 13: howsure/13-adjust, PR #102 (base howsure/12-result)
 - 14: howsure/14-sharing, PR #103 (base howsure/13-adjust)
+- 15a: howsure/15a-handoff, PR #104 (base howsure/14-sharing)
 
 ## Log
 
@@ -284,6 +285,19 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   Chromium E2E (local workaround config): 42 tests, including `e2e/elicit-to-wager.spec.ts`
   (landing -> gate -> questions -> result -> adjusted -> wager, the point-estimate path, the
   one-sided path, reload).
+- **Step 15b (FAQ)**: `components/elicit/faq.tsx` has four entries (`how-it-works`,
+  `why-log-odds`, `why-a-band`, `why-a-stake`; ids are part of `/elicit#faq=<id>` links, so
+  never renamed), shown by the existing `HelpModal` through its `entries` prop. `ElicitPage`
+  has a "How does this work?" button on the gate, the no-result message and the result, and a
+  `#faq=<id>` link opens the modal at that question (also when pasted into the tab); closing
+  takes the parameter out of the address bar. Unknown ids are ignored. The button is not
+  offered while the questions are being answered (explaining the method mid-run would colour
+  the answers); a `#faq` link still works there. The text does not mention the check
+  questions of thorough runs. Analytics counts `/faq/<id>` through the existing script.
+  Full precommit, in pieces: `make format lint typecheck` clean; `bun run test:coverage`
+  613 tests in 43 files; chromium E2E (local workaround config): 44 tests, all passing. `make precommit`
+  itself cannot run here: it installs and runs all three browsers (`playwright install` is
+  blocked, and Firefox and WebKit are not available); CI runs those.
 
 ## Decisions
 

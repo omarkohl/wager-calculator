@@ -416,3 +416,90 @@ describe('ElicitPage shared links', () => {
     expect(loadRun()!.claim).toBe('The bridge opens')
   })
 })
+
+describe('ElicitPage FAQ', () => {
+  const faqButton = () => screen.queryByRole('button', { name: 'How does this work?' })
+
+  it("opens the tool's own questions from a button on the gate", async () => {
+    render(<ElicitPage />)
+    await userEvent.click(faqButton()!)
+    expect(await screen.findByRole('button', { name: 'How does it work?' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Why a range and not one number?' })
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Brier/ })).not.toBeInTheDocument()
+  })
+
+  it('is not offered while the questions are being answered, and is again on the result', async () => {
+    render(<ElicitPage />)
+    await start()
+    expect(faqButton()).not.toBeInTheDocument()
+    await press('Stop here')
+    expect(faqButton()).toBeInTheDocument()
+  })
+
+  it('opens at the question a #faq link names, and takes the link out when it is closed', async () => {
+    window.history.replaceState(null, '', '/elicit#faq=why-log-odds')
+    render(<ElicitPage />)
+    const question = await screen.findByRole('button', {
+      name: 'Why do the spinner chances jump in odd steps?',
+    })
+    expect(question).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.click(screen.getByRole('button', { name: /close help dialog/i }))
+    expect(window.location.hash).toBe('')
+  })
+
+  it('ignores a #faq link for a question it does not have', () => {
+    window.history.replaceState(null, '', '/elicit#faq=why-bet')
+    render(<ElicitPage />)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('is offered on an invite or a shared result even if a run is in progress', () => {
+    // an unfinished run in the tab: questions would show, but a share link has taken over
+    const unfinished = { ...finishedQuickRun(), answers: [], stopped: false } as RunData
+    saveRun(unfinished)
+    window.history.replaceState(
+      null,
+      '',
+      `/elicit${encodeInviteHash({ claim: 'X', criteria: '' })}`
+    )
+    const { unmount } = render(<ElicitPage />)
+    expect(faqButton()).toBeInTheDocument()
+    unmount()
+    window.history.replaceState(null, '', `/elicit${encodeResultHash(finishedQuickRun())}`)
+    render(<ElicitPage />)
+    expect(faqButton()).toBeInTheDocument()
+  })
+
+  it('keeps a shared result when a #faq link is pasted on top of it', () => {
+    window.history.replaceState(null, '', `/elicit${encodeResultHash(finishedQuickRun())}`)
+    render(<ElicitPage />)
+    act(() => {
+      window.history.replaceState(
+        null,
+        '',
+        `/elicit${encodeResultHash(finishedQuickRun())}&faq=why-a-band`
+      )
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    expect(screen.getByText(/shared result/)).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('expands the question a #faq link names while the dialog is already open', async () => {
+    render(<ElicitPage />)
+    await userEvent.click(faqButton()!)
+    expect(
+      await screen.findByRole('button', { name: 'Why a range and not one number?' })
+    ).toHaveAttribute('aria-expanded', 'false')
+    act(() => {
+      window.history.replaceState(null, '', '/elicit#faq=why-a-band')
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    expect(screen.getByRole('button', { name: 'Why a range and not one number?' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+  })
+})

@@ -15,6 +15,9 @@ import {
   saveRun,
   type RunData,
 } from '../../storage/elicitation'
+import HelpModal from '../HelpSection'
+import { ELICIT_FAQ_ENTRIES, isElicitFaqId } from './faq'
+import { getFaqIdFromURL, removeFaqFromURL } from '../../storage/urlHash'
 import QuestionScreen from './QuestionScreen'
 import ResultScreen from './ResultScreen'
 import SetupGate, { type SetupResult } from './SetupGate'
@@ -56,11 +59,17 @@ function NoResult({
   )
 }
 
+function faqFromHash(): string | null {
+  const id = getFaqIdFromURL(window.location.hash)
+  return isElicitFaqId(id) ? id : null
+}
+
 /** What the address bar held when the page opened: a shared invite or a shared result. */
 type Shared = { type: 'invite'; claim: string; criteria: string } | { type: 'result'; run: RunData }
 
 function readShared(): Shared | null {
-  const decoded = decodeElicitationHash(window.location.hash)
+  // A `faq` parameter may ride along with a share link; it is not part of the share
+  const decoded = decodeElicitationHash(removeFaqFromURL(window.location.hash))
   if (!decoded) return null
   if (decoded.type === 'invite') return decoded
   // A shared result may have been stopped early: the link does not say, but the algorithm does
@@ -73,6 +82,9 @@ export default function ElicitPage() {
   const [run, setRun] = useState<RunData | null>(loadRun)
   const [shared, setShared] = useState<Shared | null>(readShared)
   const [focusGate, setFocusGate] = useState(false)
+  // The FAQ opens from its button or from a `#faq=<id>` link
+  const [faqId, setFaqId] = useState<string | null>(() => faqFromHash())
+  const [faqOpen, setFaqOpen] = useState(() => faqFromHash() !== null)
   // Focus moves to a question or the result only after the user acted, not on a plain reload
   const [focusNext, setFocusNext] = useState(false)
 
@@ -81,6 +93,11 @@ export default function ElicitPage() {
     const reread = () => {
       setShared(readShared())
       setFocusGate(false)
+      const id = faqFromHash()
+      if (id) {
+        setFaqId(id)
+        setFaqOpen(true)
+      }
     }
     window.addEventListener('hashchange', reread)
     window.addEventListener('popstate', reread)
@@ -113,6 +130,8 @@ export default function ElicitPage() {
   }
 
   const question = run && nextFlowQuestion(run)
+  // Questions are on screen only when no share link has taken over the page
+  const asking = shared === null && run !== null && question !== null
 
   const elicitOwn = (from: { claim: string; criteria: string }) => {
     const invite = { type: 'invite' as const, claim: from.claim, criteria: from.criteria }
@@ -124,7 +143,24 @@ export default function ElicitPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="font-['Space_Grotesk'] text-3xl font-bold text-gray-900">How sure are you?</h1>
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h1 className="font-['Space_Grotesk'] text-3xl font-bold text-gray-900">
+          How sure are you?
+        </h1>
+        {/* Not during the questions: explaining the method mid-run would colour the answers */}
+        {!asking && (
+          <button
+            type="button"
+            onClick={() => {
+              setFaqId(null)
+              setFaqOpen(true)
+            }}
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+          >
+            How does this work?
+          </button>
+        )}
+      </div>
       {shared?.type === 'result' ? (
         <ResultScreen
           run={shared.run}
@@ -207,6 +243,19 @@ export default function ElicitPage() {
           }}
         />
       )}
+      <HelpModal
+        isOpen={faqOpen}
+        entries={ELICIT_FAQ_ENTRIES}
+        openFaqId={faqId}
+        onClose={() => {
+          setFaqOpen(false)
+          if (faqId) {
+            setFaqId(null)
+            const cleaned = removeFaqFromURL(window.location.hash)
+            window.history.replaceState(null, '', cleaned || window.location.pathname)
+          }
+        }}
+      />
     </div>
   )
 }
