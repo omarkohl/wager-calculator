@@ -2,7 +2,7 @@
 
 ## Next step
 
-9.
+10.
 
 ## Stack
 
@@ -15,6 +15,7 @@
 - 5: howsure/05-band-rule, PR #93 (base howsure/04-log-odds)
 - 6: howsure/06-quick-search, PR #94 (base howsure/05-band-rule)
 - 7: howsure/07-thorough, PR #95 (base howsure/06-quick-search)
+- 8: howsure/08-trace, PR #96 (base howsure/07-thorough)
 
 ## Log
 
@@ -126,6 +127,24 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   The largest claim-frame pair is the band rule's contradiction, so `isHard` agrees
   with the result's flag (tested). Invalid `dropped` indexes are ignored; step 9
   validates the URL.
+- **Step 9 (persistence and share formats)**: `src/storage/elicitation.ts`. Format version
+  1 (`ev=1`): invite `#ev=1&t=i&c=<claim>[&cr=<criteria>]`; result `#ev=1&t=r&c&cr&m=q|t
+&s=<seed>&a=<answers>[&d=<dropped>][&adj=<percent>]`. Answers are compact: a wedge as
+  integer per mille, then `:` and `c|w|u` (claim / wedge / can't separate),
+  comma-separated, at most 24 (the longer run's cap). Nothing else is stored: decoding
+  re-runs the algorithm, each recorded answer must answer the question it would have asked
+  at that point (else the whole input is `null`), and a thorough run's tags (frame,
+  staircase, kind, arm order) are rebuilt from those questions. A result link pins the
+  algorithm version through `ev`. A result URL has exactly one spelling: decoding
+  re-encodes and rejects anything that differs (leading zeros, unsorted or duplicate
+  `dropped`, `47.50`, parameter order, extra parameters). Claim and criteria are capped at
+  2000 characters. An invite ignores extra parameters. The in-progress run is JSON in sessionStorage (`howsure.run`) with the same fields and the
+  same validation; the claim is only in the URL for explicit shares. Stake gate:
+  localStorage `howsure.stake` as `{amount, currency}` (amount > 0 with up to 2
+  decimals, currency in `CURRENCY_OPTIONS`). `generateSeed()` gives a fresh 16-char seed
+  (crypto, never derived from the claim). Adjusted value is a percent string with up to 2
+  decimals, strictly between 0 and 100. Thorough runs still have no "approx. N left":
+  step 11 hides it in thorough mode.
 
 ## Decisions
 
