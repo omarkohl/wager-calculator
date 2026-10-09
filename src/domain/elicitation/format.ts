@@ -66,3 +66,33 @@ export function defaultAdjusted(pointEstimate: Decimal.Value): string {
 export function parsePercent(text: string): string | null {
   return parseAdjusted(text.trim().replace(/%$/, '').replace(',', '.'))
 }
+
+/**
+ * A typed bar height in percent, 0 to 100 inclusive with at most two decimals (a bar may be
+ * empty or full: the bars view lets the user do anything), as `parsePercent` reads it
+ * otherwise. Null if the text is not one; blank text is for the caller to treat as 0.
+ */
+export function parseBar(text: string): string | null {
+  const cleaned = text.trim().replace(/%$/, '').replace(',', '.')
+  if (!/^\d{1,3}(\.\d{1,2})?$/.test(cleaned)) return null
+  const value = new Decimal(cleaned)
+  return value.lte(100) ? value.toString() : null
+}
+
+/** A typed number (a range end, a threshold): optional minus, a decimal point or comma. Null if not one, or if a comma makes it ambiguous (`isAmbiguousNumber`). */
+export function parseNumber(text: string): string | null {
+  if (isAmbiguousNumber(text)) return null
+  const cleaned = text.trim().replace(',', '.')
+  // "5." and ".5" are fine; the digits before and after the point are bounded
+  if (!/^-?(\d{1,15}(\.\d{0,10})?|\.\d{1,10})$/.test(cleaned)) return null
+  return new Decimal(cleaned).toString()
+}
+
+/**
+ * A comma followed by exactly three digits could be a thousands separator ("1,000") or a
+ * decimal comma: the tool will not guess, and asks for a dot. (Percentages cannot be
+ * ambiguous: with at most two decimals, such text is no percentage either way.)
+ */
+export function isAmbiguousNumber(text: string): boolean {
+  return /,\d{3}(?!\d)/.test(text)
+}

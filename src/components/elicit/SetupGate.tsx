@@ -10,7 +10,7 @@ import {
 
 export type Mode = 'quick' | 'thorough'
 
-export type Kind = 'yes-no' | 'categorical'
+export type Kind = 'yes-no' | 'categorical' | 'continuous'
 
 export interface SetupResult {
   claim: string
@@ -120,7 +120,9 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
           placeholder={
             kind === 'yes-no'
               ? 'Something that will turn out true or false'
-              : 'A question with several possible answers'
+              : kind === 'categorical'
+                ? 'A question with several possible answers'
+                : 'Something that will turn out to be a number'
           }
           aria-invalid={showErrors && claimError ? true : undefined}
           aria-describedby={showErrors && claimError ? ids.claimError : undefined}
@@ -146,7 +148,12 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
                   'Exactly one of a list will happen.',
                   false,
                 ],
-                ['continuous', 'A number', 'Coming soon.', true],
+                [
+                  'continuous',
+                  'A number',
+                  'Something measured, such as a temperature or a time.',
+                  false,
+                ],
               ] as const
             ).map(([value, label, description, disabled]) => (
               <label
@@ -159,7 +166,7 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
                   value={value}
                   disabled={disabled}
                   checked={kind === value}
-                  onChange={() => value !== 'continuous' && setKind(value)}
+                  onChange={() => setKind(value)}
                   className="mt-1 h-4 w-4"
                 />
                 <span>

@@ -139,11 +139,11 @@ describe('ElicitPage', () => {
   })
 
   describe('kind of claim', () => {
-    it('offers yes/no (default), several outcomes, and a disabled number', () => {
+    it('offers yes/no (default), several outcomes, and a number', () => {
       render(<SetupGate onStart={vi.fn()} />)
       expect(screen.getByRole('radio', { name: /Yes or no/ })).toBeChecked()
       expect(screen.getByRole('radio', { name: /One of several outcomes/ })).not.toBeChecked()
-      expect(screen.getByRole('radio', { name: /A number/ })).toBeDisabled()
+      expect(screen.getByRole('radio', { name: /A number/ })).toBeEnabled()
     })
 
     it('hides the mode for several outcomes and reports the kind', async () => {

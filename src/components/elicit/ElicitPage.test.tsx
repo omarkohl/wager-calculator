@@ -10,6 +10,7 @@ import {
   type RunData,
 } from '../../storage/elicitation'
 import { loadMultiRun } from '../../storage/multiRun'
+import { loadContinuousRun } from '../../storage/continuousRun'
 import { decodeWagerFromHash } from '../../storage/urlHash'
 import { answerQuestion, nextFlowQuestion } from './runFlow'
 
@@ -518,5 +519,18 @@ describe('ElicitPage FAQ', () => {
     await user.click(screen.getByRole('button', { name: 'Add outcome' }))
     expect(loadMultiRun()?.outcomes.items).toHaveLength(1)
     expect(loadRun()).toBeNull()
+  })
+
+  it('starts a number claim: the range form, stored for a reload, and the other kinds cleared', async () => {
+    const user = userEvent.setup()
+    render(<ElicitPage />)
+    await user.type(screen.getByRole('textbox', { name: 'Claim' }), 'Noon temperature')
+    await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+    await user.click(screen.getByRole('radio', { name: /A number/ }))
+    await user.click(screen.getByRole('button', { name: 'Start' }))
+    expect(screen.getByRole('textbox', { name: 'Plausible minimum' })).toHaveFocus()
+    expect(loadContinuousRun()?.claim).toBe('Noon temperature')
+    expect(loadRun()).toBeNull()
+    expect(loadMultiRun()).toBeNull()
   })
 })

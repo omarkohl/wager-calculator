@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import {
   addOutcome,
@@ -14,13 +13,9 @@ import {
 } from '../../domain/elicitation/model'
 import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
 import { parsePercent } from '../../domain/elicitation/format'
-import {
-  describeTotal,
-  normalizePercentsAtLeast,
-  totalState,
-} from '../../domain/elicitation/insights'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
+import PercentList from './PercentList'
 import SpotChecks from './SpotChecks'
 import { spotChecksOf, type MultiRunData, type MultiView } from '../../storage/multiRun'
 
@@ -59,7 +54,7 @@ const SECONDARY =
  * into a tier [NEEDS PROTOTYPE: tiers as radios under the label], then the first sketch
  * those tiers give. The claim stays editable throughout.
  */
-type FocusTarget = 'label' | 'percent' | 'claim' | 'sketch' | 'cap' | 'total'
+type FocusTarget = 'label' | 'percent' | 'claim' | 'sketch' | 'cap'
 
 export default function OutcomeDiscovery({
   run,
@@ -77,7 +72,6 @@ export default function OutcomeDiscovery({
   const labelRef = useRef<HTMLInputElement>(null)
   const claimRef = useRef<HTMLTextAreaElement>(null)
   const percentRef = useRef<HTMLInputElement>(null)
-  const totalRef = useRef<HTMLParagraphElement>(null)
   const sketchRef = useRef<HTMLHeadingElement>(null)
   const capRef = useRef<HTMLParagraphElement>(null)
   // Where focus goes once the next render has put the target on the page: a button that
@@ -93,7 +87,6 @@ export default function OutcomeDiscovery({
       claim: claimRef,
       sketch: sketchRef,
       cap: capRef,
-      total: totalRef,
     }
     refs[target].current?.focus()
   })
@@ -195,10 +188,6 @@ export default function OutcomeDiscovery({
   }
 
   if (run.phase === 'sketch' && run.view === 'numbers') {
-    const values = items.map(o => new Decimal(percentOf(run, o.id) ?? 0))
-    const anyInvalid = items.some(o => percentOf(run, o.id) === null)
-    const state = totalState(values)
-    const setPercents = (percents: Record<string, string>) => onChange({ ...run, percents })
     return (
       <div className="mt-4 max-w-2xl space-y-6">
         {claimField}
@@ -214,65 +203,13 @@ export default function OutcomeDiscovery({
           Your own percentages, taken as typed. They should add up to 100%; Normalize scales them if
           you want that. They have not been checked yet. More questions to refine them are coming.
         </p>
-        <ul aria-label="Your numbers" className="space-y-3">
-          {items.map(o => {
-            const bad = percentOf(run, o.id) === null
-            return (
-              <li key={o.id}>
-                <label
-                  htmlFor={`${ids.percent}-${o.id}`}
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  {o.label}, percent
-                </label>
-                <input
-                  id={`${ids.percent}-${o.id}`}
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  value={run.percents[o.id] ?? ''}
-                  onChange={e => setPercents({ ...run.percents, [o.id]: e.target.value })}
-                  aria-invalid={bad ? true : undefined}
-                  aria-describedby={bad ? `${ids.percent}-${o.id}-error` : undefined}
-                  className={`${FIELD} w-32`}
-                />
-                {bad && (
-                  <p id={`${ids.percent}-${o.id}-error`} className="mt-1 text-sm text-red-700">
-                    {PERCENT_PROBLEM}
-                  </p>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-        <p
-          ref={totalRef}
-          tabIndex={-1}
-          role="status"
-          className="font-medium text-gray-900 focus:outline-none"
-        >
-          {anyInvalid
-            ? 'Some numbers are not usable yet.'
-            : (describeTotal(state) ?? 'The numbers add up to 100%.')}
-        </p>
+        <PercentList
+          listLabel="Your numbers"
+          rows={items}
+          values={run.percents}
+          onChange={percents => onChange({ ...run, percents })}
+        />
         <div className="flex flex-wrap gap-3">
-          {!anyInvalid && state.kind !== 'ok' && (
-            <button
-              type="button"
-              className={PRIMARY}
-              onClick={() => {
-                // The button goes away once the total is 100: the total takes the cursor
-                focusRequest.current = 'total'
-                setPercents(
-                  Object.fromEntries(
-                    normalizePercentsAtLeast(values).map((v, i) => [items[i].id, v.toString()])
-                  )
-                )
-              }}
-            >
-              Normalize
-            </button>
-          )}
           <button
             type="button"
             className={SECONDARY}

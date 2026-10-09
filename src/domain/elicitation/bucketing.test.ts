@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
 import {
+  barBuckets,
   barEdges,
   barsToProbabilities,
   bucketCurve,
@@ -426,5 +427,34 @@ describe('bars', () => {
   it('refuses more thresholds than bars allow', () => {
     expect(() => barEdges(0, 40, [1, 2, 3], 3)).toThrow('At most 2')
     expect(() => barEdges(5, 5, [], 4)).toThrow('minimum')
+  })
+})
+
+describe('barBuckets', () => {
+  it('labels the buckets of the bars view, thresholds included', () => {
+    const { edges, labels } = barBuckets(-10, 30, [0], '°C')
+    expect(edges.some(e => e.eq(0))).toBe(true)
+    expect(labels).toHaveLength(edges.length + 1)
+    expect(labels[0]).toMatch(/^below .* °C$/)
+    expect(labels[labels.length - 1]).toMatch(/ °C or more$/)
+    expect(edges.length).toBeLessThanOrEqual(7)
+  })
+  it('shows every threshold exactly, and gives every bucket its own label', () => {
+    for (const [min, max, thresholds] of [
+      [0, 1000, [12.5]],
+      [0, 100, [0.001, 0.002]],
+      [-10, 30, [0, 7.25, 7.5]],
+    ] as [number, number, number[]][]) {
+      const { edges, labels } = barBuckets(min, max, thresholds)
+      expect(new Set(labels).size).toBe(labels.length)
+      for (const t of thresholds) {
+        const text = new Decimal(t).toString()
+        expect(labels.join('|')).toContain(text)
+        expect(edges.some(e => e.eq(t))).toBe(true)
+      }
+    }
+  })
+  it('throws for a range that is not one', () => {
+    expect(() => barBuckets(5, 5, [])).toThrow(RangeError)
   })
 })
