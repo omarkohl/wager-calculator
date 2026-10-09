@@ -2,7 +2,7 @@
 
 ## Next step
 
-17.
+18.
 
 ## Stack
 
@@ -25,6 +25,7 @@
 - 14: howsure/14-sharing, PR #103 (base howsure/13-adjust)
 - 15a: howsure/15a-handoff, PR #104 (base howsure/14-sharing)
 - 15b: howsure/15b-faq, PR #105 (base howsure/15a-handoff)
+- 16: howsure/16-model, PR #106 (base howsure/15b-faq)
 
 ## Log
 
@@ -313,8 +314,35 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   outcome without a tier is an error. Provenance: `provenanceFor(comparisons)` and
   `describeProvenance`: "from your first guess", "from 1 comparison", "from 4 comparisons".
   Continuous buckets (edges) come in step 20; this model has no UI yet, so no E2E.
+- **Step 17 (coherent bands)**: `domain/elicitation/coherence.ts`, `makeCoherent(bands, orders)`
+  with bands `{id, lo, hi, asked}` (a bucket never asked about comes in as [0, 1]; at least one
+  bucket) and order answers `{moreLikely, lessLikely}` ("about equally likely" is simply not
+  passed). In order: (1) order answers on a cycle (incl. A > A) are dropped and listed
+  (`reason: 'cycle'`); (2) if the lower bounds sum to more than 1 or the upper bounds to less
+  than 1 it is flagged (`incoherence {kind, amount}`) and widened minimally: the same logit
+  shift for every band of a group, bands with `asked: false` first (pushed to 0 / 1 if they
+  cannot fix it alone, then the asked ones share the rest); (3) tightening to the fixpoint
+  with the settled rule (`lo_i' = max(lo_i, 1 - others' hi)`, `hi_i' = min(hi_i, 1 - others'
+lo)`, and `lo_A >= lo_B`, `hi_B <= hi_A` per kept order), stopping when nothing moves by
+  more than 1e-15 (throws if it has not settled after 500 passes, not expected for <= 8
+  buckets). If the orders make some band impossible, or push the bounds past 100% again, order
+  answers are dropped and listed (`reason: 'conflict'`): the fewest are found exactly for up to
+  3 (subsets in input order); beyond that they are dropped one at a time in input order until
+  the rest hold (not guaranteed fewest). Each band says whether it was `widened` / `tightened`.
+  Tests: the requirements' example (A 5-40, B 20-30, C 50-60 -> A 10-30), chains, cycles,
+  widening, 40 random inputs (ordered bands, lows <= 1 <= highs, kept orders hold, and
+  without orders a widened band contains what was said).
 
 ## Decisions
+
+- Step 17: after widening one side to the boundary, the sums do not tighten the other side
+  back (widened lower bounds do not cap the upper bounds, widened upper bounds do not lift the
+  lower ones). Tightening against a bound that was just widened to exactly 100% shrinks every
+  band to a point (A 50-90, B 30-40, C 30-35 would become single numbers), which is false
+  certainty; with this rule the example gives A, B, C each keeping its upper bound and a lower
+  bound moved down by the same logit shift. Which of several conflicting order answers is
+  dropped is decided by input order (the first one that makes the rest hold), which is a guess;
+  the UI can list them and let the user choose.
 
 - Step 14: the criteria of an invite are carried into the friend's run even if they rewrite
   the claim on the gate (the claim stays editable). Locking the claim, or dropping the
@@ -335,6 +363,10 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 17: (a) incoherent bounds are shown as extra width by not tightening the widened side
+  back against itself (see Decisions); (b) which conflicting order answer is dropped is decided
+  by input order, not by the user.
 
 - Step 15a (for the PR text): clicking "Bet on this" puts the claim, criteria, stake and the
   first participant's numbers in the address bar, because the wager calculator's URL is its
