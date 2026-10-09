@@ -41,7 +41,8 @@ export type RunData = RunBase &
   ({ mode: 'quick'; answers: WedgeAnswer[] } | { mode: 'thorough'; answers: ThoroughAnswer[] })
 
 const MAX_ANSWERS = Math.max(MAX_QUICK_QUESTIONS, MAX_THOROUGH_QUESTIONS)
-const MAX_TEXT_LENGTH = 2000
+/** Longest claim or criteria text a stored run or a shared URL may carry. */
+export const MAX_TEXT_LENGTH = 2000
 const SEED_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 
 /** A fresh seed for a run: never derived from the claim. */

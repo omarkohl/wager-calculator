@@ -2,7 +2,7 @@
 
 ## Next step
 
-10.
+11.
 
 ## Stack
 
@@ -16,6 +16,7 @@
 - 6: howsure/06-quick-search, PR #94 (base howsure/05-band-rule)
 - 7: howsure/07-thorough, PR #95 (base howsure/06-quick-search)
 - 8: howsure/08-trace, PR #96 (base howsure/07-thorough)
+- 9: howsure/09-persistence, PR #97 (base howsure/08-trace)
 
 ## Log
 
@@ -145,6 +146,18 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   (crypto, never derived from the claim). Adjusted value is a percent string with up to 2
   decimals, strictly between 0 and 100. Thorough runs still have no "approx. N left":
   step 11 hides it in thorough mode.
+- **Step 10 (setup gate)**: `components/elicit/SetupGate.tsx` (native, labelled form: claim
+  textarea, stake amount + currency select from `CURRENCY_OPTIONS`, quick/thorough radios,
+  Start) and `ElicitPage.tsx`, which `Site` renders at `/elicit` (title "How sure are
+  you?", a placeholder name like the route). Errors show only after a first Start attempt
+  (`role=alert`, `aria-invalid`). The stake text says "big enough that you would
+  genuinely think before answering" and nothing about calculation (a test guards the
+  words). A valid Start saves the stake, creates the run (fresh `generateSeed()`, no
+  criteria) in sessionStorage and shows a one-line placeholder; step 11 replaces it. A
+  reload resumes the stored run. Still unlinked from the nav and the landing page
+  (E2E-checked). Chromium E2E via the local workaround config: 21 tests, axe on the gate
+  in its error state. A failed Start focuses the first invalid field; a claim over 2000
+  characters is refused with a message (the storage cap), not truncated.
 
 ## Decisions
 
