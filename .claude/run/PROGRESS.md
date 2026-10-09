@@ -2,7 +2,7 @@
 
 ## Next step
 
-18.
+18b.
 
 ## Stack
 
@@ -26,6 +26,7 @@
 - 15a: howsure/15a-handoff, PR #104 (base howsure/14-sharing)
 - 15b: howsure/15b-faq, PR #105 (base howsure/15a-handoff)
 - 16: howsure/16-model, PR #106 (base howsure/15b-faq)
+- 17: howsure/17-coherent-bands, PR #107 (base howsure/16-model)
 
 ## Log
 
@@ -332,6 +333,23 @@ lo)`, and `lo_A >= lo_B`, `hi_B <= hi_A` per kept order), stopping when nothing 
   Tests: the requirements' example (A 5-40, B 20-30, C 50-60 -> A 10-30), chains, cycles,
   widening, 40 random inputs (ordered bands, lows <= 1 <= highs, kept orders hold, and
   without orders a widened band contains what was said).
+- **Step 18a (comparison questions)**: step 18 split in PLAN.md; this is 18a, 18b (the lottery on
+  a bucket or group and the next-question choice across kinds) is next. `domain/elicitation/
+comparisons.ts`: `ComparisonAnswer {first, second, pick: first|second|equal}` records the
+  pair as shown; `orderAnswers` turns picks into the "more likely than" answers
+  `makeCoherent` takes ("about equally likely" gives none). `nextComparison({ids, sketch,
+bands?, answers, seed})` chooses the pair whose order is least clear (nearest estimates in
+  log-odds), among pairs not asked yet (either direction), not implied by earlier answers
+  (transitive closure; "equal" implies nothing) and not already clear from the bands (no
+  overlap); ties and which one is shown first come from the seed (`seed:compare:<n answers>`);
+  null when nothing is left. `selectSpotChecks(ids, seed)`: 3 distinct random pairs (fewer if
+  fewer exist; "Can A and B both happen?") then one completeness check ("Could it turn out
+  to be none of these?"), seeded Fisher-Yates. `spotCheckProblems` names the pairs that can
+  both happen and a missing "none of these". Wording and scheduling of the spot checks are the
+  UI's (steps 21-22). No UI yet, so no E2E. For 18b: choosing the next question needs a
+  stopping rule of its own: with eight outcomes an all-"equal" run would ask all 28 pairs (the
+  "useful at any length" rule says the user may stop, but the selection should also stop when
+  further pairs cannot change the result). A sketch missing an outcome is an error.
 
 ## Decisions
 
