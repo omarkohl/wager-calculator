@@ -2,7 +2,7 @@
 
 ## Next step
 
-6.
+7.
 
 ## Stack
 
@@ -12,6 +12,7 @@
 - 2: howsure/02-routes, PR #90 (base howsure/01-base-path)
 - 3: howsure/03-shell, PR #91 (base howsure/02-routes)
 - 4: howsure/04-log-odds, PR #92 (base howsure/03-shell)
+- 5: howsure/05-band-rule, PR #93 (base howsure/04-log-odds)
 
 ## Log
 
@@ -67,6 +68,24 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   contradiction in logits (only when H > S) and the hard flag (strictly > 1 logit).
   Null without any claim/wedge answer. Dropped (misclick) answers are the caller's to
   filter out; step 8 does that.
+- **Step 6 (quick search)**: `createSeededPRNG` moved unchanged to `src/domain/prng.ts`
+  (a test pins its first output; wager tests untouched). `quickSearch.ts`:
+  `nextQuestion(answers, seed)` (null when done) and `approxQuestionsLeft`. Opening: a
+  whole percent in 35-65%. Outward probes: at least 0.6 logit, growing to half the
+  distance already travelled from the opening wedge; with both edges missing they
+  alternate, the seed (second PRNG draw) picking the first side. Once H and S are known
+  the widest open gap is bisected in log-odds; the run stops when the unresolved gaps
+  (H up to the first unseparable wedge, the last up to S; the whole H-S width if none)
+  add up to 1 logit. Cap 12 questions; a wedge is never asked twice; at the grid end the
+  band stays one-sided. The adaptive search cannot itself create H > S (contradictions
+  come from thorough mode, step 7). "N left": bisections still needed for the known
+  gaps; a missing edge costs 1 + the outward probes already made on its side (capped by
+  the probes left to the grid end) + 1. Rises only after an outward probe.
+  Measured over 40 seeds per simulated respondent: indifference 48-52% avg 3.5
+  questions, 45-55% 4.0, 40-60% 4.0, 30-70% 6.0, 60-65% 3.6; the long ones are 20-80%
+  8.5, 2-3% 8.1 (max 11), 90-95% 8.5, 1-30% 9.6. N is off by 0.5-0.9 on average for
+  typical respondents (max 3), by about 1.8 for tails and ignorance (max 8: the run
+  cannot know a tail belief is coming).
 
 ## Decisions
 
@@ -80,6 +99,12 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 6: quick mode takes 3.5-6 questions for a typical respondent (the doc says ~6)
+  and 8-10 for tails and wide ignorance, up to the cap of 12. The knobs
+  (`OUTWARD_STEP_LOGIT`, `OUTWARD_GROWTH`, the 1-logit target) are in `quickSearch.ts` and
+  `constants.ts`. The doubling-ish outward step overshoots into the tails for wide
+  respondents; "approx. N left" is least accurate there.
 
 - Step 5: only "can't separate" answers give no result (see Decisions); the alternative is a
   result with the indifference range but no band.

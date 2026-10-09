@@ -95,7 +95,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       contradiction size, hard-contradiction flag, one-sided bands without point
       estimate, "no answers → no result". Tests cover every example in the doc's Band
       rule and Edge cases sections.
-- [ ] 6. **Quick mode search**: shared PRNG module (wager output unchanged); seeded
+- [x] 6. **Quick mode search**: shared PRNG module (wager output unchanged); seeded
       opening wedge in 35–65%; boundary search for both edges in log-odds; "can't
       separate" probes outward; stop at the target width; "approx. N left" (from bracket
       vs. target, non-increasing, bumps only on an outward probe). Tests: confident
