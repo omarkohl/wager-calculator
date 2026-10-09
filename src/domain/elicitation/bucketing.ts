@@ -275,7 +275,9 @@ export function bucketCurve(input: BucketingInput, unit = ''): BucketingResult {
   }
 
   const probs = mass(edges)
-  const labels = labelBuckets(edges, unit, placesFor(range))
+  // thresholds are shown exactly as typed; shape edges are snapped or rounded to the range's precision
+  const places = Math.max(placesFor(range), ...kept.map(t => Math.min(t.decimalPlaces(), 10)))
+  const labels = labelBuckets(edges, unit, places)
   const cuts = [null, ...edges, null] as (Decimal | null)[]
   return {
     edges,

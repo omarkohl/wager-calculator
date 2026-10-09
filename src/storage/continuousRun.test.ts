@@ -25,6 +25,8 @@ function sample(patch: Partial<ContinuousRunData> = {}): ContinuousRunData {
     phase: 'bars',
     edges: barEdges(-10, 30, [0]).map(String),
     percents: { b0: '10', b1: '' },
+    view: 'bars',
+    curve: [],
     ...patch,
   }
 }
@@ -63,6 +65,12 @@ describe('continuous run storage', () => {
     ['a bar for no bucket', (r: Record<string, unknown>) => (r.percents = { b9: '1' })],
     ['a bar that is not text', (r: Record<string, unknown>) => (r.percents = { b0: 1 })],
     ['a unit that is too long', (r: Record<string, unknown>) => (r.unit = 'x'.repeat(50))],
+    ['a curve of the wrong length', (r: Record<string, unknown>) => (r.curve = ['1', '2'])],
+    [
+      'a curve value that is not text',
+      (r: Record<string, unknown>) => (r.curve = Array(9).fill(5)),
+    ],
+    ['an unknown view', (r: Record<string, unknown>) => (r.view = 'pie')],
     ['edges that are not the range’s', (r: Record<string, unknown>) => (r.edges = ['1', '2'])],
     [
       'edges out of order',
@@ -71,6 +79,25 @@ describe('continuous run storage', () => {
   ])('rejects %s', (_name, change) => {
     tamper(change)
     expect(loadContinuousRun()).toBeNull()
+  })
+
+  it('round-trips a run drawn as a curve', () => {
+    const run = sample({
+      view: 'curve',
+      curve: ['', '10', '40', '80', '100', '80', '40', '10', ''],
+    })
+    saveContinuousRun(run)
+    expect(loadContinuousRun()).toEqual(run)
+  })
+
+  it('keeps the curve while the range is being changed', () => {
+    const run = sample({
+      phase: 'range',
+      view: 'curve',
+      curve: ['', '10', '40', '80', '100', '80', '40', '10', ''],
+    })
+    saveContinuousRun(run)
+    expect(loadContinuousRun()).toEqual(run)
   })
 
   it('keeps the bars of the last drawing while the range is being changed', () => {

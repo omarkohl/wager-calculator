@@ -6,6 +6,7 @@ import {
   describeGap,
   parseAdjusted,
   parseBar,
+  parseHeight,
   parseNumber,
   isAmbiguousNumber,
 } from './format'
@@ -135,5 +136,17 @@ describe('parseBar, parseNumber', () => {
     expect(parseNumber('1e5')).toBeNull()
     expect(parseNumber('abc')).toBeNull()
     expect(parseNumber('')).toBeNull()
+  })
+})
+
+describe('parseHeight', () => {
+  it('reads a plain number from 0 to 100, and refuses a percentage', () => {
+    expect(parseHeight('0')).toBe('0')
+    expect(parseHeight(' 12,5 ')).toBe('12.5')
+    expect(parseHeight('100')).toBe('100')
+    expect(parseHeight('12%')).toBeNull()
+    expect(parseHeight('101')).toBeNull()
+    expect(parseHeight('-1')).toBeNull()
+    expect(parseHeight('')).toBeNull()
   })
 })
