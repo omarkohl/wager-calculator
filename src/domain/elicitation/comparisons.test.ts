@@ -312,3 +312,18 @@ describe('spotCheckProblems', () => {
     expect(spotCheckProblems([])).toEqual([])
   })
 })
+
+describe('selectSpotChecks with a catch-all outcome', () => {
+  it('leaves it out of the pairs and drops the completeness check', () => {
+    const checks = selectSpotChecks(['o1', 'o2', 'o3', 'o4'], 'seed', 'o4')
+    expect(checks.every(c => c.type === 'pair')).toBe(true)
+    expect(checks).toHaveLength(3)
+    expect(JSON.stringify(checks)).not.toContain('o4')
+  })
+  it('asks nothing when the only other outcome is the catch-all', () => {
+    expect(selectSpotChecks(['o1', 'o2'], 'seed', 'o2')).toEqual([])
+  })
+  it('behaves as before when no catch-all is given or it is not in the list', () => {
+    expect(selectSpotChecks(['o1', 'o2'], 's', 'o9')).toEqual(selectSpotChecks(['o1', 'o2'], 's'))
+  })
+})

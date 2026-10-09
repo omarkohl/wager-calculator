@@ -1,4 +1,5 @@
 import {
+  isEverythingElse,
   isTier,
   type Tier,
   tidy,
@@ -7,6 +8,11 @@ import {
   type ElicitOutcome,
   type OutcomeList,
 } from '../domain/elicitation/model'
+import {
+  selectSpotChecks,
+  spotCheckProblems,
+  type SpotCheckAnswer,
+} from '../domain/elicitation/comparisons'
 import { MAX_OUTCOMES } from '../domain/elicitation/constants'
 import { ELICIT_FORMAT_VERSION, MAX_TEXT_LENGTH } from './elicitation'
 
@@ -16,8 +22,11 @@ import { ELICIT_FORMAT_VERSION, MAX_TEXT_LENGTH } from './elicitation'
  * holds one or the other. The decoder returns null for anything malformed.
  */
 
-/** `discover`: outcomes are being collected; `sketch`: the list is closed, first sketch shown. */
-export type MultiPhase = 'discover' | 'sketch'
+/**
+ * `discover`: outcomes are being collected; `check`: the list is closed and being spot-checked
+ * for overlap and gaps; `sketch`: the first sketch is shown.
+ */
+export type MultiPhase = 'discover' | 'check' | 'sketch'
 
 /** `tiers`: each outcome is dropped into a tier; `numbers`: the user types a percentage each. */
 export type MultiView = 'tiers' | 'numbers'
@@ -34,6 +43,12 @@ export interface MultiRunData {
   view: MultiView
   /** Numbers view: the percentage text per outcome id, as typed. Empty in the tiers view. */
   percents: Record<string, string>
+  /** Answers to the spot checks so far, in the order `selectSpotChecks` asks them. */
+  checks: SpotCheckAnswer[]
+  /** The user kept a list the checks found a problem with: the numbers carry a notice. */
+  kept: boolean
+  /** The user is changing a list that had a problem: remind them to read all of it again. */
+  reviewing: boolean
 }
 
 const KEY = 'howsure.multi'
@@ -90,6 +105,43 @@ function parsePercents(
   return percents
 }
 
+/** The spot checks of a list: "Everything else" takes part in neither pairs nor completeness. */
+export function spotChecksOf(outcomes: OutcomeList, seed: string) {
+  return selectSpotChecks(
+    outcomes.items.map(o => o.id),
+    seed,
+    outcomes.items.find(o => isEverythingElse(o.label))?.id
+  )
+}
+
+/** The answers must be those to the checks the seed picks for this list, in order. */
+function parseChecks(raw: unknown, outcomes: OutcomeList, seed: string): SpotCheckAnswer[] | null {
+  if (!Array.isArray(raw)) return null
+  const asked = spotChecksOf(outcomes, seed)
+  if (raw.length > asked.length) return null
+  const answers: SpotCheckAnswer[] = []
+  for (let i = 0; i < raw.length; i++) {
+    const a = raw[i] as Record<string, unknown> | null
+    const q = asked[i]
+    if (!a || typeof a !== 'object' || a.type !== q.type) return null
+    if (q.type === 'completeness') {
+      if (typeof a.couldBeNone !== 'boolean') return null
+      answers.push({ type: 'completeness', couldBeNone: a.couldBeNone })
+    } else {
+      if (a.first !== q.first || a.second !== q.second || typeof a.bothCanHappen !== 'boolean') {
+        return null
+      }
+      answers.push({
+        type: 'pair',
+        first: q.first,
+        second: q.second,
+        bothCanHappen: a.bothCanHappen,
+      })
+    }
+  }
+  return answers
+}
+
 export function saveMultiRun(run: MultiRunData): void {
   try {
     sessionStorage.setItem(KEY, JSON.stringify({ ev: ELICIT_FORMAT_VERSION, ...run }))
@@ -109,14 +161,26 @@ export function loadMultiRun(): MultiRunData | null {
     if (typeof raw.criteria !== 'string' || raw.criteria.length > MAX_TEXT_LENGTH) return null
     if (typeof raw.seed !== 'string' || !SEED_PATTERN.test(raw.seed)) return null
     if (typeof raw.declinedElse !== 'boolean') return null
-    if (raw.phase !== 'discover' && raw.phase !== 'sketch') return null
+    if (raw.phase !== 'discover' && raw.phase !== 'check' && raw.phase !== 'sketch') return null
     if (raw.view !== 'tiers' && raw.view !== 'numbers') return null
     const view = raw.view
     const outcomes = parseOutcomes(raw.outcomes, view)
     if (!outcomes) return null
     const percents = parsePercents(raw.percents, outcomes, view)
     if (!percents) return null
-    if (raw.phase === 'sketch' && !hasEnoughOutcomes(outcomes.items)) return null
+    if (raw.phase !== 'discover' && !hasEnoughOutcomes(outcomes.items)) return null
+    if (typeof raw.kept !== 'boolean' || typeof raw.reviewing !== 'boolean') return null
+    const checks = parseChecks(raw.checks, outcomes, raw.seed)
+    if (!checks) return null
+    const total = spotChecksOf(outcomes, raw.seed).length
+    const complete = checks.length === total
+    const flawed = complete && spotCheckProblems(checks).length > 0
+    // While the list is collected nothing is checked; while it is checked the user has not yet
+    // decided about a flaw; a sketch follows clean checks, or a flaw the user chose to keep
+    if (raw.phase === 'discover' && (checks.length > 0 || raw.kept)) return null
+    if (raw.phase === 'check' && (raw.kept || (complete && !flawed))) return null
+    if (raw.phase === 'sketch' && !complete) return null
+    if (raw.phase === 'sketch' && raw.kept !== flawed) return null
     return {
       kind: 'categorical',
       claim: raw.claim,
@@ -127,6 +191,9 @@ export function loadMultiRun(): MultiRunData | null {
       phase: raw.phase,
       view,
       percents,
+      checks,
+      kept: raw.kept,
+      reviewing: raw.reviewing,
     }
   } catch {
     return null

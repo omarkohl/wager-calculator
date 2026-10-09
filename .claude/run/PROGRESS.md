@@ -2,7 +2,7 @@
 
 ## Next step
 
-22.
+22b.
 
 ## Stack
 
@@ -32,6 +32,7 @@
 - 19: howsure/19-insights, PR #110 (base howsure/18b-multi-run)
 - 20: howsure/20-bucketing, PR #111 (base howsure/19-insights)
 - 21a: howsure/21a-outcomes, PR #112 (base howsure/20-bucketing)
+- 21b: howsure/21b-numbers, PR #113 (base howsure/21a-outcomes)
 
 ## Log
 
@@ -447,6 +448,17 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   Review follow-ups: Normalize here lifts a share that would round to 0.00 to 0.01 (the
   hundredths come from the largest values); "12,5" and "30%" are accepted as typed.
 
+- **Step 22a (spot checks)**: split from 22 (22b: help to fix in place, standing notice on the
+  result screen). Closing the list now goes to the checks (`selectSpotChecks`: up to 3 pairs and
+  one completeness, answers stored in the run and validated against the seed on load), then the
+  sketch. A problem shows the wrong-tool message with "Change the outcomes" (back to the list with
+  a reminder to read all of it; the checks start over when it is closed again) or "Keep them as
+  they are" (`kept`: a notice on the numbers). Any edit of the list resets the checks. Chromium
+  E2E: outcomes spec 3 tests, axe on a check and on the verdict. "Everything else" takes part in
+  neither pairs nor the completeness check (both could only be "no"); with only it and one other
+  outcome nothing is asked and the sketch follows. Every check screen has "Change the outcomes"
+  and "Start again". 22b: a "yes" to completeness must offer "Everything else" again.
+
 ## Decisions
 
 - Step 21b: the view can be switched only while the list is empty (an outcome has either a
@@ -483,6 +495,10 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 22a: the checks run on every close of the list, also after small edits (no memory of
+  "already checked this pair"); decide whether a changed list should re-ask only checks that
+  involve what changed. Step 25's result screen must show the `kept` notice too.
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
 

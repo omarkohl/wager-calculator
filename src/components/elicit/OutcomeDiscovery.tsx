@@ -21,7 +21,8 @@ import {
 } from '../../domain/elicitation/insights'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
-import type { MultiRunData, MultiView } from '../../storage/multiRun'
+import SpotChecks from './SpotChecks'
+import { spotChecksOf, type MultiRunData, type MultiView } from '../../storage/multiRun'
 
 interface OutcomeDiscoveryProps {
   run: MultiRunData
@@ -39,6 +40,16 @@ const percentOf = (run: MultiRunData, id: string) => parsePercent(run.percents[i
 /** A typed percentage: a decimal comma and a trailing percent sign are fine. */
 const parsePercent = (text: string) =>
   parseAdjusted(text.trim().replace(/%$/, '').replace(',', '.'))
+
+/** The standing notice on numbers whose outcomes the checks found overlapping or incomplete. */
+export function KeptNotice() {
+  return (
+    <p role="note" className="rounded-lg bg-amber-50 p-3 text-sm text-gray-900">
+      The outcomes overlap or leave something out, so these numbers do not mean anything: the
+      probabilities of such outcomes cannot add up to 100%.
+    </p>
+  )
+}
 
 const FIELD =
   'block w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -63,6 +74,7 @@ export default function OutcomeDiscovery({
   const [label, setLabel] = useState('')
   const [tier, setTier] = useState<Tier | null>(null)
   const [percent, setPercent] = useState('')
+  const [checkFocus, setCheckFocus] = useState(false)
   const [error, setError] = useState<string | null>(null)
   /** Which field the message is about. */
   const [errorField, setErrorField] = useState<'label' | 'percent'>('label')
@@ -90,6 +102,7 @@ export default function OutcomeDiscovery({
     refs[target].current?.focus()
   })
   const ids = {
+    review: useId(),
     percent: useId(),
     claim: useId(),
     claimError: useId(),
@@ -164,6 +177,25 @@ export default function OutcomeDiscovery({
     </ul>
   )
 
+  if (run.phase === 'check') {
+    return (
+      <div className="mt-4 max-w-2xl space-y-6">
+        {claimField}
+        <SpotChecks
+          run={run}
+          onStartAgain={onStartAgain}
+          focusOnShow={checkFocus}
+          onChange={next => {
+            // Where the cursor goes when the checks hand over
+            if (next.phase === 'discover') focusRequest.current = 'label'
+            if (next.phase === 'sketch') focusRequest.current = 'sketch'
+            onChange(next)
+          }}
+        />
+      </div>
+    )
+  }
+
   if (run.phase === 'sketch' && run.view === 'numbers') {
     const values = items.map(o => new Decimal(percentOf(run, o.id) ?? 0))
     const anyInvalid = items.some(o => percentOf(run, o.id) === null)
@@ -179,6 +211,7 @@ export default function OutcomeDiscovery({
         >
           Your numbers
         </h2>
+        {run.kept && <KeptNotice />}
         <p className="text-gray-700">
           Your own percentages, taken as typed. They should add up to 100%; Normalize scales them if
           you want that. They have not been checked yet. More questions to refine them are coming.
@@ -247,7 +280,7 @@ export default function OutcomeDiscovery({
             className={SECONDARY}
             onClick={() => {
               focusRequest.current = 'label'
-              onChange({ ...run, phase: 'discover' })
+              onChange({ ...run, phase: 'discover', checks: [], kept: false })
             }}
           >
             Change the outcomes
@@ -272,6 +305,7 @@ export default function OutcomeDiscovery({
         >
           First sketch
         </h2>
+        {run.kept && <KeptNotice />}
         <p className="text-gray-700">
           A rough guess from the tiers you chose, scaled to add up to 100%. It has not been checked
           yet. More questions to refine this are coming.
@@ -290,7 +324,7 @@ export default function OutcomeDiscovery({
             className={SECONDARY}
             onClick={() => {
               focusRequest.current = 'label'
-              onChange({ ...run, phase: 'discover' })
+              onChange({ ...run, phase: 'discover', checks: [], kept: false })
             }}
           >
             Change the outcomes
@@ -360,6 +394,12 @@ export default function OutcomeDiscovery({
   return (
     <div className="mt-4 max-w-2xl space-y-6">
       {claimField}
+      {run.reviewing && (
+        <p id={ids.review} role="note" className="rounded-lg bg-blue-50 p-3 text-sm text-gray-800">
+          You are changing a list the checks found a problem with. Read the whole list again: the
+          same problem may be somewhere else in it.
+        </p>
+      )}
       {/* The offer appears while focus stays in the form: say so */}
       <div role="status" className="sr-only">
         {offerElse
@@ -427,7 +467,14 @@ export default function OutcomeDiscovery({
                 setError(null)
               }}
               aria-invalid={error && errorField === 'label' ? true : undefined}
-              aria-describedby={error && errorField === 'label' ? ids.error : undefined}
+              aria-describedby={
+                [
+                  run.reviewing ? ids.review : null,
+                  error && errorField === 'label' ? ids.error : null,
+                ]
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
               className={FIELD}
             />
           </div>
@@ -496,8 +543,15 @@ export default function OutcomeDiscovery({
                 onChange({ ...run })
                 return
               }
-              focusRequest.current = 'sketch'
-              onChange({ ...run, phase: 'sketch' })
+              const reset = { checks: [], kept: false, reviewing: false }
+              if (spotChecksOf(run.outcomes, run.seed).length === 0) {
+                // Only "Everything else" and one other: nothing to ask
+                focusRequest.current = 'sketch'
+                onChange({ ...run, ...reset, phase: 'sketch' })
+                return
+              }
+              setCheckFocus(true)
+              onChange({ ...run, ...reset, phase: 'check' })
             }}
           >
             That is all the outcomes

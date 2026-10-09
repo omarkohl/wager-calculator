@@ -182,9 +182,13 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
         very-unlikely in a row; the claim stays editable; the first sketch as the starting
         result.
   - [x] 21b. Switch to the bars view (numbers instead of tiers) for categorical outcomes.
-- [ ] 22. **Disjoint and exhaustive**: pair and completeness questions, help to fix
-      (rename, split, merge, add), review of the whole list, the wrong-tool message and
-      the standing notice on the result.
+- [ ] 22. **Disjoint and exhaustive**:
+  - [x] 22a. Pair and completeness questions after the list is closed; on a problem the
+        wrong-tool message with "Change the outcomes" (back to the list, with a reminder to
+        review the whole list) or "Keep them as they are" (standing notice on the numbers).
+  - [ ] 22b. Help to fix a problem in place (rename, split, merge, add). When the completeness answer is "yes", the fix "add an outcome" offers
+        "Everything else" again even if `declinedElse` is set. (The result-screen notice is
+        step 25's: it shows the stored `kept` flag.)
 - [ ] 23. **Continuous input**:
   - [ ] 23a. Min, max, thresholds; bars with the live total ("12 points too many" /
         "13 points not yet placed") and Normalize.
@@ -193,7 +197,8 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [ ] 24. **Question flow**: comparison and lottery questions under the yes/no
       presentation rules; useful after two answers; provenance per bucket.
 - [ ] 25. **Result**: band per bucket as headline, point estimate, provenance,
-      incoherence flag, insights, merge offer, adjust after with Normalize, the trace.
+      incoherence flag, the standing notice when the list was kept despite a failed disjoint or
+      exhaustive check (`kept`), insights, merge offer, adjust after with Normalize, the trace.
 - [ ] 26. **Share and handoff**: invites carry outcomes or bucket edges and open in a
       locked-outcome mode; result URLs; "bet on this" only when the adjusted values sum
       to 100%, otherwise it points to Normalize. E2E for categorical and continuous.

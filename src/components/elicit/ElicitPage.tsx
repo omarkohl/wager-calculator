@@ -141,6 +141,9 @@ export default function ElicitPage() {
         phase: 'discover',
         view: 'tiers',
         percents: {},
+        checks: [],
+        kept: false,
+        reviewing: false,
       }
       saveMultiRun(started)
       setMulti(started)
