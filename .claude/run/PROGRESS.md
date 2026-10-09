@@ -7,6 +7,7 @@
 ## Stack
 
 <!-- step: branch, PR number -->
+- 1: `howsure/01-base-path`, PR #89 (base `main`)
 
 ## Log
 
@@ -39,5 +40,3 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## Questions
 
 ## Blocked
-
-Step 1 is committed locally (a4d0d3e) and reviewed, but `git push` to omarkohl/wager-calculator fails with 403: the Claude GitHub App has no access to the repository for this session. Without a push there are no stacked PRs, so the run stops here. To continue: reconnect GitHub at https://claude.ai/connect-github (install the Claude GitHub App on the repository if missing), then start a session with the repository selected. First actions after that: push `claude/brave-allen-i6ctk6`, create and push `howsure/01-base-path` at a4d0d3e, open its PR against `main`, then do step 2.
