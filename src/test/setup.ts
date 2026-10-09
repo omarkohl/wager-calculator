@@ -11,6 +11,9 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 }
 
+// jsdom has no layout: scrolling is a no-op
+Element.prototype.scrollIntoView = function scrollIntoView() {}
+
 // Mock build-time globals for tests
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(globalThis as any).__COMMIT_DATE__ = 'unknown'

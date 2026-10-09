@@ -31,7 +31,8 @@ export default function HelpModal({
   useEffect(() => {
     if (isOpen && openFaqId && questionRefs.current[openFaqId]) {
       const timer = setTimeout(() => {
-        questionRefs.current[openFaqId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // (not every environment has it: jsdom does not)
+        questionRefs.current[openFaqId]?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
       }, 100)
       return () => clearTimeout(timer)
     }
@@ -77,7 +78,11 @@ export default function HelpModal({
 
           <div className="space-y-3">
             {entries.map(entry => (
-              <Disclosure key={entry.id} defaultOpen={openFaqId === entry.id}>
+              // keyed on whether it is the requested one, so a link arriving while the dialog is open expands it
+              <Disclosure
+                key={`${entry.id}:${openFaqId === entry.id}`}
+                defaultOpen={openFaqId === entry.id}
+              >
                 {({ open }) => (
                   <>
                     <div className="group flex w-full items-center justify-between rounded-lg bg-blue-50 text-left text-sm font-medium text-blue-900">
