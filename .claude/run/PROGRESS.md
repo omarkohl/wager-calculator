@@ -2,7 +2,7 @@
 
 ## Next step
 
-16.
+17.
 
 ## Stack
 
@@ -24,6 +24,7 @@
 - 13: howsure/13-adjust, PR #102 (base howsure/12-result)
 - 14: howsure/14-sharing, PR #103 (base howsure/13-adjust)
 - 15a: howsure/15a-handoff, PR #104 (base howsure/14-sharing)
+- 15b: howsure/15b-faq, PR #105 (base howsure/15a-handoff)
 
 ## Log
 
@@ -298,6 +299,20 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   613 tests in 43 files; chromium E2E (local workaround config): 44 tests, all passing. `make precommit`
   itself cannot run here: it installs and runs all three browsers (`playwright install` is
   blocked, and Firefox and WebKit are not available); CI runs those.
+- **Step 16 (model)**: `domain/elicitation/model.ts`. Claim kinds (`yes-no`, `categorical`,
+  `continuous`) and the five tiers, least to most likely. `ElicitOutcome` {id "o1", "o2", ...,
+  label, tier or null} (named so it is not confused with the wager's `Outcome`). The list:
+  `OutcomeList` {items, issued} with `addOutcome` / `removeOutcome` (ids come from the count
+  ever issued, so an id is never reused after a removal; cap of 8 via `MAX_OUTCOMES`,
+  `isAtCap`; empty or repeated labels refused, case, spacing and Unicode composition
+  ignored, labels stored composed (NFC), via `labelProblem`), `hasEnoughOutcomes` (at
+  least `MIN_OUTCOMES` = 2), `shouldOfferEverythingElse` (the last two outcomes added are
+  both very unlikely, it is not in the list, there is room; "Everything else" counts toward
+  the cap; declining is for the UI to remember). First sketch: `firstSketch` maps tiers to
+  2/10/30/60/90% and scales them to sum to 1 (`normalise1`: approximately 1, refuses negatives and a zero total; ids must be unique), an
+  outcome without a tier is an error. Provenance: `provenanceFor(comparisons)` and
+  `describeProvenance`: "from your first guess", "from 1 comparison", "from 4 comparisons".
+  Continuous buckets (edges) come in step 20; this model has no UI yet, so no E2E.
 
 ## Decisions
 

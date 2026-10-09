@@ -37,3 +37,9 @@ export const TIER_SKETCH = {
   likely: 0.6,
   'near-certain': 0.9,
 } as const
+
+/** A claim needs at least this many outcomes: one outcome is no question. */
+export const MIN_OUTCOMES = 2
+
+/** After this many outcomes in a row at "very unlikely", "everything else" is offered. */
+export const EVERYTHING_ELSE_AFTER = 2
