@@ -36,6 +36,25 @@ function loadInitialWager(): { wager: Wager; isFromURL: boolean } {
   return fromURL ? { wager: fromURL, isFromURL: true } : { wager: freshWager(), isFromURL: false }
 }
 
+/**
+ * "45–62% from elicitation", handed over in the history entry by the elicitation page,
+ * with the first participant's numbers it belongs to. It describes those numbers only:
+ * once they change it is not shown any more.
+ */
+function loadInitialProvenance(wager: Wager): { text: string; numbers: string } | null {
+  const state = window.history.state as { provenance?: unknown } | null
+  if (typeof state?.provenance !== 'string') return null
+  return { text: state.provenance, numbers: firstParticipantNumbers(wager) }
+}
+
+function firstParticipantNumbers(wager: Wager): string {
+  const first = wager.participants[0]
+  return wager.predictions
+    .filter(p => p.participantId === first?.id)
+    .map(p => p.probability.toString())
+    .join(',')
+}
+
 function loadInitialFaqId(): FaqId | null {
   const faqParam = getFaqIdFromURL(window.location.hash)
   return isFaqId(faqParam) ? faqParam : null
@@ -47,6 +66,17 @@ function App() {
   const shouldAutoFocusClaim = !initial.isFromURL
 
   const [wager, setWager] = useState<Wager>(initial.wager)
+  const [provenance] = useState(() => loadInitialProvenance(initial.wager))
+  const [provenanceGone, setProvenanceGone] = useState(false)
+  // It describes those numbers as handed over: the first edit retires it for good, even if
+  // they are later typed back to the same values
+  if (provenance && !provenanceGone && provenance.numbers !== firstParticipantNumbers(wager)) {
+    setProvenanceGone(true)
+  }
+  // The provenance is for this visit only: take it out of the history entry once it is read
+  useEffect(() => {
+    if (provenance) window.history.replaceState(null, '', window.location.href)
+  }, [provenance])
   const { claim, details, stakes, participants, outcomes, predictions, resolvedOutcomeId } = wager
   const updateWager = (patch: Partial<Wager>) => setWager(current => ({ ...current, ...patch }))
 
@@ -238,6 +268,7 @@ function App() {
                 outcomes={outcomes}
                 predictions={predictions}
                 onChange={predictions => updateWager({ predictions })}
+                provenance={provenance && !provenanceGone ? provenance.text : null}
               />
             </div>
 

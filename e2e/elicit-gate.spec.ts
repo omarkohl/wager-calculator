@@ -2,13 +2,18 @@ import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
 test.describe('Elicitation setup gate', () => {
-  test('is not linked from the navigation or the landing page yet', async ({ page }) => {
+  test('is reached from the landing page and from the navigation', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('link', { name: /sure|elicit/i })).toHaveCount(0)
-    await page.goto('/elicit')
-    await expect(
-      page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: /sure|elicit/i })
-    ).toHaveCount(0)
+    await page.getByRole('main').getByRole('link', { name: 'How sure are you?' }).click()
+    await expect(page).toHaveURL(/\/elicit$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'How sure are you?' })).toBeFocused()
+
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Home' }).click()
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'How sure are you?' })
+      .click()
+    await expect(page).toHaveURL(/\/elicit$/)
   })
 
   test('asks for claim, stake and mode, validates, then starts a run that survives a reload', async ({

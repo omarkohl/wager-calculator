@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type Ref } from 'react'
 import Decimal from 'decimal.js'
 import {
   adjustmentGap,
@@ -20,6 +20,10 @@ interface AdjustBeliefProps {
   onChange?: (adjusted: string | null) => void
   /** Someone else's result: the labels do not say "your". */
   other?: boolean
+  /** The field, for a caller that needs to send the user there. */
+  inputRef?: Ref<HTMLInputElement>
+  /** Told whenever the text becomes valid or invalid (empty counts as valid), as it is typed. */
+  onTextValidity?: (valid: boolean) => void
 }
 
 /**
@@ -35,6 +39,8 @@ export default function AdjustBelief({
   adjusted,
   onChange,
   other = false,
+  inputRef,
+  onTextValidity,
 }: AdjustBeliefProps) {
   const fieldId = useId()
   const errorId = useId()
@@ -46,6 +52,7 @@ export default function AdjustBelief({
 
   const handle = (value: string) => {
     setText(value)
+    onTextValidity?.(value.trim() === '' || parseAdjusted(value) !== null)
     if (value.trim() === '') {
       setInvalid(false)
       onChange?.(null)
@@ -96,6 +103,7 @@ export default function AdjustBelief({
               </label>
               <input
                 id={fieldId}
+                ref={inputRef}
                 type="text"
                 inputMode="decimal"
                 autoComplete="off"

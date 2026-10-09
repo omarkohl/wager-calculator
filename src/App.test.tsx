@@ -2,6 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
+import Decimal from 'decimal.js'
+import { buildHandoff } from './domain/elicitation/handoff'
+import { bandBetween } from './domain/elicitation/logOdds'
+import { encodeWagerToHash } from './storage/urlHash'
 
 const STAKES_STORAGE_KEY = 'wager-calculator.stakes'
 
@@ -34,6 +38,61 @@ describe('App', () => {
     ]) {
       expect(screen.getByRole('heading', { name: new RegExp(`^${name}`), level: 2 })).toBeVisible()
     }
+  })
+
+  describe('handoff from the elicitation', () => {
+    const handedOver = () => {
+      const { wager } = buildHandoff({
+        claim: 'The bridge opens',
+        criteria: 'By noon',
+        currency: 'eur',
+        probability: new Decimal(0.55),
+        band: bandBetween(0.45, 0.62),
+      })
+      window.history.replaceState(
+        { provenance: '45–62% from elicitation' },
+        '',
+        `/wager${encodeWagerToHash(wager)}`
+      )
+    }
+
+    it("shows the provenance next to the first participant's numbers", () => {
+      handedOver()
+      render(<App />)
+      expect(screen.getByText('45–62% from elicitation')).toBeInTheDocument()
+      expect(screen.getByText('The bridge opens')).toBeInTheDocument()
+    })
+
+    it('stops showing it once those numbers change', async () => {
+      handedOver()
+      render(<App />)
+      const yes = screen.getAllByRole('spinbutton', { name: /probability for Yes/ })[0]
+      await userEvent.clear(yes)
+      await userEvent.type(yes, '70')
+      await userEvent.tab()
+      expect(screen.queryByText('45–62% from elicitation')).not.toBeInTheDocument()
+    })
+
+    it('does not come back when the numbers are typed back to the handed-over values', async () => {
+      handedOver()
+      render(<App />)
+      const yes = screen.getAllByRole('spinbutton', { name: /probability for Yes/ })[0]
+      await userEvent.clear(yes)
+      await userEvent.type(yes, '70')
+      await userEvent.tab()
+      expect(screen.queryByText('45–62% from elicitation')).not.toBeInTheDocument()
+      await userEvent.clear(yes)
+      await userEvent.type(yes, '55')
+      await userEvent.tab()
+      expect(yes).toHaveDisplayValue(/55/)
+      expect(screen.queryByText('45–62% from elicitation')).not.toBeInTheDocument()
+    })
+
+    it('is not there without a handoff', () => {
+      window.history.replaceState(null, '', '/wager')
+      render(<App />)
+      expect(screen.queryByText(/from elicitation/)).not.toBeInTheDocument()
+    })
   })
 
   it('autofocuses claim field when loading without URL state', () => {

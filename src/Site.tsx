@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 're
 import App from './App'
 import Footer from './components/Footer'
 import ElicitPage from './components/elicit/ElicitPage'
+import { navigate } from './navigation'
 import { ROUTE_CHANGE_EVENT } from './routeTable'
 import { legacyRedirect, pathFor, routeFromPath, type RouteId } from './routes'
 
@@ -27,8 +28,7 @@ function Link({
     event.preventDefault()
     // Already here: a push would drop the hash that holds the wager
     if (currentRoute() === to) return
-    window.history.pushState(null, '', href)
-    window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT))
+    navigate(href)
   }
   return (
     <a
@@ -53,6 +53,12 @@ function Landing() {
           <Link to="wager">Wager Calculator</Link>
           <p className="text-sm text-gray-600">
             Settle a friendly wager fairly, whatever each side believes.
+          </p>
+        </li>
+        <li>
+          <Link to="elicit">How sure are you?</Link>
+          <p className="text-sm text-gray-600">
+            Put a number on how likely you think something is, by comparing it with a spinner.
           </p>
         </li>
       </ul>
@@ -99,6 +105,9 @@ function Header({ current }: { current: RouteId }) {
         </Link>
         <Link to="wager" current={current}>
           Wager Calculator
+        </Link>
+        <Link to="elicit" current={current}>
+          How sure are you?
         </Link>
       </nav>
     </header>

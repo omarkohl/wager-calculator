@@ -468,4 +468,32 @@ describe('PredictionsGrid', () => {
     const deletedPrediction = normalizedPredictions.find((p: Prediction) => p.outcomeId === 'o3')
     expect(deletedPrediction).toBeUndefined()
   })
+
+  it("shows where the first participant's numbers came from, and only there", () => {
+    render(
+      <PredictionsGrid
+        participants={participants}
+        outcomes={outcomes}
+        predictions={[]}
+        onChange={vi.fn()}
+        provenance="45–62% from elicitation"
+      />
+    )
+    const note = screen.getByText('45–62% from elicitation')
+    expect(screen.getAllByText('45–62% from elicitation')).toHaveLength(1)
+    // directly under Alice's heading, not Bob's
+    expect(note.previousElementSibling).toHaveTextContent('Alice')
+  })
+
+  it('shows no provenance by default', () => {
+    render(
+      <PredictionsGrid
+        participants={participants}
+        outcomes={outcomes}
+        predictions={[]}
+        onChange={vi.fn()}
+      />
+    )
+    expect(screen.queryByText(/from elicitation/)).not.toBeInTheDocument()
+  })
 })

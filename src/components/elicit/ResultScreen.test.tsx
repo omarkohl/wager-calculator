@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -272,5 +273,104 @@ describe('ResultScreen wording and repeats', () => {
     expect(buttons).toHaveLength(2)
     await userEvent.click(buttons[1])
     expect(onDrop).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ResultScreen "Bet on this"', () => {
+  it('hands over the point estimate and the band', async () => {
+    const onBet = vi.fn()
+    render(<ResultScreen run={play('quick', coherent(0.4, 0.6))} {...props} onBet={onBet} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Bet on this' }))
+    expect(onBet).toHaveBeenCalledTimes(1)
+    const { probability, band } = onBet.mock.calls[0][0]
+    expect(probability.toNumber()).toBeGreaterThan(0.4)
+    expect(probability.toNumber()).toBeLessThan(0.6)
+    expect(band.lo).not.toBeNull()
+    expect(band.hi).not.toBeNull()
+  })
+
+  it('hands over the adjusted value instead, when there is one', async () => {
+    const onBet = vi.fn()
+    const run = { ...play('quick', coherent(0.4, 0.6)), adjusted: '72.5' } as RunData
+    render(<ResultScreen run={run} {...props} onBet={onBet} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Bet on this' }))
+    expect(onBet.mock.calls[0][0].probability.toString()).toBe('0.725')
+  })
+
+  it('asks for the adjusted value first on a one-sided band, and sends the user to the field', async () => {
+    const onBet = vi.fn()
+    const run = play('quick', () => 'wedge')
+    render(<ResultScreen run={run} {...props} onAdjusted={vi.fn()} onBet={onBet} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Bet on this' }))
+    expect(onBet).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent(/Set your own belief above/)
+    expect(screen.getByRole('textbox', { name: 'Your adjusted belief (%)' })).toHaveFocus()
+  })
+
+  it('bets on the adjusted value of a one-sided band once it is set', async () => {
+    const onBet = vi.fn()
+    const run = { ...play('quick', () => 'wedge'), adjusted: '2' } as RunData
+    render(<ResultScreen run={run} {...props} onAdjusted={vi.fn()} onBet={onBet} />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Bet on this' }))
+    expect(onBet.mock.calls[0][0].probability.toString()).toBe('0.02')
+  })
+
+  it('is not offered without a handler, or without a result', () => {
+    render(<ResultScreen run={play('quick', coherent(0.4, 0.6))} {...props} />)
+    expect(screen.queryByRole('button', { name: 'Bet on this' })).not.toBeInTheDocument()
+  })
+
+  // The page keeps `adjusted` in the run; this does the same for the screen
+  function Harness({ initial, onBet }: { initial: RunData; onBet: (bet: unknown) => void }) {
+    const [run, setRun] = useState(initial)
+    return (
+      <ResultScreen
+        run={run}
+        focusOnShow={false}
+        onAdjusted={adjusted => setRun({ ...run, adjusted })}
+        onBet={onBet}
+      />
+    )
+  }
+  const field = () => screen.getByRole('textbox', { name: 'Your adjusted belief (%)' })
+
+  it('refuses to bet on an older value while the field shows text that is not one', async () => {
+    const onBet = vi.fn()
+    render(<Harness initial={play('quick', coherent(0.4, 0.6))} onBet={onBet} />)
+    await userEvent.clear(field())
+    await userEvent.type(field(), '620')
+    // "62" was reported on the way; the field now shows "620"
+    await userEvent.click(screen.getByRole('button', { name: 'Bet on this' }))
+    expect(onBet).not.toHaveBeenCalled()
+    expect(screen.getByText(/not a percentage yet/)).toBeInTheDocument()
+    expect(field()).toHaveFocus()
+
+    await userEvent.type(field(), '{Backspace}')
+    expect(screen.queryByText(/not a percentage yet/)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Bet on this' }))
+    expect((onBet.mock.calls[0][0] as { probability: Decimal }).probability.toString()).toBe('0.62')
+  })
+
+  it('forgets the one-sided warning when the value changes, and links it only while shown', async () => {
+    const onBet = vi.fn()
+    render(<Harness initial={play('quick', () => 'wedge')} onBet={onBet} />)
+    const bet = screen.getByRole('button', { name: 'Bet on this' })
+    expect(bet).not.toHaveAttribute('aria-describedby')
+    await userEvent.click(bet)
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(bet).toHaveAttribute('aria-describedby', screen.getByRole('alert').id)
+
+    await userEvent.type(field(), '80')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(bet).not.toHaveAttribute('aria-describedby')
+
+    // clearing the value again does not bring the old warning back by itself
+    await userEvent.clear(field())
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(bet).not.toHaveAttribute('aria-describedby')
+    await userEvent.click(bet)
+    expect(onBet).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 })

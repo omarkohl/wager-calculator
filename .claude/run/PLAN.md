@@ -141,11 +141,13 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [x] 14. **Sharing UI**: copy invite and result links. Opening an invite starts the
       gate with claim and criteria filled in; opening a result shows the recomputed
       result and an "elicit your own" action that starts from the invite.
-- [ ] 15. **Handoff and launch**: "bet on this" opens `/wager` with a fresh wager
-      (see Settled by Claude) and the provenance near the first participant's cell;
-      one-sided band → asks for the adjusted value first. `/elicit` joins the nav and
-      the landing page. E2E: the full flow from gate to wager. FAQ entries for tool 2
-      (method, why log-odds, why a band). Full `make precommit`.
+- [ ] 15. **Handoff and launch**:
+  - [x] 15a. Handoff and launch: "bet on this" opens `/wager` with a fresh wager (see Settled
+        by Claude) and the provenance near the first participant's cell; one-sided band →
+        asks for the adjusted value first. `/elicit` joins the nav and the landing page.
+        E2E: the full flow from gate to wager.
+  - [ ] 15b. FAQ entries for tool 2 (method, why log-odds, why a band) with a way to open
+        them on `/elicit`. Full `make precommit`.
 
 ### Tool 2 domain, several outcomes
 
