@@ -72,7 +72,9 @@ test.describe('Elicitation questions', () => {
     for (let i = 0; i < 14 && (await separate(page).count()) > 0; i++) {
       await separate(page).click()
     }
-    await expect(page.getByText(/Your answers are in/)).toBeFocused()
+    await expect(
+      page.getByRole('heading', { name: /Your answers say|You could not tell the claim/ })
+    ).toBeFocused()
     expect(page.url()).not.toContain('bridge')
     expect(page.url()).not.toContain('#')
   })
@@ -81,9 +83,13 @@ test.describe('Elicitation questions', () => {
     await startRun(page)
     await page.getByRole('button', { name: /if this is true/ }).click()
     await page.getByRole('button', { name: 'Stop here' }).click()
-    await expect(page.getByText(/Your answers are in/)).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: /Your answers say|You could not tell the claim/ })
+    ).toBeVisible()
     await page.reload()
-    await expect(page.getByText(/Your answers are in/)).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: /Your answers say|You could not tell the claim/ })
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Stop here' })).toHaveCount(0)
   })
 

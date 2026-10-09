@@ -130,7 +130,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
         these"; arm order per question (swapped repeats); neutral negation wording
         with no hint it is a check; "stop here" always visible; "approx. N questions
         left"; no live band; a reload resumes the run.
-- [ ] 12. **Result screen**: the interval as headline, point estimate smaller;
+- [x] 12. **Result screen**: the interval as headline, point estimate smaller;
       one-sided and coarse labels; the trace collapsed by default; subadditivity flag;
       "that was a misclick, drop it" on contradicting pairs; on a hard contradiction
       the "sharpen the claim" prompt first, the criteria field opened, a re-run offered

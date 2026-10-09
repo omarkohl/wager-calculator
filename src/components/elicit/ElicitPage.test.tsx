@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ElicitPage from './ElicitPage'
-import { loadRun } from '../../storage/elicitation'
+import { loadRun, saveRun, type RunData } from '../../storage/elicitation'
+import { answerQuestion, nextFlowQuestion } from './runFlow'
 
 beforeEach(() => {
   localStorage.clear()
@@ -52,13 +53,13 @@ describe('ElicitPage', () => {
     expect(screen.getByText(/Approx\. \d+ questions? left/)).toBeInTheDocument()
   })
 
-  it('"Stop here" after an answer says so, stores it and takes focus', async () => {
+  it('"Stop here" after an answer shows the result, stores the stop and takes focus', async () => {
     render(<ElicitPage />)
     await start()
     await press(/if this is true/)
     await press('Stop here')
-    const message = screen.getByText(/You stopped here\. Your answers are in\./)
-    expect(message).toHaveFocus()
+    expect(screen.getByRole('heading', { name: /Your answers say the chance is/ })).toHaveFocus()
+    expect(screen.getByText(/^above /)).toBeInTheDocument()
     expect(loadRun()!.stopped).toBe(true)
   })
 
@@ -75,12 +76,81 @@ describe('ElicitPage', () => {
     expect(screen.getByRole('textbox', { name: 'Claim' })).toBeInTheDocument()
   })
 
-  it('moves focus to the end message after the last answer', async () => {
+  it('shows the result with focus after the last answer', async () => {
     render(<ElicitPage />)
     await start()
     for (let i = 0; i < 12 && screen.queryByRole('button', { name: /I can.t separate/ }); i++) {
       await press(/I can.t separate these/)
     }
-    expect(screen.getByText(/That was the last question\. Your answers are in\./)).toHaveFocus()
+    // all "can't separate": the span of wedges, not a band
+    expect(
+      screen.getByRole('heading', { name: /You could not tell the claim from spinners/ })
+    ).toHaveFocus()
+  })
+})
+
+// A thorough run whose answers contradict each other: the claim wins above 50%, the spinner below
+function contradictingRun(): RunData {
+  let run = {
+    claim: 'It rains',
+    criteria: '',
+    seed: 'contra-1',
+    dropped: [],
+    adjusted: null,
+    mode: 'thorough',
+    answers: [],
+  } as RunData
+  for (let q = nextFlowQuestion(run); q; q = nextFlowQuestion(run)) {
+    run = answerQuestion(run, q, q.wedge.lt(0.5) ? 'wedge' : 'claim')
+  }
+  return run
+}
+
+describe('ElicitPage result actions', () => {
+  it('drops a misclicked answer, recomputes, and can bring it back', async () => {
+    saveRun(contradictingRun())
+    render(<ElicitPage />)
+    expect(screen.getByText(/don.t hang together/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /don.t hang together/ })).not.toHaveFocus()
+
+    const drop = screen.getAllByRole('button', {
+      name: /^That was a misclick, drop it: answer \d+/,
+    })[0]
+    await userEvent.click(drop)
+    expect(loadRun()!.dropped).toHaveLength(1)
+    // the screen lands on its lead heading: the note while it still applies, else the result
+    expect(document.activeElement?.tagName).toBe('H2')
+
+    await userEvent.click(screen.getByText('Show the full trace of your answers'))
+    await userEvent.click(screen.getByRole('button', { name: /^Bring back answer/ }))
+    expect(loadRun()!.dropped).toEqual([])
+  })
+
+  it('saves resolution criteria as they are typed, without taking focus away', async () => {
+    saveRun(contradictingRun())
+    render(<ElicitPage />)
+    const field = screen.getByRole('textbox', { name: /Resolution criteria/ })
+    await userEvent.type(field, 'Any rain')
+    expect(loadRun()!.criteria).toBe('Any rain')
+    expect(field).toHaveFocus()
+  })
+
+  it('runs it again with a fresh seed, keeping claim, criteria and mode', async () => {
+    const old = contradictingRun()
+    saveRun({ ...old, criteria: 'Any rain' })
+    render(<ElicitPage />)
+    await userEvent.click(screen.getByRole('button', { name: 'Run it again' }))
+    const run = loadRun()!
+    expect(run.seed).not.toBe(old.seed)
+    expect(run).toMatchObject({
+      claim: 'It rains',
+      criteria: 'Any rain',
+      mode: 'thorough',
+      answers: [],
+      dropped: [],
+    })
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+    ).toHaveFocus()
   })
 })

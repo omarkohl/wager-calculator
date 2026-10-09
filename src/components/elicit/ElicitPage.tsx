@@ -10,6 +10,7 @@ import {
   type RunData,
 } from '../../storage/elicitation'
 import QuestionScreen from './QuestionScreen'
+import ResultScreen from './ResultScreen'
 import SetupGate, { type SetupResult } from './SetupGate'
 import { answerQuestion, nextFlowQuestion, questionsLeft, stopRun } from './runFlow'
 
@@ -20,13 +21,11 @@ function stakeText(): string | null {
   return `${stake.amount} ${currency?.id.toUpperCase() ?? stake.currency}`
 }
 
-/** What the page shows once no more questions come. Takes focus when the user just acted. */
-function RunEnd({
-  run,
+/** Stopping before the first answer says nothing: no answers, no result. */
+function NoResult({
   focusOnShow,
   onStartAgain,
 }: {
-  run: RunData
   focusOnShow: boolean
   onStartAgain: () => void
 }) {
@@ -34,46 +33,43 @@ function RunEnd({
   useEffect(() => {
     if (focusOnShow) ref.current?.focus()
   }, [focusOnShow])
-
-  // Stopping before the first answer says nothing: no answers, no result
-  if (run.answers.length === 0) {
-    return (
-      <div className="mt-4">
-        <p ref={ref} tabIndex={-1} className="text-gray-700 focus:outline-none">
-          You stopped before answering, so there is no result.
-        </p>
-        <button
-          type="button"
-          onClick={onStartAgain}
-          className="mt-4 rounded-md bg-blue-600 px-5 py-2 text-base font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-        >
-          Start again
-        </button>
-      </div>
-    )
-  }
   return (
-    <p ref={ref} tabIndex={-1} className="mt-4 text-gray-700 focus:outline-none">
-      {run.stopped ? 'You stopped here.' : 'That was the last question.'} Your answers are in.
-    </p>
+    <div className="mt-4">
+      <p ref={ref} tabIndex={-1} className="text-gray-700 focus:outline-none">
+        You stopped before answering, so there is no result.
+      </p>
+      <button
+        type="button"
+        onClick={onStartAgain}
+        className="mt-4 rounded-md bg-blue-600 px-5 py-2 text-base font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+      >
+        Start again
+      </button>
+    </div>
   )
 }
 
-/** The elicitation tool: the setup gate, then the questions of the run it starts. */
+/** The elicitation tool: the setup gate, the questions of the run it starts, then the result. */
 export default function ElicitPage() {
   const [run, setRun] = useState<RunData | null>(loadRun)
-  // Focus moves to a question only after the user acted, not on a plain reload
-  const [focusQuestion, setFocusQuestion] = useState(false)
+  // Focus moves to a question or the result only after the user acted, not on a plain reload
+  const [focusNext, setFocusNext] = useState(false)
 
   const update = (next: RunData) => {
     saveRun(next)
     setRun(next)
-    setFocusQuestion(true)
+    setFocusNext(true)
   }
 
   const start = ({ claim, mode }: SetupResult) => {
     const base = { claim, criteria: '', seed: generateSeed(), dropped: [], adjusted: null }
     update(mode === 'quick' ? { ...base, mode, answers: [] } : { ...base, mode, answers: [] })
+  }
+
+  const startAgain = () => {
+    clearRun()
+    setRun(null)
+    setFocusNext(false)
   }
 
   const question = run && nextFlowQuestion(run)
@@ -94,19 +90,35 @@ export default function ElicitPage() {
           stake={stakeText()}
           question={question}
           questionsLeft={questionsLeft(run)}
-          focusOnShow={focusQuestion}
+          focusOnShow={focusNext}
           onAnswer={(choice: Choice) => update(answerQuestion(run, question, choice))}
           onStop={() => update(stopRun(run))}
         />
+      ) : run.answers.length === 0 ? (
+        <NoResult focusOnShow={focusNext} onStartAgain={startAgain} />
       ) : (
-        <RunEnd
+        <ResultScreen
           run={run}
-          focusOnShow={focusQuestion}
-          onStartAgain={() => {
-            clearRun()
-            setRun(null)
-            setFocusQuestion(false)
+          focusOnShow={focusNext}
+          onDrop={index =>
+            update({ ...run, dropped: [...new Set([...run.dropped, index])].sort((a, b) => a - b) })
+          }
+          onRestore={index => update({ ...run, dropped: run.dropped.filter(i => i !== index) })}
+          onCriteria={criteria => {
+            // Typing is not an "arrival": keep focus where it is
+            saveRun({ ...run, criteria })
+            setRun({ ...run, criteria })
+            setFocusNext(false)
           }}
+          onRerun={() => {
+            const fresh = { ...run, seed: generateSeed(), dropped: [], stopped: undefined }
+            update(
+              run.mode === 'quick'
+                ? { ...fresh, mode: 'quick', answers: [] }
+                : { ...fresh, mode: 'thorough', answers: [] }
+            )
+          }}
+          onStartAgain={startAgain}
         />
       )}
     </div>
