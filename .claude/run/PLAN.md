@@ -100,7 +100,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       separate" probes outward; stop at the target width; "approx. N left" (from bracket
       vs. target, non-increasing, bumps only on an outward probe). Tests: confident
       coin flip → narrow band, ignorance → wide band, tails, determinism.
-- [ ] 7. **Thorough mode**: two staircases (low and high anchors), interleaved by the
+- [x] 7. **Thorough mode**: two staircases (low and high anchors), interleaved by the
       PRNG; swapped-arm repeats; the negation probes (band for not-X → 1 − ·, union
       with the direct band, subadditivity gap); thorough target width. ~14–18 questions
       for a consistent respondent (test it).

@@ -2,7 +2,7 @@
 
 ## Next step
 
-7.
+8.
 
 ## Stack
 
@@ -13,6 +13,7 @@
 - 3: howsure/03-shell, PR #91 (base howsure/02-routes)
 - 4: howsure/04-log-odds, PR #92 (base howsure/03-shell)
 - 5: howsure/05-band-rule, PR #93 (base howsure/04-log-odds)
+- 6: howsure/06-quick-search, PR #94 (base howsure/05-band-rule)
 
 ## Log
 
@@ -86,6 +87,27 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   8.5, 2-3% 8.1 (max 11), 90-95% 8.5, 1-30% 9.6. N is off by 0.5-0.9 on average for
   typical respondents (max 3), by about 1.8 for tails and ignorance (max 8: the run
   cannot know a tail belief is coming).
+- **Step 7 (thorough mode)**: `thorough.ts`. Answers carry the tags of their question
+  (`frame` claim/negation, `stair` low/high, `kind`, `armOrder`), so the staircases are
+  rebuilt from them; `nextThoroughQuestion(answers, seed)` is pure. Low anchor 5-15%,
+  high anchor 85-95% (seeded); each staircase steps 1 logit while its answer keeps it
+  walking (claim for the ascending one, wedge for the descending one), looks the other
+  way if the anchor itself fails, then bisects its bracket to 0.15 logit (half the 0.3
+  target). Which staircase / repeat / negation probe comes next is a seeded draw
+  (`seed:pick:index`), so the order cannot be tracked. Two swapped-arm repeats (of
+  comparisons near the band, after 5 and 9 direct answers, or at the end if the stairs
+  finish early); two negation probes after 8 and 11 direct answers once both stairs have
+  a bracket of at most 0.6 logit, one just below and one just above the complement of the
+  direct band (0.05 logit margin, at least one display unit), in a seeded order; a
+  one-sided direct band allows only one probe. `thoroughResult` combines the direct band
+  with the negation band (1 - p): intersection when they are compatible (so coherent
+  answers leave the band exactly as the direct answers give it, and one-sided bands keep
+  what they know), the hull of all edges when they conflict (so incoherence shows up as
+  extra width). The gap is returned as `subadditivity` (`sub`: P(X)+P(not-X) > 1,
+  `super`: < 1). Cap 24. There is no "approx. N questions left" for thorough mode yet:
+  steps 9 and 11 must handle that (hide it, or add an estimate then).
+  Measured over 20 seeds: 50% believers 16-19 questions, 30-70% 15-18, 20-80% 14-16,
+  tails 2-3% avg 20.8 (max 23), 90-95% 18.5.
 
 ## Decisions
 
@@ -99,6 +121,10 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 7: thorough runs take 14-19 questions for typical respondents, ~21 for tail beliefs
+  (the doc says 14-18). Negation probes are the only thorough question that depends on the
+  direct band, so they wait until both staircases have a bracket.
 
 - Step 6: quick mode takes 3.5-6 questions for a typical respondent (the doc says ~6)
   and 8-10 for tails and wide ignorance, up to the cap of 12. The knobs
