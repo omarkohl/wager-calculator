@@ -2,7 +2,7 @@
 
 ## Next step
 
-21.
+21b.
 
 ## Stack
 
@@ -30,6 +30,7 @@
 - 18a: howsure/18a-comparisons, PR #108 (base howsure/17-coherent-bands)
 - 18b: howsure/18b-multi-run, PR #109 (base howsure/18a-comparisons)
 - 19: howsure/19-insights, PR #110 (base howsure/18b-multi-run)
+- 20: howsure/20-bucketing, PR #111 (base howsure/19-insights)
 
 ## Log
 
@@ -426,7 +427,19 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   (not the foot of a hump); edges that snapping would fold together stay unsnapped (a narrow
   spike keeps both flanks); bucketing has its own `BUCKET_MERGE_BELOW`. No UI yet, so no E2E.
 
+- **Step 21a (outcome discovery)**: the gate has a kind selector (yes/no, one of several
+  outcomes, a number: shown disabled with "Coming soon" until step 23). Categorical runs
+  live in `src/storage/multiRun.ts` (sessionStorage `howsure.multi`); starting one kind
+  clears the other. `OutcomeDiscovery` collects outcomes and shows the first sketch (tiers
+  scaled to 100%). Questions arrive in step 24, so a categorical run currently ends at the
+  sketch (accepted: the stack lands as a whole). The invite gate hides the kind
+  selector (an invite is yes/no until step 26). Chromium E2E (local workaround config): 16
+  tests of the touched specs pass, axe on discovery and sketch.
+
 ## Decisions
+
+- Step 21a: the categorical kind stays enabled (the first sketch is the starting result per the
+  requirements) with honest sketch copy; see "For review" for the merge consequence.
 
 - Step 17: after widening one side to the boundary, the sums do not tighten the other side
   back (widened lower bounds do not cap the upper bounds, widened upper bounds do not lift the
@@ -456,6 +469,16 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 21a: until step 24 lands, a categorical run ends at the sketch, so merge the stack
+  through step 24 together; if merged piecemeal, disable the kind like "A number".
+- Step 21a decisions: "Everything else" is added with tier "unlikely" (it is a bucket of
+  unknown content; the user can remove or re-add it). Multi-outcome runs show no
+  quick/thorough choice. Declining "Everything else" is remembered for the run.
+- Step 21a [NEEDS PROTOTYPE]: the tier-per-outcome UI (label field plus five radios under it, a
+  list below with Remove) is the simple variant; a drag-into-columns or slider variant could
+  replace it behind `OutcomeDiscovery`. The "Is there another outcome?" prompt is the heading
+  over the add form plus a "That is all the outcomes" button once there are two.
 
 - Step 18b: the multi-outcome run has no quick/thorough mode (the per-target search is the quick
   one); decide whether thorough multi-outcome runs are wanted for v1 (the plan does not ask for

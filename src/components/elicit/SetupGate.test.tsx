@@ -110,6 +110,7 @@ describe('SetupGate', () => {
     expect(onStart).toHaveBeenCalledWith({
       claim: 'It rains tomorrow',
       stake: { amount: '25', currency: 'eur' },
+      kind: 'yes-no',
       mode: 'thorough',
     })
     expect(getSavedElicitStake()).toEqual({ amount: '25', currency: 'eur' })
@@ -135,5 +136,36 @@ describe('ElicitPage', () => {
     expect(run.seed).toMatch(/^[A-Za-z0-9]{16}$/)
     expect(localStorage.getItem('howsure.run')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Start' })).not.toBeInTheDocument()
+  })
+
+  describe('kind of claim', () => {
+    it('offers yes/no (default), several outcomes, and a disabled number', () => {
+      render(<SetupGate onStart={vi.fn()} />)
+      expect(screen.getByRole('radio', { name: /Yes or no/ })).toBeChecked()
+      expect(screen.getByRole('radio', { name: /One of several outcomes/ })).not.toBeChecked()
+      expect(screen.getByRole('radio', { name: /A number/ })).toBeDisabled()
+    })
+
+    it('hides the mode for several outcomes and reports the kind', async () => {
+      const user = userEvent.setup()
+      const onStart = vi.fn()
+      render(<SetupGate onStart={onStart} />)
+      await user.click(screen.getByRole('radio', { name: /One of several outcomes/ }))
+      expect(screen.queryByRole('radio', { name: /Quick/ })).toBeNull()
+      await user.type(screen.getByRole('textbox', { name: 'Claim' }), 'Who wins?')
+      await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await user.click(screen.getByRole('button', { name: 'Start' }))
+      expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ kind: 'categorical' }))
+    })
+
+    it('does not offer the kind when opened from an invite, and starts a yes/no run', async () => {
+      const user = userEvent.setup()
+      const onStart = vi.fn()
+      render(<SetupGate onStart={onStart} invite={{ claim: 'It rains', criteria: '' }} />)
+      expect(screen.queryByRole('radio', { name: /One of several outcomes/ })).toBeNull()
+      await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await user.click(screen.getByRole('button', { name: 'Start' }))
+      expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ kind: 'yes-no' }))
+    })
   })
 })

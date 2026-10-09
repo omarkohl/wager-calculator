@@ -10,9 +10,13 @@ import {
 
 export type Mode = 'quick' | 'thorough'
 
+export type Kind = 'yes-no' | 'categorical'
+
 export interface SetupResult {
   claim: string
   stake: ElicitStake
+  kind: Kind
+  /** Only yes/no claims have a mode; a claim with several outcomes has one way of asking. */
   mode: Mode
 }
 
@@ -42,6 +46,7 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
   const [amount, setAmount] = useState(saved?.amount ?? DEFAULT_STAKE.amount)
   const [currency, setCurrency] = useState(saved?.currency ?? DEFAULT_STAKE.currency)
   const [mode, setMode] = useState<Mode>('quick')
+  const [kind, setKind] = useState<Kind>('yes-no')
   const [showErrors, setShowErrors] = useState(false)
   const claimRef = useRef<HTMLTextAreaElement>(null)
   const amountRef = useRef<HTMLInputElement>(null)
@@ -78,7 +83,8 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
     }
     const stake = { amount: amount.trim(), currency }
     saveElicitStake(stake)
-    onStart({ claim: claim.trim(), stake, mode })
+    // An invite carries a yes/no claim until invites carry their kind
+    onStart({ claim: claim.trim(), stake, kind: invite ? 'yes-no' : kind, mode })
   }
 
   return (
@@ -111,7 +117,11 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
           required
           value={claim}
           onChange={e => setClaim(e.target.value)}
-          placeholder="Something that will turn out true or false"
+          placeholder={
+            kind === 'yes-no'
+              ? 'Something that will turn out true or false'
+              : 'A question with several possible answers'
+          }
           aria-invalid={showErrors && claimError ? true : undefined}
           aria-describedby={showErrors && claimError ? ids.claimError : undefined}
           className={FIELD}
@@ -122,6 +132,45 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
           </p>
         )}
       </div>
+
+      {!invite && (
+        <fieldset>
+          <legend className="mb-1 text-sm font-medium text-gray-700">What kind of claim?</legend>
+          <div className="space-y-2">
+            {(
+              [
+                ['yes-no', 'Yes or no', 'It will turn out true or false.', false],
+                [
+                  'categorical',
+                  'One of several outcomes',
+                  'Exactly one of a list will happen.',
+                  false,
+                ],
+                ['continuous', 'A number', 'Coming soon.', true],
+              ] as const
+            ).map(([value, label, description, disabled]) => (
+              <label
+                key={value}
+                className={`flex items-start gap-3 ${disabled ? 'opacity-60' : 'cursor-pointer'}`}
+              >
+                <input
+                  type="radio"
+                  name="kind"
+                  value={value}
+                  disabled={disabled}
+                  checked={kind === value}
+                  onChange={() => value !== 'continuous' && setKind(value)}
+                  className="mt-1 h-4 w-4"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-gray-900">{label}</span>
+                  <span className="block text-sm text-gray-600">{description}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       <fieldset>
         <legend className="mb-1 text-sm font-medium text-gray-700">Stake</legend>
@@ -174,32 +223,34 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
         )}
       </fieldset>
 
-      <fieldset>
-        <legend className="mb-1 text-sm font-medium text-gray-700">How thorough?</legend>
-        <div className="space-y-2">
-          {(
-            [
-              ['quick', 'Quick', 'About 6 questions, a coarse range.'],
-              ['thorough', 'Thorough', 'About 14 to 18 questions, a tighter range.'],
-            ] as const
-          ).map(([value, label, description]) => (
-            <label key={value} className="flex cursor-pointer items-start gap-3">
-              <input
-                type="radio"
-                name="mode"
-                value={value}
-                checked={mode === value}
-                onChange={() => setMode(value)}
-                className="mt-1 h-4 w-4"
-              />
-              <span>
-                <span className="block text-sm font-medium text-gray-900">{label}</span>
-                <span className="block text-sm text-gray-600">{description}</span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {(invite || kind === 'yes-no') && (
+        <fieldset>
+          <legend className="mb-1 text-sm font-medium text-gray-700">How thorough?</legend>
+          <div className="space-y-2">
+            {(
+              [
+                ['quick', 'Quick', 'About 6 questions, a coarse range.'],
+                ['thorough', 'Thorough', 'About 14 to 18 questions, a tighter range.'],
+              ] as const
+            ).map(([value, label, description]) => (
+              <label key={value} className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="radio"
+                  name="mode"
+                  value={value}
+                  checked={mode === value}
+                  onChange={() => setMode(value)}
+                  className="mt-1 h-4 w-4"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-gray-900">{label}</span>
+                  <span className="block text-sm text-gray-600">{description}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       <button
         type="submit"

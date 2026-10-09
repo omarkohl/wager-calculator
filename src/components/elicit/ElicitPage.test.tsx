@@ -9,6 +9,7 @@ import {
   saveRun,
   type RunData,
 } from '../../storage/elicitation'
+import { loadMultiRun } from '../../storage/multiRun'
 import { decodeWagerFromHash } from '../../storage/urlHash'
 import { answerQuestion, nextFlowQuestion } from './runFlow'
 
@@ -501,5 +502,21 @@ describe('ElicitPage FAQ', () => {
       'aria-expanded',
       'true'
     )
+  })
+
+  it('starts a claim with several outcomes: discovery, stored for a reload', async () => {
+    const user = userEvent.setup()
+    render(<ElicitPage />)
+    await user.type(screen.getByRole('textbox', { name: 'Claim' }), 'Who wins?')
+    await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+    await user.click(screen.getByRole('radio', { name: /One of several outcomes/ }))
+    await user.click(screen.getByRole('button', { name: 'Start' }))
+    expect(screen.getByRole('heading', { name: 'What is the first outcome?' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Outcome' })).toHaveFocus()
+    await user.type(screen.getByRole('textbox', { name: 'Outcome' }), 'Alice')
+    await user.click(screen.getByRole('radio', { name: 'likely' }))
+    await user.click(screen.getByRole('button', { name: 'Add outcome' }))
+    expect(loadMultiRun()?.outcomes.items).toHaveLength(1)
+    expect(loadRun()).toBeNull()
   })
 })
