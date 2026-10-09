@@ -59,7 +59,7 @@ describe('ElicitPage', () => {
     await press(/if this is true/)
     await press('Stop here')
     expect(screen.getByRole('heading', { name: /Your answers say the chance is/ })).toHaveFocus()
-    expect(screen.getByText(/^above /)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /chance is above / })).toBeInTheDocument()
     expect(loadRun()!.stopped).toBe(true)
   })
 
@@ -135,6 +135,13 @@ describe('ElicitPage result actions', () => {
     expect(field).toHaveFocus()
   })
 
+  it('forgets the old adjusted belief when the run is run again', async () => {
+    saveRun({ ...contradictingRun(), adjusted: '70' })
+    render(<ElicitPage />)
+    await userEvent.click(screen.getByRole('button', { name: 'Run it again' }))
+    expect(loadRun()!.adjusted).toBeNull()
+  })
+
   it('runs it again with a fresh seed, keeping claim, criteria and mode', async () => {
     const old = contradictingRun()
     saveRun({ ...old, criteria: 'Any rain' })
@@ -152,5 +159,17 @@ describe('ElicitPage result actions', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
     ).toHaveFocus()
+  })
+
+  it('saves the adjusted belief as it is typed, without taking focus away', async () => {
+    saveRun(contradictingRun())
+    render(<ElicitPage />)
+    const field = screen.getByRole('textbox', { name: 'Your adjusted belief (%)' })
+    await userEvent.clear(field)
+    await userEvent.type(field, '42.5')
+    expect(loadRun()!.adjusted).toBe('42.5')
+    expect(field).toHaveFocus()
+    await userEvent.clear(field)
+    expect(loadRun()!.adjusted).toBeNull()
   })
 })

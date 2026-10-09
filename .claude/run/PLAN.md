@@ -135,7 +135,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       "that was a misclick, drop it" on contradicting pairs; on a hard contradiction
       the "sharpen the claim" prompt first, the criteria field opened, a re-run offered
       (fresh seed); resolution criteria offered after the result.
-- [ ] 13. **Adjust after**: "your answers imply" (fixed) beside "your adjusted belief"
+- [x] 13. **Adjust after**: "your answers imply" (fixed) beside "your adjusted belief"
       (editable, empty for one-sided bands); neutral gap text; both kept in the trace
       and the result URL.
 - [ ] 14. **Sharing UI**: copy invite and result links. Opening an invite starts the

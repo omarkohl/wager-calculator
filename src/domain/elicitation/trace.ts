@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js'
 import { computeBand, isHardContradiction, type Choice, type WedgeAnswer } from './bandRule'
-import { type Band, formatPercent, logit } from './logOdds'
+import { adjustmentGap, type AdjustmentGap } from './format'
+import { type Band, formatPercent, fromPercent, logit } from './logOdds'
 import { nextQuestion } from './quickSearch'
 import {
   nextThoroughQuestion,
@@ -30,6 +31,8 @@ export type TraceInput = {
   /** Indexes into `answers` the user dropped as misclicks. Anything that is not a valid
    * index (negative, fractional, past the end) is ignored; the URL parsing validates. */
   dropped?: readonly number[]
+  /** The user's own value in percent ("47.5"), kept beside what the answers imply. */
+  adjusted?: string | null
 } & (
   | { mode: 'quick'; answers: readonly WedgeAnswer[] }
   | { mode: 'thorough'; answers: readonly ThoroughAnswer[] }
@@ -90,6 +93,16 @@ export interface TraceResult {
   subadditivity: Subadditivity | null
 }
 
+/** What the answers implied and what the user then set, kept side by side. */
+export interface TraceAdjustment {
+  implied: Band
+  /** Midpoint of the implied band; null if it is one-sided. */
+  impliedPointEstimate: Decimal | null
+  /** The user's own value, as a probability. */
+  adjusted: Decimal
+  gap: AdjustmentGap
+}
+
 export interface RunTrace {
   steps: TraceStep[]
   contradictions: ContradictingPair[]
@@ -98,6 +111,8 @@ export interface RunTrace {
   result: TraceResult | null
   /** The algorithm would ask more questions after the kept answers (e.g. after a drop). */
   wouldAskMore: boolean
+  /** The user's adjusted belief against the implied band; null if none was set or there is no band. */
+  adjustment: TraceAdjustment | null
 }
 
 const pct = (p: Decimal.Value) => formatPercent(p)
@@ -260,12 +275,30 @@ export function buildTrace(input: TraceInput): RunTrace {
       ? nextQuestion(keptAnswers, seed)
       : nextThoroughQuestion(keptAnswers as readonly ThoroughAnswer[], seed)
 
+  const result = resultOf(mode, keptAnswers)
   return {
     steps,
     contradictions: findContradictions(kept),
     repeatDisagreements: mode === 'thorough' ? findRepeatDisagreements(kept) : [],
-    result: resultOf(mode, keptAnswers),
+    result,
     wouldAskMore: further !== null,
+    adjustment: adjustmentOf(result, input.adjusted ?? null),
+  }
+}
+
+function adjustmentOf(result: TraceResult | null, adjusted: string | null): TraceAdjustment | null {
+  if (!result || adjusted === null) return null
+  let value: Decimal
+  try {
+    value = fromPercent(adjusted)
+  } catch {
+    return null
+  }
+  return {
+    implied: result.band,
+    impliedPointEstimate: result.pointEstimate,
+    adjusted: value,
+    gap: adjustmentGap(value, result.band),
   }
 }
 

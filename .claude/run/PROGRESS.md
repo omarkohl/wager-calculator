@@ -2,7 +2,7 @@
 
 ## Next step
 
-13.
+14.
 
 ## Stack
 
@@ -20,6 +20,7 @@
 - 10: howsure/10-setup-gate, PR #98 (base howsure/09-persistence)
 - 11a: howsure/11a-lottery, PR #99 (base howsure/10-setup-gate)
 - 11b: howsure/11b-questions, PR #100 (base howsure/11a-lottery)
+- 12: howsure/12-result, PR #101 (base howsure/11b-questions)
 
 ## Log
 
@@ -218,6 +219,26 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
   between X% and Y%" (the span of those wedges) with no best guess, as honest ignorance,
   and "No range yet" only when nothing usable is left (all dropped). Chromium E2E (local workaround config):
   33 tests, axe on both a normal and a contradicting result.
+- **Step 13 (adjust after)**: `AdjustBelief.tsx` between the headline and the notes:
+  "Your answers imply" (the band, fixed) beside "Your adjusted belief (%)" (a text field,
+  `inputMode=decimal`). The field starts at the point estimate (two decimals, e.g. 45.4;
+  the headline's "best guess" is rounded for reading) and is empty for a one-sided band,
+  with a line saying there is no starting value. An untouched default is not stored:
+  `RunData.adjusted` stays null until the user types a valid value (canonical form, up to
+  two decimals, strictly between 0 and 100; clearing the field sets it back to null).
+  Errors are shown when the field is left, not while typing ("4." on the way to "4.5").
+  The gap is described neutrally and only once a value is set: "You set this above / below /
+  within what your answers implied." (`adjustmentGap`, `describeGap` in `format.ts`; the
+  band's edges count as within; a one-sided band only has the side it bounds). `buildTrace`
+  takes `adjusted` and returns `adjustment` (implied band, its point estimate, the value,
+  the gap) from the kept answers, so a drop moves the comparison; the trace ends with "Your
+  answers implied 48-63%. You then set your belief to 62.5%. You set this above ...". The
+  result URL already carries `adj` (step 9). Saved as typed, without moving focus. The
+  section appears when it can be edited or a value was set (read-only for shared results,
+  headed "Your belief"). A re-run forgets the adjusted value. The one-sided hint is linked to
+  the field (`aria-describedby`, joined with the error); the gap sentence is hidden while the
+  text is not a valid value.
+  Chromium E2E (local workaround config): 36 tests; new tests are all under 1 s locally.
 
 ## Decisions
 
@@ -236,6 +257,12 @@ typecheck test` green (272 tests). `bun x playwright install` is blocked in the 
 ## For review
 
 <!-- [NEEDS PROTOTYPE] variants and decisions the user should look at -->
+
+- Step 13: the adjust section (two blocks side by side, a plain text field for the
+  percentage, a one-line gap sentence) is a first simple version. Open: a slider or
+  stepper instead of typing, whether the field should start at the estimate or empty for
+  everyone (it starts at the estimate, and an untouched default is not counted as "set"),
+  and whether the gap sentence should show a number.
 
 - Step 12: all-"can't separate" runs show the indifference span instead of a band (see
   Decisions); whether that should be a real result type is open.
