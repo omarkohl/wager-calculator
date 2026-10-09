@@ -16,6 +16,9 @@ export const GRID_CEILING = 0.999
 /** Thorough mode: number of negation probes, placed in the second half of the run. */
 export const NEGATION_PROBES_THOROUGH = 2
 
+/** Thorough mode: swapped-arm repeats of answered comparisons. */
+export const REPEATS_THOROUGH = 2
+
 /** The wager's cap on outcomes, also the cap on buckets. */
 export const MAX_OUTCOMES = 8
 
