@@ -10,6 +10,8 @@ import {
   describeProvenance,
   firstSketch,
   hasEnoughOutcomes,
+  isEverythingElse,
+  issueId,
   isAtCap,
   isTier,
   labelProblem,
@@ -214,5 +216,31 @@ describe('provenance', () => {
 
   it('rejects counts that cannot be', () => {
     for (const n of [-1, 1.5, NaN]) expect(() => provenanceFor(n)).toThrow(RangeError)
+  })
+})
+
+describe('isEverythingElse and issueId', () => {
+  it('recognises "Everything else" whatever the case or spacing', () => {
+    expect(isEverythingElse(EVERYTHING_ELSE_LABEL)).toBe(true)
+    expect(isEverythingElse('  everything   ELSE ')).toBe(true)
+    expect(isEverythingElse('Everything elsewhere')).toBe(false)
+  })
+
+  it('is not offered again when it is there under another spelling', () => {
+    const l = list('very unlikely', 'very unlikely')
+    l[1].label = 'everything  else'
+    expect(shouldOfferEverythingElse(l)).toBe(false)
+  })
+
+  it('issues an id that counts as used from then on', () => {
+    let l = emptyOutcomeList()
+    l = addOutcome(addOutcome(l, 'A', null), 'B', null)
+    const first = issueId(l)
+    expect(first.id).toBe('o3')
+    // the next one, from the updated list, is new again, also after a removal
+    const second = issueId(removeOutcome(first.list, 'o1'))
+    expect(second.id).toBe('o4')
+    const added = addOutcome(second.list, 'C', null).items
+    expect(added[added.length - 1].id).toBe('o5')
   })
 })

@@ -45,6 +45,21 @@ const tidy = (label: string) => label.trim().replace(/\s+/g, ' ').normalize('NFC
 
 const normalise = (label: string) => tidy(label).toLowerCase()
 
+/** Whether a label is the "Everything else" bucket, whatever its case, spacing or Unicode form. */
+export function isEverythingElse(label: string): boolean {
+  return normalise(label) === normalise(EVERYTHING_ELSE_LABEL)
+}
+
+/**
+ * A new outcome id from the list, and the list with that id counted as issued, so it is
+ * never handed out again (also not after the outcome is removed). For outcomes that are
+ * not added through `addOutcome`, such as a merged "Everything else".
+ */
+export function issueId(list: OutcomeList): { id: string; list: OutcomeList } {
+  const issued = highestIssued(list) + 1
+  return { id: `o${issued}`, list: { items: list.items, issued } }
+}
+
 export type LabelProblem = 'empty' | 'duplicate'
 
 /** Why a label cannot be added, or null if it can. Case and spacing do not make a label new. */
@@ -104,7 +119,7 @@ export function removeOutcome(list: OutcomeList, id: string): OutcomeList {
  */
 export function shouldOfferEverythingElse(outcomes: readonly ElicitOutcome[]): boolean {
   if (isAtCap(outcomes)) return false
-  if (outcomes.some(o => normalise(o.label) === normalise(EVERYTHING_ELSE_LABEL))) return false
+  if (outcomes.some(o => isEverythingElse(o.label))) return false
   if (outcomes.length < EVERYTHING_ELSE_AFTER) return false
   return outcomes.slice(-EVERYTHING_ELSE_AFTER).every(o => o.tier === 'very unlikely')
 }

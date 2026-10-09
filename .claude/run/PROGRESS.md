@@ -2,7 +2,7 @@
 
 ## Next step
 
-19.
+20.
 
 ## Stack
 
@@ -28,6 +28,7 @@
 - 16: howsure/16-model, PR #106 (base howsure/15b-faq)
 - 17: howsure/17-coherent-bands, PR #107 (base howsure/16-model)
 - 18a: howsure/18a-comparisons, PR #108 (base howsure/17-coherent-bands)
+- 18b: howsure/18b-multi-run, PR #109 (base howsure/18a-comparisons)
 
 ## Log
 
@@ -384,6 +385,22 @@ bands?, answers, seed})` chooses the pair whose order is least clear (nearest es
   see For review); step 9's codec stores only `WedgeAnswer[]`, so step 26 needs a codec for
   multi answers (kind, targets, pick) and its replay check (the implied answers depend on the
   whole run, which `nextMultiQuestion` recomputes deterministically).
+- **Step 19 (insights and adjustments)**: `domain/elicitation/insights.ts` on `ResultBucket`
+  {id, label, estimate}. `topCoverage` (top 2, `TOP_K`; nothing when there are no more than k
+  outcomes or a tie spans the cut). `oneInN`: below 5% (`TINY_BELOW`), two significant
+  digits ("1-in-50", "1-in-55"). `orderDisagreements`: an order answer the first sketch
+  contradicts ("you picked Rain over Cloudy but sketched Cloudy higher"; equal sketches do not
+  disagree). `buildInsights` writes them in that order: "Your top two outcomes (Rain and
+  Cloudy) cover 80%.", "You gave Snow almost nothing: that's a 1-in-50 claim.", ... Merging:
+  `mergeOffer` for two or more outcomes each below 3% (`MERGE_BELOW`), only if at least two
+  outcomes would remain; `applyMerge(buckets, ids, freshId)` makes (or adds to) one "Everything else" in the first
+  merged one's place (a new one takes a fresh id issued with `issueId` from the outcome list, never
+  an old outcome's id; "Everything else" is found with `isEverythingElse`, case, spacing and
+  Unicode form ignored, as in the model); the tool offers and never merges by itself. Adjusted values (percent):
+  `totalState` / `describeTotal` ("12 points too many", "13 points not yet placed", "1 point
+  not yet placed"), `canBet` (exactly 100, every value a percentage), `normalizePercents` (two decimals, exactly
+  100, leftover hundredths by largest remainder, earlier first on ties; refuses negatives and a
+  zero total). The UI that shows them is steps 23-26. No UI here, so no E2E.
 
 ## Decisions
 
