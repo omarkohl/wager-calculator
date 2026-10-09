@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
-import { makeCoherent, type BucketBand, type OrderAnswer } from './coherence'
+import { applySumBand, makeCoherent, type BucketBand, type OrderAnswer } from './coherence'
 import { createSeededPRNG } from '../prng'
 
 const band = (id: string, lo: number, hi: number, asked = true): BucketBand => ({
@@ -307,5 +307,72 @@ describe('properties on random input', () => {
       // coherent input is never widened
       if (!r.incoherence) expect(r.bands.some(b => b.widened)).toBe(false)
     }
+  })
+})
+
+describe('applySumBand', () => {
+  it('narrows the members to what the sum allows, and flags nothing', () => {
+    const r = applySumBand(
+      [band('A', 0, 1), band('B', 0.1, 1), band('C', 0, 1)],
+      ['A', 'B'],
+      new Decimal(0),
+      new Decimal(0.4)
+    )
+    expect(r.incoherence).toBeNull()
+    expect(r.widenedSide).toBeNull()
+    close([r.bands[0].lo.toNumber(), r.bands[0].hi.toNumber()], [0, 0.3])
+    close([r.bands[1].lo.toNumber(), r.bands[1].hi.toNumber()], [0.1, 0.4])
+    // a bucket outside the group is left alone
+    close([r.bands[2].lo.toNumber(), r.bands[2].hi.toNumber()], [0, 1])
+  })
+
+  it('members whose lows exceed the sum are flagged and widened, keeping their width', () => {
+    const r = applySumBand(
+      [band('A', 0.3, 1), band('B', 0.3, 1)],
+      ['A', 'B'],
+      new Decimal(0),
+      new Decimal(0.4)
+    )
+    expect(r.incoherence!.kind).toBe('lowers-exceed')
+    expect(r.incoherence!.amount.toNumber()).toBeCloseTo(0.2, 12)
+    expect(r.widenedSide).toBe('lo')
+    for (const b of r.bands) {
+      expect(b.lo.toNumber()).toBeCloseTo(0.2, 6)
+      expect(b.hi.toNumber()).toBeCloseTo(0.4, 9)
+    }
+  })
+
+  it('members whose highs fall short of the sum are flagged and widened', () => {
+    const r = applySumBand(
+      [band('A', 0, 0.2), band('B', 0, 0.2)],
+      ['A', 'B'],
+      new Decimal(0.6),
+      new Decimal(1)
+    )
+    expect(r.incoherence!.kind).toBe('uppers-short')
+    expect(r.widenedSide).toBe('hi')
+    for (const b of r.bands) {
+      expect(b.hi.toNumber()).toBeCloseTo(0.3, 6)
+      expect(b.lo.toNumber()).toBeCloseTo(0, 9)
+    }
+  })
+
+  it('does not change what it is given', () => {
+    const input = [band('A', 0.3, 1), band('B', 0.3, 1)]
+    applySumBand(input, ['A', 'B'], new Decimal(0), new Decimal(0.4))
+    expect(input[0].lo.toNumber()).toBe(0.3)
+  })
+})
+
+describe('a locked side', () => {
+  it('stops the sums from tightening a side the caller widened back to a point', () => {
+    const bands = [band('A', 0.2, 0.4), band('B', 0.2, 0.4), band('C', 0.6, 1)]
+    const both = makeCoherent(bands)
+    const locked = makeCoherent(bands, [], 'lo-only')
+    // unlocked, the highs collapse (the lows already add up to 100%)
+    expect(both.bands[2].hi.toNumber()).toBeCloseTo(0.6, 9)
+    // locked to the lows, the highs stay as they were said
+    expect(locked.bands[2].hi.toNumber()).toBeCloseTo(1, 9)
+    expect(locked.bands[0].hi.toNumber()).toBeCloseTo(0.4, 9)
   })
 })

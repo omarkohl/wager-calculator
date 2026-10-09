@@ -157,12 +157,12 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [x] 17. **Coherent bands**: tightening to the reachable part, order constraints,
       incoherent bounds flagged and widened minimally, never-asked buckets bounded by
       what is left. Tests include the doc's A/B/C example.
-- [ ] 18. **Questions**:
+- [x] 18. **Questions**:
   - [x] 18a. "Which is more likely" (with "about equally likely") as order answers; the choice
         of the next pair (unclear order first, not implied by earlier answers); spot-check
         selection (3 random pairs, fewer if fewer exist, plus the completeness check). Deterministic from seed
         and answers.
-  - [ ] 18b. The lottery on one bucket or a group (reusing the yes/no search per target);
+  - [x] 18b. The lottery on one bucket or a group (reusing the yes/no search per target);
         next-question choice across all kinds (widest band in percentage points, extra weight
         on the extreme tiers, a near-even sketch and unclear pairs).
 - [ ] 19. **Insights and adjustments**: top-k coverage, "1-in-N" for tiny buckets,
