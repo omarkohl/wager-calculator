@@ -76,3 +76,6 @@ export const TINY_BELOW = 0.05
 
 /** Merging: outcomes below this chance each may be offered as "everything else". */
 export const MERGE_BELOW = 0.03
+
+/** Continuous buckets: neighbouring buckets both below this chance are merged into one. */
+export const BUCKET_MERGE_BELOW = 0.03

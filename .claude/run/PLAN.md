@@ -168,7 +168,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [x] 19. **Insights and adjustments**: top-k coverage, "1-in-N" for tiny buckets,
       order vs. sketch disagreements; merge rare outcomes into "everything else"
       (offered only); Normalize for adjusted values.
-- [ ] 20. **Continuous bucketing**: from min, max, thresholds and a curve through N
+- [x] 20. **Continuous bucketing**: from min, max, thresholds and a curve through N
       points → hybrid edges (thresholds, shape changes, snapped to round numbers,
       neighbours both < 3% merged, open-ended outer buckets, ≤ 8); bars → bucket
       probabilities directly.

@@ -2,7 +2,7 @@
 
 ## Next step
 
-20.
+21.
 
 ## Stack
 
@@ -29,6 +29,7 @@
 - 17: howsure/17-coherent-bands, PR #107 (base howsure/16-model)
 - 18a: howsure/18a-comparisons, PR #108 (base howsure/17-coherent-bands)
 - 18b: howsure/18b-multi-run, PR #109 (base howsure/18a-comparisons)
+- 19: howsure/19-insights, PR #110 (base howsure/18b-multi-run)
 
 ## Log
 
@@ -401,6 +402,29 @@ bands?, answers, seed})` chooses the pair whose order is least clear (nearest es
   not yet placed"), `canBet` (exactly 100, every value a percentage), `normalizePercents` (two decimals, exactly
   100, leftover hundredths by largest remainder, earlier first on ties; refuses negatives and a
   zero total). The UI that shows them is steps 23-26. No UI here, so no E2E.
+- **Step 20 (continuous bucketing)**: `domain/elicitation/bucketing.ts`. `bucketCurve({min, max,
+thresholds, curve}, unit?)`: the curve is a polyline through N points (relative likelihood,
+  any scale, any order, density 0 outside its points), integrated exactly over [min, max]
+  and normalised. Edges: the user's thresholds always (unrounded; those not strictly inside
+  (min, max) go to `ignoredThresholds`; at most 7), plus the curve's shape changes: valleys
+  (a vertex lower than its left neighbour and not higher than its right) and each hump's
+  flanks at half its height, walking down from the peak and not past a valley. Shape edges are
+  snapped (`snapRound`) to the roundest number within range/40: of 10^k, 5, 2 and 1 times
+  powers of ten, the biggest step with a multiple in reach; an edge that lands on a threshold
+  or outside is dropped. A curve with no shape change (flat) is split at its median so there
+  are at least two buckets. Neighbouring buckets both below 3% (`MERGE_BELOW`) are merged by
+  removing the edge between them, never a threshold's; above 8 buckets (`MAX_OUTCOMES`) the
+  non-threshold edge with the smallest combined mass goes first. Outer buckets are open-ended
+  ("below 2.5", "2.5 to 7.5", "7.5 or more", with an optional unit); probabilities sum to
+  exactly 1 (the last takes the rounding remainder). Bars: `barsToProbabilities` takes the
+  percentages as entered (no normalising: that is `normalizePercents`), `barEdges` gives round
+  edges for the bars view (thresholds plus an even, snapped spread). Property test over 40
+  random curves. Added after review: all numbers must be finite (a URL could carry Infinity or
+  NaN; those used to hang the snapping); thresholds are counted after dropping out-of-range and
+  repeated ones; `barEdges` never makes more than 8 bars; labels use as many decimals as the
+  range needs and never exponent notation; a valley counts only between two higher points
+  (not the foot of a hump); edges that snapping would fold together stay unsnapped (a narrow
+  spike keeps both flanks); bucketing has its own `BUCKET_MERGE_BELOW`. No UI yet, so no E2E.
 
 ## Decisions
 
