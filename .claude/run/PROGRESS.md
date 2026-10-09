@@ -2,7 +2,7 @@
 
 ## Next step
 
-21b.
+22.
 
 ## Stack
 
@@ -31,6 +31,7 @@
 - 18b: howsure/18b-multi-run, PR #109 (base howsure/18a-comparisons)
 - 19: howsure/19-insights, PR #110 (base howsure/18b-multi-run)
 - 20: howsure/20-bucketing, PR #111 (base howsure/19-insights)
+- 21a: howsure/21a-outcomes, PR #112 (base howsure/20-bucketing)
 
 ## Log
 
@@ -436,7 +437,22 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   selector (an invite is yes/no until step 26). Chromium E2E (local workaround config): 16
   tests of the touched specs pass, axe on discovery and sketch.
 
+- **Step 21b (numbers view)**: before the first outcome, "Use numbers instead of tiers" swaps the
+  tier radios for a percent field per outcome; the sketch step then becomes "Your numbers":
+  editable percentages taken as typed, a live total ("12 points too many" / "13 points not yet
+  placed") and Normalize (`normalizePercents`). The run stores `view` and `percents`; in the
+  numbers view outcomes have no tier. The input is reusable for the bars of step 23a.
+  Chromium E2E (local workaround config): outcomes spec 2 tests, axe on both views.
+
+  Review follow-ups: Normalize here lifts a share that would round to 0.00 to 0.01 (the
+  hundredths come from the largest values); "12,5" and "30%" are accepted as typed.
+
 ## Decisions
+
+- Step 21b: the view can be switched only while the list is empty (an outcome has either a
+  tier or a number; converting between them mid-list needs a rule nobody asked for). Percents
+  are strictly between 0 and 100 (same parser as the adjusted value). No "Everything else" offer
+  in the numbers view (it is triggered by tiers).
 
 - Step 21a: the categorical kind stays enabled (the first sketch is the starting result per the
   requirements) with honest sketch copy; see "For review" for the merge consequence.
@@ -472,6 +488,10 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
 
 - Step 21a: until step 24 lands, a categorical run ends at the sketch, so merge the stack
   through step 24 together; if merged piecemeal, disable the kind like "A number".
+- Step 21b: `analyse`/`firstSketch` throw on outcomes without a tier, and numbers-view runs have
+  none, so step 24 must feed the typed percents in as the sketch for those runs.
+- Step 21b: stored runs from the 21a commit lack `view` and are dropped on load; 21a was never
+  released, so there is no migration.
 - Step 21a decisions: "Everything else" is added with tier "unlikely" (it is a bucket of
   unknown content; the user can remove or re-add it). Multi-outcome runs show no
   quick/thorough choice. Declining "Everything else" is remembered for the run.

@@ -18,13 +18,45 @@ function sample(): MultiRunData {
     outcomes,
     declinedElse: true,
     phase: 'sketch',
+    view: 'tiers',
+    percents: {},
   }
+}
+
+function numbers(): MultiRunData {
+  const outcomes = addOutcome(addOutcome(emptyOutcomeList(), 'Alice', null), 'Bob', null)
+  return { ...sample(), outcomes, view: 'numbers', percents: { o1: '60', o2: '40' } }
 }
 
 describe('multi-outcome run storage', () => {
   it('round-trips a run', () => {
     saveMultiRun(sample())
     expect(loadMultiRun()).toEqual(sample())
+  })
+
+  it('round-trips a run in the numbers view', () => {
+    saveMultiRun(numbers())
+    expect(loadMultiRun()).toEqual(numbers())
+  })
+
+  it.each([
+    ['a number missing', { o1: '60' }],
+    ['a number for an unknown outcome', { o1: '60', o2: '40', o9: '1' }],
+    ['a number that is not text', { o1: 60, o2: '40' }],
+    ['a number that is far too long', { o1: '6'.repeat(40), o2: '40' }],
+  ])('rejects a numbers run with %s', (_name, percents) => {
+    saveMultiRun(numbers())
+    const raw = JSON.parse(sessionStorage.getItem('howsure.multi')!)
+    raw.percents = percents
+    sessionStorage.setItem('howsure.multi', JSON.stringify(raw))
+    expect(loadMultiRun()).toBeNull()
+  })
+
+  it('rejects numbers in the tiers view and a tier in the numbers view', () => {
+    saveMultiRun({ ...sample(), percents: { o1: '60' } })
+    expect(loadMultiRun()).toBeNull()
+    saveMultiRun({ ...numbers(), outcomes: sample().outcomes })
+    expect(loadMultiRun()).toBeNull()
   })
 
   it('returns null when nothing is stored, after clearing, and for junk', () => {

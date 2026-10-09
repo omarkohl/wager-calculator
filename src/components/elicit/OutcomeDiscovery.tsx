@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import {
   addOutcome,
@@ -12,9 +13,15 @@ import {
   type Tier,
 } from '../../domain/elicitation/model'
 import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
+import { parseAdjusted } from '../../domain/elicitation/format'
+import {
+  describeTotal,
+  normalizePercentsAtLeast,
+  totalState,
+} from '../../domain/elicitation/insights'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
-import type { MultiRunData } from '../../storage/multiRun'
+import type { MultiRunData, MultiView } from '../../storage/multiRun'
 
 interface OutcomeDiscoveryProps {
   run: MultiRunData
@@ -23,6 +30,15 @@ interface OutcomeDiscoveryProps {
   onChange: (run: MultiRunData) => void
   onStartAgain: () => void
 }
+
+const PERCENT_PROBLEM = 'Enter a percentage above 0 and below 100, with at most two decimals.'
+
+/** The percentage typed for an outcome, or null if it is not a usable one. */
+const percentOf = (run: MultiRunData, id: string) => parsePercent(run.percents[id] ?? '')
+
+/** A typed percentage: a decimal comma and a trailing percent sign are fine. */
+const parsePercent = (text: string) =>
+  parseAdjusted(text.trim().replace(/%$/, '').replace(',', '.'))
 
 const FIELD =
   'block w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -36,7 +52,7 @@ const SECONDARY =
  * into a tier [NEEDS PROTOTYPE: tiers as radios under the label], then the first sketch
  * those tiers give. The claim stays editable throughout.
  */
-type FocusTarget = 'label' | 'claim' | 'sketch' | 'cap'
+type FocusTarget = 'label' | 'percent' | 'claim' | 'sketch' | 'cap' | 'total'
 
 export default function OutcomeDiscovery({
   run,
@@ -46,9 +62,14 @@ export default function OutcomeDiscovery({
 }: OutcomeDiscoveryProps) {
   const [label, setLabel] = useState('')
   const [tier, setTier] = useState<Tier | null>(null)
+  const [percent, setPercent] = useState('')
   const [error, setError] = useState<string | null>(null)
+  /** Which field the message is about. */
+  const [errorField, setErrorField] = useState<'label' | 'percent'>('label')
   const labelRef = useRef<HTMLInputElement>(null)
   const claimRef = useRef<HTMLTextAreaElement>(null)
+  const percentRef = useRef<HTMLInputElement>(null)
+  const totalRef = useRef<HTMLParagraphElement>(null)
   const sketchRef = useRef<HTMLHeadingElement>(null)
   const capRef = useRef<HTMLParagraphElement>(null)
   // Where focus goes once the next render has put the target on the page: a button that
@@ -58,10 +79,23 @@ export default function OutcomeDiscovery({
     const target = focusRequest.current
     if (!target) return
     focusRequest.current = null
-    const refs = { label: labelRef, claim: claimRef, sketch: sketchRef, cap: capRef }
+    const refs = {
+      label: labelRef,
+      percent: percentRef,
+      claim: claimRef,
+      sketch: sketchRef,
+      cap: capRef,
+      total: totalRef,
+    }
     refs[target].current?.focus()
   })
-  const ids = { claim: useId(), claimError: useId(), label: useId(), error: useId() }
+  const ids = {
+    percent: useId(),
+    claim: useId(),
+    claimError: useId(),
+    label: useId(),
+    error: useId(),
+  }
   const items = run.outcomes.items
 
   const claimMissing = run.claim.trim() === ''
@@ -98,14 +132,28 @@ export default function OutcomeDiscovery({
         >
           <span>
             <span className="font-medium text-gray-900">{o.label}</span>
-            <span className="text-gray-600"> — {o.tier}</span>
+            <span className="text-gray-600">
+              {' '}
+              —{' '}
+              {run.view === 'numbers'
+                ? percentOf(run, o.id)
+                  ? `${percentOf(run, o.id)}%`
+                  : 'no usable number'
+                : o.tier}
+            </span>
           </span>
           <button
             type="button"
             aria-label={`Remove ${o.label}`}
             onClick={() => {
               focusRequest.current = 'label'
-              onChange({ ...run, outcomes: removeOutcome(run.outcomes, o.id) })
+              onChange({
+                ...run,
+                outcomes: removeOutcome(run.outcomes, o.id),
+                percents: Object.fromEntries(
+                  Object.entries(run.percents).filter(([id]) => id !== o.id)
+                ),
+              })
             }}
             className="text-sm text-blue-700 underline focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
@@ -115,6 +163,102 @@ export default function OutcomeDiscovery({
       ))}
     </ul>
   )
+
+  if (run.phase === 'sketch' && run.view === 'numbers') {
+    const values = items.map(o => new Decimal(percentOf(run, o.id) ?? 0))
+    const anyInvalid = items.some(o => percentOf(run, o.id) === null)
+    const state = totalState(values)
+    const setPercents = (percents: Record<string, string>) => onChange({ ...run, percents })
+    return (
+      <div className="mt-4 max-w-2xl space-y-6">
+        {claimField}
+        <h2
+          ref={sketchRef}
+          tabIndex={-1}
+          className="text-xl font-semibold text-gray-900 focus:outline-none"
+        >
+          Your numbers
+        </h2>
+        <p className="text-gray-700">
+          Your own percentages, taken as typed. They should add up to 100%; Normalize scales them if
+          you want that. They have not been checked yet. More questions to refine them are coming.
+        </p>
+        <ul aria-label="Your numbers" className="space-y-3">
+          {items.map(o => {
+            const bad = percentOf(run, o.id) === null
+            return (
+              <li key={o.id}>
+                <label
+                  htmlFor={`${ids.percent}-${o.id}`}
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  {o.label}, percent
+                </label>
+                <input
+                  id={`${ids.percent}-${o.id}`}
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={run.percents[o.id] ?? ''}
+                  onChange={e => setPercents({ ...run.percents, [o.id]: e.target.value })}
+                  aria-invalid={bad ? true : undefined}
+                  aria-describedby={bad ? `${ids.percent}-${o.id}-error` : undefined}
+                  className={`${FIELD} w-32`}
+                />
+                {bad && (
+                  <p id={`${ids.percent}-${o.id}-error`} className="mt-1 text-sm text-red-700">
+                    {PERCENT_PROBLEM}
+                  </p>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+        <p
+          ref={totalRef}
+          tabIndex={-1}
+          role="status"
+          className="font-medium text-gray-900 focus:outline-none"
+        >
+          {anyInvalid
+            ? 'Some numbers are not usable yet.'
+            : (describeTotal(state) ?? 'The numbers add up to 100%.')}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {!anyInvalid && state.kind !== 'ok' && (
+            <button
+              type="button"
+              className={PRIMARY}
+              onClick={() => {
+                // The button goes away once the total is 100: the total takes the cursor
+                focusRequest.current = 'total'
+                setPercents(
+                  Object.fromEntries(
+                    normalizePercentsAtLeast(values).map((v, i) => [items[i].id, v.toString()])
+                  )
+                )
+              }}
+            >
+              Normalize
+            </button>
+          )}
+          <button
+            type="button"
+            className={SECONDARY}
+            onClick={() => {
+              focusRequest.current = 'label'
+              onChange({ ...run, phase: 'discover' })
+            }}
+          >
+            Change the outcomes
+          </button>
+          <button type="button" className={SECONDARY} onClick={onStartAgain}>
+            Start again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (run.phase === 'sketch') {
     const sketch = firstSketch(items)
@@ -159,11 +303,24 @@ export default function OutcomeDiscovery({
     )
   }
 
-  const add = (newLabel: string, newTier: Tier) => {
+  const add = (newLabel: string, newTier: Tier | null, newPercent?: string) => {
     // At the cap the form goes away: the notice takes the cursor
     focusRequest.current = items.length + 1 >= MAX_OUTCOMES ? 'cap' : 'label'
-    onChange({ ...run, outcomes: addOutcome(run.outcomes, newLabel, newTier) })
+    const outcomes = addOutcome(run.outcomes, newLabel, newTier)
+    const percents =
+      newPercent === undefined
+        ? run.percents
+        : { ...run.percents, [outcomes.items[outcomes.items.length - 1].id]: newPercent }
+    onChange({ ...run, outcomes, percents })
   }
+
+  const switchView = (view: MultiView) => {
+    focusRequest.current = 'label'
+    setError(null)
+    onChange({ ...run, view })
+  }
+  const numbersView = run.view === 'numbers'
+  const parsedPercent = parsePercent(percent)
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
@@ -175,17 +332,25 @@ export default function OutcomeDiscovery({
           ? 'That outcome is already in the list.'
           : label.trim().length > MAX_TEXT_LENGTH
             ? `Shorten the outcome to ${MAX_TEXT_LENGTH} characters or fewer.`
-            : tier === null
-              ? 'Say how likely it is: pick a tier.'
-              : null
-    if (message || tier === null) {
+            : numbersView
+              ? parsedPercent === null
+                ? PERCENT_PROBLEM
+                : null
+              : tier === null
+                ? 'Say how likely it is: pick a tier.'
+                : null
+    if (message || (numbersView ? parsedPercent === null : tier === null)) {
+      const aboutPercent = problem === null && numbersView
       setError(message)
-      labelRef.current?.focus()
+      setErrorField(aboutPercent ? 'percent' : 'label')
+      ;(aboutPercent ? percentRef : labelRef).current?.focus()
       return
     }
-    add(label, tier)
+    if (numbersView) add(label, null, parsedPercent!)
+    else add(label, tier)
     setLabel('')
     setTier(null)
+    setPercent('')
     setError(null)
   }
 
@@ -238,6 +403,15 @@ export default function OutcomeDiscovery({
           <h2 className="text-xl font-semibold text-gray-900">
             {items.length === 0 ? 'What is the first outcome?' : 'Is there another outcome?'}
           </h2>
+          {items.length === 0 && (
+            <button
+              type="button"
+              className="text-sm text-blue-700 underline focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              onClick={() => switchView(numbersView ? 'tiers' : 'numbers')}
+            >
+              {numbersView ? 'Use tiers instead of numbers' : 'Use numbers instead of tiers'}
+            </button>
+          )}
           <div>
             <label htmlFor={ids.label} className="mb-1 block text-sm font-medium text-gray-700">
               Outcome
@@ -252,32 +426,55 @@ export default function OutcomeDiscovery({
                 setLabel(e.target.value)
                 setError(null)
               }}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? ids.error : undefined}
+              aria-invalid={error && errorField === 'label' ? true : undefined}
+              aria-describedby={error && errorField === 'label' ? ids.error : undefined}
               className={FIELD}
             />
           </div>
-          <fieldset>
-            <legend className="mb-1 text-sm font-medium text-gray-700">How likely is it?</legend>
-            <div className="flex flex-wrap gap-x-5 gap-y-2">
-              {TIERS.map(t => (
-                <label key={t} className="flex cursor-pointer items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="tier"
-                    value={t}
-                    checked={tier === t}
-                    onChange={() => {
-                      setTier(t)
-                      setError(null)
-                    }}
-                    className="h-4 w-4"
-                  />
-                  {t}
-                </label>
-              ))}
+          {numbersView ? (
+            <div>
+              <label htmlFor={ids.percent} className="mb-1 block text-sm font-medium text-gray-700">
+                Percent
+              </label>
+              <input
+                id={ids.percent}
+                ref={percentRef}
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={percent}
+                onChange={e => {
+                  setPercent(e.target.value)
+                  setError(null)
+                }}
+                aria-invalid={error && errorField === 'percent' ? true : undefined}
+                aria-describedby={error && errorField === 'percent' ? ids.error : undefined}
+                className={`${FIELD} w-32`}
+              />
             </div>
-          </fieldset>
+          ) : (
+            <fieldset>
+              <legend className="mb-1 text-sm font-medium text-gray-700">How likely is it?</legend>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {TIERS.map(t => (
+                  <label key={t} className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="tier"
+                      value={t}
+                      checked={tier === t}
+                      onChange={() => {
+                        setTier(t)
+                        setError(null)
+                      }}
+                      className="h-4 w-4"
+                    />
+                    {t}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
           {error && (
             <p id={ids.error} role="alert" className="text-sm text-red-700">
               {error}

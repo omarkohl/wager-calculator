@@ -261,3 +261,26 @@ export function normalizePercents(values: readonly Decimal[]): Decimal[] {
   }
   return result
 }
+
+/**
+ * Normalize for percentages that must each stay usable (above zero): as `normalizePercents`,
+ * but a value that rounds to 0.00 is lifted to 0.01, the hundredths taken from the largest
+ * values (ties to the earlier one), so the sum stays exactly 100. Throws when there is no
+ * room (more values than hundredths of a point can cover).
+ */
+export function normalizePercentsAtLeast(values: readonly Decimal[]): Decimal[] {
+  const result = normalizePercents(values)
+  const step = new Decimal('0.01')
+  for (let i = 0; i < result.length; i++) {
+    if (!result[i].isZero()) continue
+    let donor = -1
+    result.forEach((v, j) => {
+      if (donor < 0 || v.gt(result[donor])) donor = j
+    })
+    if (result[donor].lt(step.times(2)))
+      throw new RangeError('Too many values to keep each above zero')
+    result[donor] = result[donor].minus(step)
+    result[i] = step
+  }
+  return result
+}

@@ -8,6 +8,7 @@ import {
   describeTotal,
   mergeOffer,
   normalizePercents,
+  normalizePercentsAtLeast,
   oneInN,
   orderDisagreements,
   topCoverage,
@@ -290,5 +291,17 @@ describe('normalizePercents', () => {
 
   it('makes the bet possible', () => {
     expect(canBet(normalizePercents(dec(12, 34, 56)))).toBe(true)
+  })
+})
+
+describe('normalizePercentsAtLeast', () => {
+  const d = (...xs: number[]) => xs.map(x => new Decimal(x))
+  it('keeps every value above zero and the sum at exactly 100', () => {
+    const out = normalizePercentsAtLeast(d(0.01, 99, 99))
+    expect(out.map(String)).toEqual(['0.01', '49.99', '50'])
+    expect(out.reduce((a, b) => a.plus(b), new Decimal(0)).eq(100)).toBe(true)
+  })
+  it('matches normalizePercents when nothing rounds to zero', () => {
+    expect(normalizePercentsAtLeast(d(70, 42)).map(String)).toEqual(['62.5', '37.5'])
   })
 })
