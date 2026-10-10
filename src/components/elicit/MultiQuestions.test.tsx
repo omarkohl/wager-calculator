@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import MultiQuestions from './MultiQuestions'
@@ -51,6 +51,7 @@ function Harness({
   focusOnShow = false,
   kept = false,
   allowMerge = true,
+  onBet = undefined as ((items: { label: string; percent: string }[]) => void) | undefined,
 }) {
   const [run, setRun] = useState(initial)
   const update = (next: MultiRunData) => {
@@ -67,6 +68,7 @@ function Harness({
       onAdjusted={adjusted => update({ ...run, adjusted })}
       merged={run.merged}
       onMerged={allowMerge ? merged => update({ ...run, merged, adjusted: {} }) : undefined}
+      onBet={onBet}
       stake="20 EUR"
       focusOnShow={focusOnShow}
       onAnswers={answers => update({ ...run, answers })}
@@ -210,6 +212,80 @@ describe('MultiQuestions', () => {
         /Rain: your answers implied .* You then set it to 80%\./
       )
     ).toBeInTheDocument()
+  })
+
+  describe('bet on this', () => {
+    it('points to Normalize while the numbers are not at 100%, then hands the numbers over', async () => {
+      const user = userEvent.setup()
+      const onBet = vi.fn()
+      render(<Harness onBet={onBet} />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      const rain = screen.getByRole('textbox', { name: 'Rain, percent' })
+      await user.clear(rain)
+      await user.type(rain, '90')
+      await user.click(screen.getByRole('button', { name: 'Bet on this' }))
+      expect(screen.getByRole('alert')).toHaveTextContent(/not at 100% yet.*Press Normalize/)
+      expect(screen.getByRole('button', { name: 'Normalize' })).toHaveFocus()
+      expect(onBet).not.toHaveBeenCalled()
+      await user.click(screen.getByRole('button', { name: 'Normalize' }))
+      await user.click(screen.getByRole('button', { name: 'Bet on this' }))
+      expect(onBet).toHaveBeenCalledTimes(1)
+      const items = onBet.mock.calls[0][0] as { label: string; percent: string; range: string }[]
+      expect(items.map(i => i.label)).toEqual(['Rain', 'Cloud', 'Snow'])
+      expect(items.every(i => i.range.length > 0)).toBe(true)
+      expect(items.reduce((s, i) => s + Number(i.percent), 0)).toBeCloseTo(100, 6)
+    })
+
+    it('accepts what the fields accept: a comma and a percent sign', async () => {
+      const user = userEvent.setup()
+      const onBet = vi.fn()
+      render(<Harness onBet={onBet} />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      for (const [name, text] of [
+        ['Rain, percent', '45,5%'],
+        ['Cloud, percent', '30'],
+        ['Snow, percent', '24.5'],
+      ]) {
+        const field = screen.getByRole('textbox', { name })
+        await user.clear(field)
+        await user.type(field, text)
+      }
+      await user.click(screen.getByRole('button', { name: 'Bet on this' }))
+      expect(onBet).toHaveBeenCalledTimes(1)
+      expect(onBet.mock.calls[0][0].map((i: { percent: string }) => i.percent)).toEqual([
+        '45.5',
+        '30',
+        '24.5',
+      ])
+    })
+
+    it('drops the hint once the numbers change', async () => {
+      const user = userEvent.setup()
+      render(<Harness onBet={vi.fn()} />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      const rain = screen.getByRole('textbox', { name: 'Rain, percent' })
+      await user.clear(rain)
+      await user.type(rain, '90')
+      await user.click(screen.getByRole('button', { name: 'Bet on this' }))
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Normalize' }))
+      expect(screen.queryByRole('alert')).toBeNull()
+    })
+
+    it('says so when a number is not a percentage, and is absent without a handler', async () => {
+      const user = userEvent.setup()
+      const onBet = vi.fn()
+      const { unmount } = render(<Harness onBet={onBet} />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      await user.type(screen.getByRole('textbox', { name: 'Rain, percent' }), 'x')
+      await user.click(screen.getByRole('button', { name: 'Bet on this' }))
+      expect(screen.getByRole('alert')).toHaveTextContent(/not percentages yet/)
+      expect(onBet).not.toHaveBeenCalled()
+      unmount()
+      render(<Harness />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      expect(screen.queryByRole('button', { name: 'Bet on this' })).toBeNull()
+    })
   })
 
   describe('own numbers and the merge offer', () => {

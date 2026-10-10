@@ -3,6 +3,7 @@ import { createDefaultWager, DEFAULT_STAKES } from '../defaults'
 import { CURRENCY_OPTIONS } from '../stakes'
 import type { Wager } from '../wager'
 import { describeBand } from './format'
+import { canBet } from './insights'
 import { fromPercent, type Band } from './logOdds'
 
 /**
@@ -26,6 +27,46 @@ export function handoffProbability(
 ): Decimal | null {
   if (adjusted !== null) return fromPercent(adjusted)
   return pointEstimate
+}
+
+/**
+ * A fresh wager with the outcomes of a claim with several outcomes (or the ranges of a number
+ * claim) and the first participant's prediction set to the user's own numbers. The numbers are
+ * percentages with at most two decimals that add up to exactly 100: anything else throws (the
+ * wager needs a sum of 100 and the tool never rescales silently; Normalize is the user's).
+ */
+export function buildMultiHandoff(params: {
+  claim: string
+  criteria: string
+  currency: string | null
+  /** `range`: the range the answers gave for it, kept in the note on the wager. */
+  items: readonly { label: string; percent: string; range?: string }[]
+}): Handoff {
+  const { claim, criteria, currency, items } = params
+  const values = items.map(i => new Decimal(i.percent))
+  if (items.length < 2 || !canBet(values) || values.some(v => v.decimalPlaces() > 2)) {
+    throw new RangeError('The numbers to bet on must be percentages that add up to exactly 100')
+  }
+  const wager = createDefaultWager()
+  const first = wager.participants[0]
+  wager.claim = claim
+  wager.details = criteria
+  wager.stakes = CURRENCY_OPTIONS.some(c => c.id === currency) ? currency! : DEFAULT_STAKES
+  wager.outcomes = items.map(i => ({ id: crypto.randomUUID(), label: i.label, touched: true }))
+  wager.predictions = values.map((value, i) => ({
+    participantId: first.id,
+    outcomeId: wager.outcomes[i].id,
+    probability: value,
+    touched: true,
+  }))
+  const ranges = items.filter(i => i.range).map(i => `${i.label} ${i.range}`)
+  return {
+    wager,
+    provenance:
+      ranges.length > 0
+        ? `your own numbers from elicitation; the ranges your answers gave: ${ranges.join('; ')}`
+        : 'your own numbers from elicitation',
+  }
 }
 
 /**

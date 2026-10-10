@@ -17,6 +17,7 @@ import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
 import KeptNotice from './KeptNotice'
 import MultiQuestions from './MultiQuestions'
+import type { BetItem } from './MultiResult'
 import PercentList from './PercentList'
 import SpotChecks from './SpotChecks'
 import { toMultiRun, withAnswers } from '../../storage/multiAnswers'
@@ -28,6 +29,8 @@ interface OutcomeDiscoveryProps {
   focusOnShow?: boolean
   /** The stake as the user entered it ("20 EUR"), for the questions. */
   stake?: string | null
+  /** "Bet on this" on the result: open a wager with these outcomes and numbers. */
+  onBet?: (items: BetItem[]) => void
   onChange: (run: MultiRunData) => void
   onStartAgain: () => void
 }
@@ -55,6 +58,7 @@ export default function OutcomeDiscovery({
   run,
   focusOnShow,
   stake = null,
+  onBet,
   onChange,
   onStartAgain,
 }: OutcomeDiscoveryProps) {
@@ -179,6 +183,7 @@ export default function OutcomeDiscovery({
         onAdjusted={adjusted => onChange({ ...run, adjusted })}
         merged={run.merged}
         onMerged={merged => onChange({ ...run, merged, adjusted: {} })}
+        onBet={onBet}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}

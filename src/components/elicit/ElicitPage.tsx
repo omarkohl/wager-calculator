@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CURRENCY_OPTIONS } from '../../domain/stakes'
-import { buildHandoff } from '../../domain/elicitation/handoff'
+import { buildHandoff, buildMultiHandoff } from '../../domain/elicitation/handoff'
 import { navigate } from '../../navigation'
 import { pathFor } from '../../routes'
 import { encodeWagerToHash } from '../../storage/urlHash'
@@ -279,6 +279,21 @@ export default function ElicitPage() {
     setMulti(next)
   }
 
+  /** "Bet on this" for a claim with several outcomes or a number: a wager with the user's numbers. */
+  const betOnMany =
+    (claim: string, criteria: string) =>
+    (items: { label: string; percent: string; range?: string }[]) => {
+      const { wager, provenance } = buildMultiHandoff({
+        claim,
+        criteria,
+        currency: getSavedElicitStake()?.currency ?? null,
+        items,
+      })
+      navigate(`${pathFor('wager', import.meta.env.BASE_URL)}${encodeWagerToHash(wager)}`, {
+        provenance,
+      })
+    }
+
   const question = run && nextFlowQuestion(run)
   // Questions are on screen only when no share link has taken over the page
   const asking =
@@ -350,6 +365,7 @@ export default function ElicitPage() {
           run={cont}
           focusOnShow={focusNext}
           stake={stakeText()}
+          onBet={betOnMany(cont.claim, cont.criteria)}
           onChange={changeCont}
           onStartAgain={startAgain}
         />
@@ -358,6 +374,7 @@ export default function ElicitPage() {
           run={multi}
           focusOnShow={focusNext}
           stake={stakeText()}
+          onBet={betOnMany(multi.claim, multi.criteria)}
           onChange={changeMulti}
           onStartAgain={startAgain}
         />
