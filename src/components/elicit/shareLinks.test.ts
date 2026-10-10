@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { inviteLink, resultLink } from './shareLinks'
+import { continuousInviteLink, inviteLink, multiInviteLink, resultLink } from './shareLinks'
 import { decodeElicitationHash, type RunData } from '../../storage/elicitation'
 
 const run = {
@@ -44,3 +44,58 @@ describe('share links', () => {
 })
 
 afterEach(() => vi.unstubAllEnvs())
+
+describe('invites for several outcomes and numbers', () => {
+  it('carries the outcomes, in order, and nothing of the sender’s answers', () => {
+    const link = multiInviteLink({
+      claim: 'Who wins?',
+      criteria: 'Final count',
+      outcomes: {
+        items: [
+          { id: 'o1', label: 'Alice', tier: 'likely' },
+          { id: 'o2', label: 'Bob', tier: 'very unlikely' },
+        ],
+        issued: 2,
+      },
+    })
+    expect(decodeElicitationHash(hashOf(link))).toEqual({
+      type: 'invite',
+      claim: 'Who wins?',
+      criteria: 'Final count',
+      shape: { kind: 'categorical', outcomes: ['Alice', 'Bob'] },
+    })
+    expect(link).not.toContain('likely')
+  })
+
+  it('carries the range ends in their plain form, however they were typed', () => {
+    const link = continuousInviteLink({
+      claim: 'Noon temperature',
+      criteria: '',
+      unit: '',
+      min: ' 0,5',
+      max: '30.50',
+      thresholds: [],
+      edges: ['10'],
+    })
+    expect(decodeElicitationHash(hashOf(link))).toMatchObject({
+      type: 'invite',
+      shape: { kind: 'continuous', min: '0.5', max: '30.5' },
+    })
+  })
+
+  it('carries the range and the edges', () => {
+    const link = continuousInviteLink({
+      claim: 'Noon temperature',
+      criteria: '',
+      unit: '°C',
+      min: '-10',
+      max: '30',
+      thresholds: ['0'],
+      edges: ['-5', '0', '10'],
+    })
+    expect(decodeElicitationHash(hashOf(link))).toMatchObject({
+      type: 'invite',
+      shape: { kind: 'continuous', min: '-10', max: '30', edges: ['-5', '0', '10'] },
+    })
+  })
+})

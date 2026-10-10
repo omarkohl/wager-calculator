@@ -15,7 +15,9 @@ import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
 import { parsePercent } from '../../domain/elicitation/format'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
+import { multiInviteLink } from './shareLinks'
 import KeptNotice from './KeptNotice'
+import LockedRating from './LockedRating'
 import MultiQuestions from './MultiQuestions'
 import type { BetItem } from './MultiResult'
 import PercentList from './PercentList'
@@ -67,6 +69,8 @@ export default function OutcomeDiscovery({
   const [percent, setPercent] = useState('')
   const [checkFocus, setCheckFocus] = useState(false)
   const [askFocus, setAskFocus] = useState(false)
+  // Coming back to rate again: the cursor goes to the rating screen's heading
+  const [ratingFocus, setRatingFocus] = useState(false)
   const startQuestions = () => {
     setAskFocus(true)
     onChange({ ...run, phase: 'ask', answers: [], stopped: false })
@@ -117,6 +121,7 @@ export default function OutcomeDiscovery({
         rows={2}
         ref={claimRef}
         value={run.claim}
+        readOnly={run.locked}
         maxLength={MAX_TEXT_LENGTH}
         aria-invalid={claimMissing ? true : undefined}
         aria-describedby={claimMissing ? ids.claimError : undefined}
@@ -184,11 +189,26 @@ export default function OutcomeDiscovery({
         merged={run.merged}
         onMerged={merged => onChange({ ...run, merged, adjusted: {} })}
         onBet={onBet}
+        invite={() => multiInviteLink(run)}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}
         onStop={() => onChange({ ...run, stopped: true })}
         onStartAgain={onStartAgain}
+      />
+    )
+  }
+
+  if (run.locked && run.phase === 'discover') {
+    return (
+      <LockedRating
+        run={run}
+        focusOnShow={(focusOnShow ?? false) || ratingFocus}
+        onChange={onChange}
+        onDone={() => {
+          focusRequest.current = 'sketch'
+          onChange({ ...run, phase: 'sketch' })
+        }}
       />
     )
   }
@@ -250,10 +270,11 @@ export default function OutcomeDiscovery({
             className={SECONDARY}
             onClick={() => {
               focusRequest.current = 'label'
+              setRatingFocus(true)
               onChange({ ...run, phase: 'discover', checks: [], kept: false })
             }}
           >
-            Change the outcomes
+            {run.locked ? 'Change my ratings' : 'Change the outcomes'}
           </button>
           <button type="button" className={SECONDARY} onClick={onStartAgain}>
             Start again
@@ -297,10 +318,11 @@ export default function OutcomeDiscovery({
             className={SECONDARY}
             onClick={() => {
               focusRequest.current = 'label'
+              setRatingFocus(true)
               onChange({ ...run, phase: 'discover', checks: [], kept: false })
             }}
           >
-            Change the outcomes
+            {run.locked ? 'Change my ratings' : 'Change the outcomes'}
           </button>
           <button type="button" className={SECONDARY} onClick={onStartAgain}>
             Start again

@@ -42,6 +42,7 @@ function start(
     stopped: false,
     adjusted: {},
     merged: [],
+    locked: false,
   }
 }
 

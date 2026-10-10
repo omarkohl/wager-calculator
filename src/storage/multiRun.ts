@@ -62,6 +62,11 @@ export interface MultiRunData {
   adjusted: Record<string, string>
   /** Outcomes the user chose to merge into "Everything else" in the result (a view only). */
   merged: string[]
+  /**
+   * The outcomes come from an invite and cannot be changed: the user only rates them. No spot
+   * checks (the sender's list), and outcomes may be unrated while the user is doing so.
+   */
+  locked: boolean
 }
 
 export const MULTI_STORAGE_KEY = 'howsure.multi'
@@ -70,7 +75,7 @@ const KEY = MULTI_STORAGE_KEY
 const MAX_ISSUED = 1000
 const SEED_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 
-function parseOutcomes(raw: unknown, view: MultiView): OutcomeList | null {
+function parseOutcomes(raw: unknown, view: MultiView, unrated: boolean): OutcomeList | null {
   if (!raw || typeof raw !== 'object') return null
   const { items, issued } = raw as { items?: unknown; issued?: unknown }
   if (!Array.isArray(items) || items.length > MAX_OUTCOMES) return null
@@ -91,7 +96,8 @@ function parseOutcomes(raw: unknown, view: MultiView): OutcomeList | null {
       return null
     }
     // A tier per outcome in the tiers view; none in the numbers view
-    if (view === 'tiers' ? !isTier(tier) : tier !== null) return null
+    // (a locked list may still be unrated while the user rates it)
+    if (view === 'tiers' ? !isTier(tier) && !(unrated && tier === null) : tier !== null) return null
     if (parsed.some(o => o.id === id) || labelProblem(parsed, label)) return null
     parsed.push({ id, label, tier: tier as Tier | null })
   }
@@ -104,7 +110,8 @@ const MAX_PERCENT_TEXT = 12
 function parsePercents(
   raw: unknown,
   outcomes: OutcomeList,
-  view: MultiView
+  view: MultiView,
+  partial: boolean
 ): Record<string, string> | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
   const entries = Object.entries(raw as Record<string, unknown>)
@@ -115,7 +122,8 @@ function parsePercents(
     percents[id] = text
   }
   // The numbers view has a number for every outcome; the tiers view has none
-  if (view === 'tiers' ? entries.length > 0 : entries.length !== ids.size) return null
+  // (a locked list being rated may have only some of them so far)
+  if (view === 'tiers' ? entries.length > 0 : !partial && entries.length !== ids.size) return null
   return percents
 }
 
@@ -192,11 +200,15 @@ export function loadMultiRun(): MultiRunData | null {
       return null
     if (raw.view !== 'tiers' && raw.view !== 'numbers') return null
     const view = raw.view
-    const outcomes = parseOutcomes(raw.outcomes, view)
+    const locked = raw.locked ?? false
+    if (typeof locked !== 'boolean') return null
+    if (locked && raw.phase === 'check') return null
+    const outcomes = parseOutcomes(raw.outcomes, view, locked && raw.phase === 'discover')
     if (!outcomes) return null
-    const percents = parsePercents(raw.percents, outcomes, view)
+    const percents = parsePercents(raw.percents, outcomes, view, locked && raw.phase === 'discover')
     if (!percents) return null
-    if (raw.phase !== 'discover' && !hasEnoughOutcomes(outcomes.items)) return null
+    // (a locked list comes from an invite: it always has its outcomes)
+    if ((raw.phase !== 'discover' || locked) && !hasEnoughOutcomes(outcomes.items)) return null
     if (typeof raw.kept !== 'boolean' || typeof raw.reviewing !== 'boolean') return null
     if (
       raw.replaced !== null &&
@@ -211,11 +223,12 @@ export function loadMultiRun(): MultiRunData | null {
     const flawed = complete && spotCheckProblems(checks).length > 0
     // While the list is collected nothing is checked; while it is checked the user has not yet
     // decided about a flaw; a sketch follows clean checks, or a flaw the user chose to keep
+    if (locked && (checks.length > 0 || raw.kept)) return null
     if (raw.phase === 'discover' && (checks.length > 0 || raw.kept)) return null
     if (raw.phase === 'check' && (raw.kept || (complete && !flawed))) return null
     const past = raw.phase === 'sketch' || raw.phase === 'ask'
-    if (past && !complete) return null
-    if (past && raw.kept !== flawed) return null
+    if (past && !locked && !complete) return null
+    if (past && !locked && raw.kept !== flawed) return null
     // Fields added with the questions: a run stored before them has none
     const stopped = raw.stopped ?? false
     if (typeof stopped !== 'boolean') return null
@@ -268,6 +281,7 @@ export function loadMultiRun(): MultiRunData | null {
       stopped,
       adjusted: Object.fromEntries(adjustedEntries) as Record<string, string>,
       merged: merged as string[],
+      locked,
     }
   } catch {
     return null

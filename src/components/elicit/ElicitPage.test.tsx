@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ElicitPage from './ElicitPage'
 import {
@@ -672,6 +672,107 @@ describe('ElicitPage FAQ', () => {
       unmount()
       render(<ElicitPage />)
       expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+    })
+  })
+
+  describe('invites with outcomes or edges', () => {
+    const open = (invite: Parameters<typeof encodeInviteHash>[0]) =>
+      window.history.replaceState(null, '', `/elicit${encodeInviteHash(invite)}`)
+
+    it('opens with the outcomes fixed, to be rated, then goes to the questions', async () => {
+      const user = userEvent.setup()
+      open({
+        claim: 'Who wins?',
+        criteria: 'Final count',
+        shape: { kind: 'categorical', outcomes: ['Alice', 'Bob', 'Carol'] },
+      })
+      render(<ElicitPage />)
+      expect(screen.getByRole('list', { name: 'Outcomes from the invite' })).toBeInTheDocument()
+      await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await user.click(screen.getByRole('button', { name: 'Start' }))
+      // the invite is spent: the address bar is plain again; the outcomes are fixed
+      expect(window.location.hash).toBe('')
+      expect(loadMultiRun()).toMatchObject({ locked: true, criteria: 'Final count' })
+      expect(screen.getByRole('heading', { name: 'How likely is each outcome?' })).toHaveFocus()
+      expect(screen.queryByRole('textbox', { name: 'Outcome' })).toBeNull()
+      expect(screen.getByRole('button', { name: 'That is all rated' })).toBeDisabled()
+      for (const [i, tier] of ['likely', 'plausible', 'very unlikely'].entries()) {
+        const group = screen.getAllByRole('group')[i]
+        await user.click(within(group).getByRole('radio', { name: tier }))
+      }
+      await user.click(screen.getByRole('button', { name: 'That is all rated' }))
+      // no spot checks for the sender's list: straight to the sketch, then the questions
+      expect(screen.getByRole('heading', { name: 'First sketch' })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Start the questions' }))
+      expect(screen.getByRole('button', { name: 'Stop here' })).toBeInTheDocument()
+      expect(loadMultiRun()!.outcomes.items.map(o => o.label)).toEqual(['Alice', 'Bob', 'Carol'])
+    })
+
+    it('keeps the claim of a locked invite as it is on every screen, and rating again puts the cursor on its heading', async () => {
+      const user = userEvent.setup()
+      open({
+        claim: 'Who wins?',
+        criteria: '',
+        shape: { kind: 'categorical', outcomes: ['Alice', 'Bob'] },
+      })
+      render(<ElicitPage />)
+      await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await user.click(screen.getByRole('button', { name: 'Start' }))
+      const groups = screen.getAllByRole('group')
+      await user.click(within(groups[0]).getByRole('radio', { name: 'likely' }))
+      await user.click(within(groups[1]).getByRole('radio', { name: 'unlikely' }))
+      await user.click(screen.getByRole('button', { name: 'That is all rated' }))
+      expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveAttribute('readonly')
+      await user.click(screen.getByRole('button', { name: 'Change my ratings' }))
+      expect(screen.getByRole('heading', { name: 'How likely is each outcome?' })).toHaveFocus()
+    })
+
+    it('can rate with numbers instead, and does not move on before every number is there', async () => {
+      const user = userEvent.setup()
+      open({
+        claim: 'Who wins?',
+        criteria: '',
+        shape: { kind: 'categorical', outcomes: ['Alice', 'Bob'] },
+      })
+      render(<ElicitPage />)
+      await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await user.click(screen.getByRole('button', { name: 'Start' }))
+      await user.click(screen.getByRole('button', { name: 'Use numbers instead of tiers' }))
+      await user.type(screen.getByRole('textbox', { name: 'Alice, percent' }), '70')
+      expect(screen.queryByRole('alert')).toBeNull()
+      expect(screen.getByRole('button', { name: 'That is all rated' })).toBeDisabled()
+      await user.type(screen.getByRole('textbox', { name: 'Bob, percent' }), '30')
+      await user.click(screen.getByRole('button', { name: 'That is all rated' }))
+      expect(screen.getByRole('heading', { name: 'Your numbers' })).toBeInTheDocument()
+    })
+
+    it('opens a range invite on the bars of the sender’s parts, with nothing to change', async () => {
+      const user = userEvent.setup()
+      open({
+        claim: 'Noon temperature',
+        criteria: '',
+        shape: {
+          kind: 'continuous',
+          unit: '°C',
+          min: '-10',
+          max: '30',
+          thresholds: ['0'],
+          edges: ['0', '10'],
+        },
+      })
+      render(<ElicitPage />)
+      await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await user.click(screen.getByRole('button', { name: 'Start' }))
+      expect(screen.getByRole('heading', { name: 'Draw your distribution' })).toBeInTheDocument()
+      expect(
+        screen
+          .getAllByRole('textbox', { name: /, percent$/ })
+          .map(f => (f as HTMLInputElement).labels![0].textContent)
+      ).toEqual(['below 0 °C, percent', '0 to 10 °C, percent', '10 °C or more, percent'])
+      expect(screen.queryByRole('button', { name: 'Draw a curve instead' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Change the range' })).toBeNull()
+      expect(screen.getByRole('heading', { name: 'Draw your distribution' })).toHaveFocus()
+      expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveAttribute('readonly')
     })
   })
 })

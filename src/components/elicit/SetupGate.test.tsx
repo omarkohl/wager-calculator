@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SetupGate from './SetupGate'
 import ElicitPage from './ElicitPage'
@@ -166,6 +166,59 @@ describe('ElicitPage', () => {
       await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
       await user.click(screen.getByRole('button', { name: 'Start' }))
       expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ kind: 'yes-no' }))
+    })
+
+    it('shows the outcomes an invite fixes, locks the claim, and starts that kind', async () => {
+      const user = userEvent.setup()
+      const onStart = vi.fn()
+      render(
+        <SetupGate
+          onStart={onStart}
+          invite={{
+            claim: 'Who wins?',
+            criteria: '',
+            shape: { kind: 'categorical', outcomes: ['Alice', 'Bob'] },
+          }}
+        />
+      )
+      const list = screen.getByRole('list', { name: 'Outcomes from the invite' })
+      expect(
+        within(list)
+          .getAllByRole('listitem')
+          .map(li => li.textContent)
+      ).toEqual(['Alice', 'Bob'])
+      expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveAttribute('readonly')
+      expect(screen.queryByRole('radio', { name: /One of several outcomes/ })).toBeNull()
+      expect(screen.queryByRole('radio', { name: /Quick/ })).toBeNull()
+      await user.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await user.click(screen.getByRole('button', { name: 'Start' }))
+      expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ kind: 'categorical' }))
+    })
+
+    it('names the parts of the range an invite fixes', () => {
+      render(
+        <SetupGate
+          onStart={vi.fn()}
+          invite={{
+            claim: 'Noon temperature',
+            criteria: '',
+            shape: {
+              kind: 'continuous',
+              unit: '°C',
+              min: '-10',
+              max: '30',
+              thresholds: ['0'],
+              edges: ['0', '10'],
+            },
+          }}
+        />
+      )
+      const list = screen.getByRole('list', { name: 'Outcomes from the invite' })
+      expect(
+        within(list)
+          .getAllByRole('listitem')
+          .map(li => li.textContent)
+      ).toEqual(['below 0 °C', '0 to 10 °C', '10 °C or more'])
     })
   })
 })

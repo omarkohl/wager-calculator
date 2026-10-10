@@ -3,6 +3,7 @@ import Decimal from 'decimal.js'
 import { nextQuestion } from '../domain/elicitation/quickSearch'
 import { nextThoroughQuestion, type ThoroughAnswer } from '../domain/elicitation/thorough'
 import type { WedgeAnswer } from '../domain/elicitation/bandRule'
+import { MAX_NUMBER_TEXT } from '../domain/elicitation/constants'
 import {
   clearRun,
   decodeElicitationHash,
@@ -393,5 +394,93 @@ describe('generateSeed', () => {
     const seed = generateSeed()
     const run = quickRun(seed)
     same(run, (decodeElicitationHash(encodeResultHash(run)) as { run: RunData }).run)
+  })
+})
+
+describe('invites with outcomes or edges', () => {
+  const categorical = {
+    claim: 'Who wins?',
+    criteria: 'By the final count',
+    shape: { kind: 'categorical' as const, outcomes: ['Alice', 'Bob & Co', 'Everything else'] },
+  }
+  const continuous = {
+    claim: 'Noon temperature tomorrow',
+    criteria: '',
+    shape: {
+      kind: 'continuous' as const,
+      unit: '°C',
+      min: '-10',
+      max: '30',
+      thresholds: ['0'],
+      edges: ['-5', '0', '10'],
+    },
+  }
+
+  it('round-trips an invite with outcomes, labels and order intact', () => {
+    const hash = encodeInviteHash(categorical)
+    expect(decodeElicitationHash(hash)).toEqual({ type: 'invite', ...categorical })
+  })
+
+  it('round-trips an invite with a range and its edges', () => {
+    expect(decodeElicitationHash(encodeInviteHash(continuous))).toEqual({
+      type: 'invite',
+      ...continuous,
+    })
+    const noThreshold = {
+      ...continuous,
+      shape: { ...continuous.shape, unit: '', thresholds: [] },
+    }
+    expect(decodeElicitationHash(encodeInviteHash(noThreshold))).toEqual({
+      type: 'invite',
+      ...noThreshold,
+    })
+  })
+
+  it('still reads a plain invite, and leaves the plain one without a shape', () => {
+    const plain = decodeElicitationHash(encodeInviteHash({ claim: 'It rains', criteria: '' }))
+    expect(plain).toEqual({ type: 'invite', claim: 'It rains', criteria: '' })
+  })
+
+  it.each([
+    ['one outcome', (h: string) => h.replace(/&o=Bob[^&]*/, '').replace(/&o=Every[^&]*/, '')],
+    ['a repeated outcome', (h: string) => h.replace('o=Bob+%26+Co', 'o=Alice')],
+    ['an untidy label', (h: string) => h.replace('o=Alice', 'o=%20Alice')],
+    ['an unknown shape', (h: string) => h.replace('k=o', 'k=z')],
+    ['a parameter in another order', (h: string) => h + '&x=1'],
+  ])('rejects a categorical invite with %s', (_name, change) => {
+    expect(decodeElicitationHash(change(encodeInviteHash(categorical)))).toBeNull()
+  })
+
+  it.each([
+    ['edges that are not ascending', (h: string) => h.replace('ed=-5%2C0%2C10', 'ed=0%2C-5%2C10')],
+    ['an edge outside the range', (h: string) => h.replace('%2C10', '%2C99')],
+    ['a range that is not one', (h: string) => h.replace('hi=30', 'hi=-20')],
+    ['no edges', (h: string) => h.replace(/&ed=[^&]*/, '')],
+    ['a number in exponent form', (h: string) => h.replace('lo=-10', 'lo=-1e1')],
+    ['a repeated threshold', (h: string) => h.replace('th=0', 'th=0%2C0')],
+  ])('rejects a continuous invite with %s', (_name, change) => {
+    expect(decodeElicitationHash(change(encodeInviteHash(continuous)))).toBeNull()
+  })
+
+  it('rejects numbers longer than the longest a number may be', () => {
+    const long = `1${'0'.repeat(MAX_NUMBER_TEXT)}`
+    for (const shape of [
+      { ...continuous.shape, max: long },
+      { ...continuous.shape, thresholds: [long] },
+      { ...continuous.shape, max: long, edges: [long.slice(0, -1)] },
+    ]) {
+      expect(decodeElicitationHash(encodeInviteHash({ ...continuous, shape }))).toBeNull()
+    }
+  })
+
+  it('rejects more than eight outcomes', () => {
+    const many = {
+      ...categorical,
+      shape: {
+        kind: 'categorical' as const,
+        outcomes: Array.from({ length: 9 }, (_, i) => `O${i}`),
+      },
+    }
+    expect(decodeElicitationHash(encodeInviteHash(many))).toBeNull()
   })
 })

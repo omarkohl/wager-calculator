@@ -48,6 +48,9 @@ export const MIN_OUTCOMES = 2
 /** After this many outcomes in a row at "very unlikely", "everything else" is offered. */
 export const EVERYTHING_ELSE_AFTER = 2
 
+/** The longest a number may be as typed or carried in a link (range ends, thresholds, edges). */
+export const MAX_NUMBER_TEXT = 30
+
 /** Several outcomes: a run never asks more than this many questions. */
 export const MAX_MULTI_QUESTIONS = 40
 

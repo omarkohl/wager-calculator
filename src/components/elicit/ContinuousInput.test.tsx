@@ -22,6 +22,7 @@ const START: ContinuousRunData = {
   answers: [],
   stopped: false,
   adjusted: {},
+  locked: false,
 }
 
 function Harness({ initial = START, focusOnShow = false }) {

@@ -216,7 +216,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [ ] 26. **Share and handoff**:
   - [x] 26a. "Bet on this" for several outcomes and number claims: the outcomes or ranges and the
         user's own numbers open a wager, only at exactly 100% (otherwise it points to Normalize).
-  - [ ] 26b. Invites carry the outcomes or bucket edges and open in a locked-outcome mode.
+  - [x] 26b. Invites carry the outcomes or bucket edges and open in a locked-outcome mode.
   - [ ] 26c. Result URLs, with the multi-answer codec (replayed on decoding).
         E2E for categorical and continuous with each.
 

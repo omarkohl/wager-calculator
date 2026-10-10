@@ -1,6 +1,13 @@
 import Decimal from 'decimal.js'
-import { barBuckets, bucketCurve, type BucketingResult } from '../domain/elicitation/bucketing'
-import { MAX_OUTCOMES } from '../domain/elicitation/constants'
+import {
+  barBuckets,
+  bucketCurve,
+  bucketLabels,
+  type BucketingResult,
+} from '../domain/elicitation/bucketing'
+import { MAX_NUMBER_TEXT, MAX_OUTCOMES } from '../domain/elicitation/constants'
+
+export { MAX_NUMBER_TEXT }
 import { parseHeight, parseNumber, plainNumber } from '../domain/elicitation/format'
 import type { MultiAnswer } from '../domain/elicitation/multiRun'
 import { continuousToMultiRun, decodeMultiAnswers, encodeMultiAnswers } from './multiAnswers'
@@ -50,14 +57,17 @@ export interface ContinuousRunData {
   stopped: boolean
   /** The user's own numbers in the result (percent as typed), by bucket id. */
   adjusted: Record<string, string>
+  /**
+   * The range and the edges come from an invite and cannot be changed: the user only draws the
+   * bars (the curve, which finds its own edges, is not offered).
+   */
+  locked: boolean
 }
 
 export const CONTINUOUS_STORAGE_KEY = 'howsure.continuous'
 const KEY = CONTINUOUS_STORAGE_KEY
 const SEED_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 export const MAX_UNIT_LENGTH = 20
-/** Longest number as typed. */
-export const MAX_NUMBER_TEXT = 30
 
 /** The ids of the bars, lowest bucket first. */
 export const barIds = (count: number) => Array.from({ length: count }, (_, i) => `b${i}`)
@@ -71,6 +81,21 @@ export function rangeProblem(run: Pick<ContinuousRunData, 'min' | 'max' | 'thres
   if (!new Decimal(min).lt(max)) return 'order' as const
   if (run.thresholds.some(t => parseNumber(t) === null)) return 'threshold' as const
   return null
+}
+
+/** The labels of the bars: from the invite's edges when they are locked, else from the range. */
+export function barLabelsOf(run: ContinuousRunData): string[] {
+  if (!run.locked) return bucketsOf(run).labels
+  const inside = run.thresholds.filter(
+    t => new Decimal(t).gt(run.min) && new Decimal(t).lt(run.max)
+  )
+  return bucketLabels(
+    run.edges.map(e => new Decimal(e)),
+    run.min,
+    run.max,
+    inside,
+    run.unit
+  )
 }
 
 /** The buckets of a valid run: edges and labels. Throws when the range is not valid. */
@@ -118,6 +143,9 @@ export function loadContinuousRun(): ContinuousRunData | null {
       return null
     }
     const { percents, edges, curve } = raw
+    const locked = raw.locked ?? false
+    if (typeof locked !== 'boolean') return null
+    if (locked && (raw.phase === 'range' || raw.view === 'curve')) return null
     if (raw.view !== 'bars' && raw.view !== 'curve') return null
     if (!Array.isArray(curve) || (curve.length !== 0 && curve.length !== CURVE_POINTS)) return null
     if (!curve.every(v => isText(v, 12))) return null
@@ -148,10 +176,18 @@ export function loadContinuousRun(): ContinuousRunData | null {
       answers: [],
       stopped: false,
       adjusted: {},
+      locked,
     }
     // The bars belong to the edges they were drawn for: in the bars view those are the current
     // ones; back in the range form they are the last drawn ones; with no bars there are none
-    if (run.phase === 'bars') {
+    if (run.phase === 'bars' && locked) {
+      // the edges are the invite's: they only have to fit the range
+      const lo = parseNumber(run.min)
+      const hi = parseNumber(run.max)
+      if (rangeProblem(run) !== null || lo === null || hi === null || edges.length === 0)
+        return null
+      if (!edges.every(e => new Decimal(e).gt(lo) && new Decimal(e).lt(hi))) return null
+    } else if (run.phase === 'bars') {
       if (rangeProblem(run) !== null) return null
       const current = bucketsOf(run).edges.map(plainNumber)
       if (current.length !== edges.length || current.some((e, i) => e !== edges[i])) return null

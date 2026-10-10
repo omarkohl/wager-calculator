@@ -24,6 +24,7 @@ interface MultiQuestionsProps {
   merged?: string[]
   onMerged?: (ids: string[]) => void
   onBet?: (items: BetItem[]) => void
+  invite?: () => string
   /** The stake as the user entered it ("20 EUR"), or null if none is remembered. */
   stake: string | null
   /** Move focus to the question heading (after an answer or the start, not on a plain reload). */
@@ -51,6 +52,7 @@ export default function MultiQuestions({
   merged,
   onMerged,
   onBet,
+  invite,
   stake,
   focusOnShow,
   onAnswers,
@@ -90,6 +92,7 @@ export default function MultiQuestions({
         merged={merged}
         onMerged={onMerged}
         onBet={onBet}
+        invite={invite}
         headingRef={headingRef}
         onStartAgain={onStartAgain}
       />

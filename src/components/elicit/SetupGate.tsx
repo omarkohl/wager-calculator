@@ -1,7 +1,11 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import Decimal from 'decimal.js'
+import { bucketLabels } from '../../domain/elicitation/bucketing'
 import { CURRENCY_OPTIONS } from '../../domain/stakes'
 import {
   getSavedElicitStake,
+  type Invite,
+  type InviteShape,
   isValidElicitStake,
   MAX_TEXT_LENGTH,
   saveElicitStake,
@@ -23,7 +27,7 @@ export interface SetupResult {
 interface SetupGateProps {
   onStart: (setup: SetupResult) => void
   /** From an invite: the claim to start with, and the criteria it came with. */
-  invite?: { claim: string; criteria: string }
+  invite?: Invite
   /** A run in this tab will be replaced when this one starts. */
   replacesRun?: boolean
   /** Put the cursor in the claim field on arrival (after the user acted, not on a plain load). */
@@ -84,7 +88,12 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
     const stake = { amount: amount.trim(), currency }
     saveElicitStake(stake)
     // An invite carries a yes/no claim until invites carry their kind
-    onStart({ claim: claim.trim(), stake, kind: invite ? 'yes-no' : kind, mode })
+    onStart({
+      claim: claim.trim(),
+      stake,
+      kind: invite ? (invite.shape?.kind ?? 'yes-no') : kind,
+      mode,
+    })
   }
 
   return (
@@ -106,6 +115,8 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
         </p>
       )}
 
+      {invite?.shape && <InviteShapeSummary shape={invite.shape} />}
+
       <div>
         <label htmlFor={ids.claim} className="mb-1 block text-sm font-medium text-gray-700">
           Claim
@@ -116,6 +127,7 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
           rows={2}
           required
           value={claim}
+          readOnly={invite?.shape !== undefined}
           onChange={e => setClaim(e.target.value)}
           placeholder={
             kind === 'yes-no'
@@ -230,7 +242,7 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
         )}
       </fieldset>
 
-      {(invite || kind === 'yes-no') && (
+      {((invite && !invite.shape) || (!invite && kind === 'yes-no')) && (
         <fieldset>
           <legend className="mb-1 text-sm font-medium text-gray-700">How thorough?</legend>
           <div className="space-y-2">
@@ -266,5 +278,42 @@ export default function SetupGate({ onStart, invite, replacesRun, focusClaim }: 
         Start
       </button>
     </form>
+  )
+}
+
+/** What the invite fixes: the outcomes, or the range and its parts. They cannot be changed. */
+function InviteShapeSummary({ shape }: { shape: InviteShape }) {
+  const labels =
+    shape.kind === 'categorical'
+      ? shape.outcomes
+      : bucketLabels(
+          shape.edges.map(e => new Decimal(e)),
+          shape.min,
+          shape.max,
+          shape.thresholds.filter(
+            t => new Decimal(t).gt(shape.min) && new Decimal(t).lt(shape.max)
+          ),
+          shape.unit
+        )
+  return (
+    <div
+      role="group"
+      aria-label="Fixed by the invite"
+      className="rounded-lg border border-gray-200 p-3"
+    >
+      <p className="text-sm font-medium text-gray-900">
+        {shape.kind === 'categorical'
+          ? 'The invite fixes these outcomes, so your answer can be compared with the sender’s:'
+          : `The invite fixes the range${shape.unit ? ` (in ${shape.unit})` : ''} and its parts, so your answer can be compared with the sender’s:`}
+      </p>
+      <ul
+        aria-label="Outcomes from the invite"
+        className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-800"
+      >
+        {labels.map(label => (
+          <li key={label}>{label}</li>
+        ))}
+      </ul>
+    </div>
   )
 }

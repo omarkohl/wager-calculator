@@ -4,6 +4,7 @@ import { answerMulti, nextMultiQuestion, type MultiAnswer } from '../domain/elic
 import { continuousToMultiRun } from './multiAnswers'
 import {
   barIds,
+  barLabelsOf,
   bucketsOf,
   clearContinuousRun,
   freezeDrawing,
@@ -33,6 +34,7 @@ function sample(patch: Partial<ContinuousRunData> = {}): ContinuousRunData {
     answers: [],
     stopped: false,
     adjusted: {},
+    locked: false,
     ...patch,
   }
 }
@@ -201,6 +203,43 @@ describe('continuous run storage', () => {
       saveContinuousRun({ ...sample(), answers: asked(2).answers })
       expect(loadContinuousRun()).toBeNull()
       saveContinuousRun({ ...sample(), stopped: true })
+      expect(loadContinuousRun()).toBeNull()
+    })
+  })
+
+  describe('locked range and edges (from an invite)', () => {
+    const locked = (patch: Partial<ContinuousRunData> = {}) =>
+      sample({
+        locked: true,
+        phase: 'bars',
+        edges: ['-5', '0', '10'],
+        percents: { b1: '20' },
+        ...patch,
+      })
+
+    it('keeps the invite’s edges, which need not be the ones the range would give', () => {
+      saveContinuousRun(locked())
+      expect(loadContinuousRun()).toEqual(locked())
+      expect(bucketsOf(locked()).edges.map(String)).not.toEqual(['-5', '0', '10'])
+      const asked = freezeDrawing(locked({ percents: { b0: '10', b1: '20', b2: '30', b3: '40' } }))
+      expect(asked?.edges).toEqual(['-5', '0', '10'])
+    })
+
+    it('names the bars from the invite’s edges', () => {
+      expect(barLabelsOf(locked())).toEqual([
+        'below -5 °C',
+        '-5 to 0 °C',
+        '0 to 10 °C',
+        '10 °C or more',
+      ])
+    })
+
+    it('refuses a locked run in the range form, on the curve, or with edges outside the range', () => {
+      saveContinuousRun(locked({ phase: 'range', percents: {} }))
+      expect(loadContinuousRun()).toBeNull()
+      saveContinuousRun(locked({ view: 'curve' }))
+      expect(loadContinuousRun()).toBeNull()
+      saveContinuousRun(locked({ edges: ['-50', '0'] }))
       expect(loadContinuousRun()).toBeNull()
     })
   })

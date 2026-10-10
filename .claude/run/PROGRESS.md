@@ -2,7 +2,7 @@
 
 ## Next step
 
-26b.
+26c.
 
 ## Stack
 
@@ -44,6 +44,7 @@
 - 25c: howsure/25c-new-claim, PR #122 (base howsure/25b-own-numbers)
 - 25d: howsure/25d-lottery-words, PR #123 (base howsure/25c-new-claim)
 - 25e: howsure/25e-multi-trace, PR #124 (base howsure/25d-lottery-words)
+- 26a: howsure/26a-bet-on-this, PR #125 (base howsure/25e-multi-trace)
 
 ## Log
 
@@ -571,7 +572,23 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   its range); numbers with more than two decimals are refused, not rounded. Chromium E2E: both
   question specs go on to the wager and check the outcomes, the exact numbers and the note.
 
+- **Step 26b (invites with outcomes or edges)**: the result for several outcomes and number claims
+  offers "Copy invite link" (invite only; the result link is 26c). The invite carries the claim, the
+  criteria and, for several outcomes, the labels in order (`k=o`, repeated `o=`), for a number the
+  unit, minimum, maximum, thresholds and the edges of the buckets (`k=n`). It is decoded strictly
+  (counts, tidy unique labels, plain ascending edges inside the range) and only in its own canonical
+  spelling. A friend opening it sees the fixed outcomes or parts on the gate (claim read-only, no kind
+  or mode to pick) and starts a locked run: outcomes are rated (a tier each, or numbers) with nothing
+  to add, rename or remove, and then the sketch, questions, result and bet go on as usual (no spot
+  checks: it is the sender's list). A number invite starts on the bars at the sender's edges, with no
+  curve and no range to change, since a curve would find edges of its own. `locked` is stored in the
+  run. Chromium E2E: `elicit-invite-outcomes.spec.ts` (categorical and number: sender, friend, wager).
+
 ## Decisions
+
+- Step 26b: the receiver of a locked invite gets no spot checks of the outcomes and cannot report
+  that the list overlaps (they can rate an outcome very low); the sender's checks stand. An invite
+  from a curve carries the edges `bucketCurve` found, so the friend gets bars at those edges.
 
 - Step 25d: the winning chance stays on screen (the requirements reject concealing it) but small and
   muted (`text-xs text-gray-600`, under the picture, with the count of balls in the tails) instead of a
@@ -641,6 +658,13 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 26b: an invite from a curve carries the edges `bucketCurve` found, and edges show where the
+  sender's curve rises and falls, which may anchor the friend a little (the ranges are the sender's
+  shape); decide whether a curve-based invite should offer round bars instead.
+
+- Step 26b [NEEDS PROTOTYPE]: the rating screen for locked outcomes (a group of tier radios per
+  outcome, or numbers) and the line on the gate that lists what the invite fixes.
 
 - Step 25e: no way to drop a misclicked answer in the multi-outcome trace (the yes/no result has one);
   decide whether it is wanted before release.
