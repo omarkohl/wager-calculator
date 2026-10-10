@@ -8,7 +8,7 @@ import {
   type MultiRun,
 } from '../../domain/elicitation/multiRun'
 import { ARM, SECONDARY } from './questionStyles'
-import MultiResult from './MultiResult'
+import MultiResult, { type BetItem } from './MultiResult'
 import QuestionScreen from './QuestionScreen'
 
 interface MultiQuestionsProps {
@@ -23,6 +23,7 @@ interface MultiQuestionsProps {
   onAdjusted?: (adjusted: Record<string, string>) => void
   merged?: string[]
   onMerged?: (ids: string[]) => void
+  onBet?: (items: BetItem[]) => void
   /** The stake as the user entered it ("20 EUR"), or null if none is remembered. */
   stake: string | null
   /** Move focus to the question heading (after an answer or the start, not on a plain reload). */
@@ -49,6 +50,7 @@ export default function MultiQuestions({
   onAdjusted = () => {},
   merged,
   onMerged,
+  onBet,
   stake,
   focusOnShow,
   onAnswers,
@@ -87,6 +89,7 @@ export default function MultiQuestions({
         onAdjusted={onAdjusted}
         merged={merged}
         onMerged={onMerged}
+        onBet={onBet}
         headingRef={headingRef}
         onStartAgain={onStartAgain}
       />

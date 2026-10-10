@@ -14,6 +14,7 @@ import {
   type ContinuousRunData,
 } from '../../storage/continuousRun'
 import MultiQuestions from './MultiQuestions'
+import type { BetItem } from './MultiResult'
 import CurveInput from './CurveInput'
 import PercentList from './PercentList'
 
@@ -23,6 +24,8 @@ interface ContinuousInputProps {
   focusOnShow?: boolean
   /** The stake as the user entered it ("20 EUR"), for the questions. */
   stake?: string | null
+  /** "Bet on this" on the result: open a wager with these ranges and numbers. */
+  onBet?: (items: BetItem[]) => void
   onChange: (run: ContinuousRunData) => void
   onStartAgain: () => void
 }
@@ -52,6 +55,7 @@ export default function ContinuousInput({
   run,
   focusOnShow,
   stake = null,
+  onBet,
   onChange,
   onStartAgain,
 }: ContinuousInputProps) {
@@ -124,6 +128,7 @@ export default function ContinuousInput({
         stopped={run.stopped}
         adjusted={run.adjusted}
         onAdjusted={adjusted => onChange({ ...run, adjusted })}
+        onBet={onBet}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}

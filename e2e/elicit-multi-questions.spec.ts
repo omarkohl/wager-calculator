@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { expectWagerFrom, ownNumbers } from './helpers/bet'
 
 async function reachSketch(page: Page) {
   await page.goto('/elicit')
@@ -75,6 +76,15 @@ test.describe('Several outcomes: the questions', () => {
     await page.getByRole('button', { name: 'Normalize' }).click()
     await expect(total).toContainText('add up to 100%')
     await expect(total).toBeFocused()
+    // at 100% the numbers go to the wager calculator, one outcome per row of the first participant
+    const numbers = await ownNumbers(page)
+    expect(numbers.map(n => n.label)).toEqual(['Rain', 'Cloud', 'Snow'])
+    await page.getByRole('button', { name: 'Bet on this' }).click()
+    await expect(page).toHaveURL(/\/wager#/)
+    await expect(page.getByText('What is the weather tomorrow?')).toBeVisible()
+    await expectWagerFrom(page, numbers)
+    await page.goBack()
+    await expect(standing).toBeVisible()
     const ownResults = await new AxeBuilder({ page }).analyze()
     expect(ownResults.violations).toEqual([])
 

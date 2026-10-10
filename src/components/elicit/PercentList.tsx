@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, type Ref } from 'react'
 import { parseBar, parsePercent } from '../../domain/elicitation/format'
 import {
   describeTotal,
@@ -27,6 +27,8 @@ interface PercentListProps {
   bars?: boolean
   /** A line under a row's field (say, how it sits against what the answers imply), by row id. */
   notes?: Record<string, string>
+  /** The Normalize button, for a caller that needs to send the user there. */
+  normalizeRef?: Ref<HTMLButtonElement>
 }
 
 const PROBLEM_STRICT = 'Enter a percentage above 0 and below 100, with at most two decimals.'
@@ -49,6 +51,7 @@ export default function PercentList({
   onChange,
   bars = false,
   notes = {},
+  normalizeRef,
 }: PercentListProps) {
   const base = useId()
   const totalRef = useRef<HTMLParagraphElement>(null)
@@ -137,7 +140,7 @@ export default function PercentList({
           : (describeTotal(state) ?? 'The numbers add up to 100%.')}
       </p>
       {!anyInvalid && state.kind !== 'ok' && total.gt(0) && (
-        <button type="button" className={`mt-3 ${PRIMARY}`} onClick={normalize}>
+        <button ref={normalizeRef} type="button" className={`mt-3 ${PRIMARY}`} onClick={normalize}>
           Normalize
         </button>
       )}

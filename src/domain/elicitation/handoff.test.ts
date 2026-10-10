@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
-import { buildHandoff, handoffProbability } from './handoff'
+import { buildHandoff, buildMultiHandoff, handoffProbability } from './handoff'
 import { bandAbove, bandBetween } from './logOdds'
 import { decodeWagerFromHash, encodeWagerToHash } from '../../storage/urlHash'
 
@@ -75,5 +75,76 @@ describe('buildHandoff', () => {
     const first = decoded.participants[0]
     const mine = decoded.predictions.filter(p => p.participantId === first.id)
     expect(mine.map(p => p.probability.toString())).toEqual(['57.68', '42.32'])
+  })
+})
+
+describe('buildMultiHandoff', () => {
+  const items = [
+    { label: 'Rain', percent: '55.5' },
+    { label: 'Cloud', percent: '30' },
+    { label: 'Snow', percent: '14.5' },
+  ]
+  const params = { claim: 'The weather', criteria: 'At noon', currency: 'eur', items }
+
+  it('makes a wager with these outcomes and the numbers in the first participant row', () => {
+    const { wager, provenance } = buildMultiHandoff(params)
+    expect(wager.claim).toBe('The weather')
+    expect(wager.details).toBe('At noon')
+    expect(wager.stakes).toBe('eur')
+    expect(wager.outcomes.map(o => o.label)).toEqual(['Rain', 'Cloud', 'Snow'])
+    expect(new Set(wager.outcomes.map(o => o.id)).size).toBe(3)
+    const first = wager.participants[0]
+    expect(wager.predictions.every(p => p.participantId === first.id && p.touched)).toBe(true)
+    expect(wager.predictions.map(p => p.probability.toString())).toEqual(['55.5', '30', '14.5'])
+    expect(provenance).toBe('your own numbers from elicitation')
+  })
+
+  it('keeps the range the answers gave for each outcome in the note', () => {
+    const { provenance } = buildMultiHandoff({
+      ...params,
+      items: items.map((i, k) => ({ ...i, range: ['40–70%', 'above 20%', 'below 20%'][k] })),
+    })
+    expect(provenance).toBe(
+      'your own numbers from elicitation; the ranges your answers gave: Rain 40–70%; Cloud above 20%; Snow below 20%'
+    )
+  })
+
+  it('survives the share link of the wager', () => {
+    const { wager } = buildMultiHandoff(params)
+    const back = decodeWagerFromHash(encodeWagerToHash(wager))!
+    expect(back.outcomes.map(o => o.label)).toEqual(['Rain', 'Cloud', 'Snow'])
+    const first = back.participants[0]
+    expect(
+      back.predictions.filter(p => p.participantId === first.id).map(p => p.probability.toString())
+    ).toEqual(['55.5', '30', '14.5'])
+  })
+
+  it('refuses numbers that do not add up to exactly 100, and anything that is no percentage', () => {
+    expect(() =>
+      buildMultiHandoff({
+        ...params,
+        items: [items[0], items[1], { label: 'Snow', percent: '14' }],
+      })
+    ).toThrow(RangeError)
+    expect(() =>
+      buildMultiHandoff({ ...params, items: [items[0], { label: 'Cloud', percent: 'x' }] })
+    ).toThrow()
+    expect(() =>
+      buildMultiHandoff({ ...params, items: [{ label: 'A', percent: '100' }] })
+    ).toThrow()
+    // more than two decimals would be cut by the wager: refuse rather than round
+    expect(() =>
+      buildMultiHandoff({
+        ...params,
+        items: [
+          { label: 'A', percent: '33.333' },
+          { label: 'B', percent: '66.667' },
+        ],
+      })
+    ).toThrow(RangeError)
+  })
+
+  it('falls back to the default currency for an unknown one', () => {
+    expect(buildMultiHandoff({ ...params, currency: 'zzz' }).wager.stakes).not.toBe('zzz')
   })
 })

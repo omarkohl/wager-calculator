@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { expectWagerFrom, ownNumbers } from './helpers/bet'
 
 test.describe('Number claims: range and bars', () => {
   test('sets a range with a threshold, draws bars with a live total, normalizes, survives a reload', async ({
@@ -139,5 +140,17 @@ test.describe('Number claims: range and bars', () => {
     const list = page.getByRole('list', { name: 'Result per outcome' })
     await expect(list).toContainText('0 °C')
     await expect(list).toContainText('%')
+
+    // the ranges and the user's numbers go to the wager calculator (after Normalize, at 100%)
+    await page.getByRole('button', { name: 'Normalize' }).click()
+    const numbers = await ownNumbers(page)
+    expect(numbers.length).toBeGreaterThan(2)
+    expect(numbers.every(n => /°C/.test(n.label))).toBe(true)
+    await page.getByRole('button', { name: 'Bet on this' }).click()
+    await expect(page).toHaveURL(/\/wager#/)
+    await expect(page.getByText('Noon temperature tomorrow')).toBeVisible()
+    await expectWagerFrom(page, numbers)
+    await page.goBack()
+    await expect(standing).toBeVisible()
   })
 })

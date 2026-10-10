@@ -2,7 +2,7 @@
 
 ## Next step
 
-26.
+26b.
 
 ## Stack
 
@@ -43,6 +43,7 @@
 - 25b: howsure/25b-own-numbers, PR #121 (base howsure/25a-multi-result)
 - 25c: howsure/25c-new-claim, PR #122 (base howsure/25b-own-numbers)
 - 25d: howsure/25d-lottery-words, PR #123 (base howsure/25c-new-claim)
+- 25e: howsure/25e-multi-trace, PR #124 (base howsure/25d-lottery-words)
 
 ## Log
 
@@ -559,6 +560,16 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   this answer" as for yes/no runs: comparisons and lotteries interlock through the coherent bands,
   and dropping one would need the whole question order replayed (a possible follow-up).
   Chromium E2E: `elicit-multi-questions` (trace open, axe).
+
+- **Step 26a (bet on this, several outcomes and numbers)**: step 26 is split (26b: invites with the
+  outcomes or edges and the locked-outcome mode; 26c: result URLs and the answers codec). The result
+  has "Bet on this" under the user's own numbers: only at exactly 100% (`canBet`) it opens a wager
+  (`buildMultiHandoff`: one wager outcome per outcome or range, the numbers in the first
+  participant's row, the gate's currency, criteria as details); otherwise it says how far from 100%
+  they are and sends the cursor to Normalize, which the user presses. The merged view hands over the
+  merged outcomes. The note on the wager also keeps each outcome's range (as the yes/no handoff keeps
+  its range); numbers with more than two decimals are refused, not rounded. Chromium E2E: both
+  question specs go on to the wager and check the outcomes, the exact numbers and the note.
 
 ## Decisions
 

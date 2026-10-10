@@ -1,19 +1,26 @@
-import { useEffect, useRef, type RefObject } from 'react'
+import { useEffect, useId, useRef, useState, type RefObject } from 'react'
 import Decimal from 'decimal.js'
 import {
   adjustmentGap,
   defaultAdjusted,
   describeBand,
   describeGap,
-  parseAdjusted,
+  parsePercent,
 } from '../../domain/elicitation/format'
-import { mergeOffer } from '../../domain/elicitation/insights'
+import { canBet, describeTotal, mergeOffer, totalState } from '../../domain/elicitation/insights'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { multiResult } from '../../domain/elicitation/multiResult'
 import { multiTrace } from '../../domain/elicitation/multiTrace'
 import type { MultiRun } from '../../domain/elicitation/multiRun'
 import KeptNotice from './KeptNotice'
 import PercentList from './PercentList'
+
+/** One outcome of a bet: its number, and the range the answers gave for it. */
+export interface BetItem {
+  label: string
+  percent: string
+  range: string
+}
 
 interface MultiResultProps {
   claim: string
@@ -28,6 +35,8 @@ interface MultiResultProps {
   /** Outcomes merged into "Everything else" (a view). Without `onMerged` no merge is offered. */
   merged?: string[]
   onMerged?: (ids: string[]) => void
+  /** "Bet on this": the wager with these outcomes and the user's numbers (they add up to 100%). */
+  onBet?: (items: BetItem[]) => void
   onStartAgain: () => void
 }
 
@@ -51,6 +60,7 @@ export default function MultiResult({
   onAdjusted,
   merged = [],
   onMerged,
+  onBet,
   onStartAgain,
 }: MultiResultProps) {
   const { rows, flags, insights } = multiResult(run, merged)
@@ -86,12 +96,42 @@ export default function MultiResult({
   const notes = Object.fromEntries(
     rows.flatMap(r => {
       // untouched starting values are not "set" by the user: no remark on them
-      const value = adjusted[r.id] === undefined ? null : parseAdjusted(own[r.id])
+      const value = adjusted[r.id] === undefined ? null : parsePercent(own[r.id])
       if (value === null) return []
       const band = { lo: r.lo.lte(0) ? null : r.lo, hi: r.hi.gte(1) ? null : r.hi }
       return [[r.id, describeGap(adjustmentGap(new Decimal(value).div(100), band))]]
     })
   )
+  // "Bet on this" only at exactly 100%: otherwise it points to Normalize, which the user presses
+  const normalizeRef = useRef<HTMLButtonElement>(null)
+  const betHintId = useId()
+  // The hint belongs to the numbers it was said about: once they change it is gone
+  const ownKey = JSON.stringify(own)
+  const [hint, setHint] = useState<{ text: string; key: string } | null>(null)
+  const betHint = hint && hint.key === ownKey ? hint.text : null
+  const bet = () => {
+    const say = (text: string) => setHint({ text, key: ownKey })
+    const parsed = rows.map(r => parsePercent(own[r.id]))
+    if (parsed.some(p => p === null)) {
+      say('Some of your numbers are not percentages yet. Fix them, then bet.')
+      return
+    }
+    const values = parsed.map(p => new Decimal(p!))
+    if (!canBet(values)) {
+      const gap = describeTotal(totalState(values))
+      say(`Your numbers are not at 100% yet (${gap}). Press Normalize, or fix them, then bet.`)
+      normalizeRef.current?.focus()
+      return
+    }
+    setHint(null)
+    onBet?.(
+      rows.map((r, i) => ({
+        label: r.label,
+        percent: parsed[i]!,
+        range: describeBand({ lo: r.lo.lte(0) ? null : r.lo, hi: r.hi.gte(1) ? null : r.hi }),
+      }))
+    )
+  }
   return (
     <section aria-labelledby="result-heading" className="mt-6 max-w-2xl space-y-5">
       <h2
@@ -215,7 +255,25 @@ export default function MultiResult({
           values={own}
           onChange={onAdjusted}
           notes={notes}
+          normalizeRef={normalizeRef}
         />
+        {onBet && (
+          <div>
+            <button
+              type="button"
+              className={PRIMARY}
+              onClick={bet}
+              aria-describedby={betHint ? betHintId : undefined}
+            >
+              Bet on this
+            </button>
+            {betHint && (
+              <p id={betHintId} role="alert" className="mt-2 text-sm text-gray-800">
+                {betHint}
+              </p>
+            )}
+          </div>
+        )}
       </section>
 
       <details className="rounded-lg border border-gray-200 p-3">
