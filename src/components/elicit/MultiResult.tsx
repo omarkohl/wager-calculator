@@ -40,6 +40,10 @@ interface MultiResultProps {
   onBet?: (items: BetItem[]) => void
   /** The invite link for a friend to rate the same outcomes. */
   invite?: () => string
+  /** The link to this result (the answers and all). */
+  resultLink?: () => string
+  /** Someone else's result, opened from a link: read-only, with a way to rate the same outcomes. */
+  sharedBy?: { onElicitOwn: () => void; kind: 'categorical' | 'continuous' }
   onStartAgain: () => void
 }
 
@@ -65,14 +69,17 @@ export default function MultiResult({
   onMerged,
   onBet,
   invite,
+  resultLink,
+  sharedBy,
   onStartAgain,
 }: MultiResultProps) {
+  const other = sharedBy !== undefined
   const { rows, flags, insights } = multiResult(run, merged)
   const offer =
     onMerged && merged.length === 0
       ? mergeOffer(rows.map(r => ({ id: r.id, label: r.label, estimate: r.central })))
       : null
-  const trace = multiTrace(run, adjusted, merged)
+  const trace = multiTrace(run, adjusted, merged, other)
   const label = (id: string) => run.outcomes.find(o => o.id === id)?.label ?? id
 
   // Merging and undoing swap one button for the other: the cursor follows
@@ -144,13 +151,19 @@ export default function MultiResult({
         tabIndex={-1}
         className="text-xl font-semibold text-gray-900 focus:outline-none"
       >
-        Your result
+        {other ? 'Their result' : 'Your result'}
       </h2>
+      {other && (
+        <p role="note" className="rounded-lg bg-blue-50 p-3 text-sm text-gray-800">
+          This is someone else’s result, opened from a link. Where it says “you”, it means the
+          person who shared it. Nothing here can be changed.
+        </p>
+      )}
       <p className="text-gray-700">“{claim}”</p>
       {kept && <KeptNotice />}
       {stopped && (
         <p className="text-gray-700">
-          You stopped early, so some outcomes are still rough guesses.
+          {other ? 'Stopped' : 'You stopped'} early, so some outcomes are still rough guesses.
         </p>
       )}
 
@@ -176,7 +189,9 @@ export default function MultiResult({
             </div>
             <div className="text-sm text-gray-600">
               {r.provenance.source === 'first-guess'
-                ? 'From your first guess'
+                ? other
+                  ? 'From the first guess'
+                  : 'From your first guess'
                 : `From ${r.provenance.count} ${r.provenance.count === 1 ? 'answer' : 'answers'}`}
             </div>
           </li>
@@ -185,7 +200,9 @@ export default function MultiResult({
 
       {flags.length > 0 && (
         <div role="note" className="rounded-lg bg-amber-50 p-3 text-sm text-gray-900">
-          <p className="font-medium">Some of your answers do not fit together</p>
+          <p className="font-medium">
+            Some of {other ? 'the' : 'your'} answers do not fit together
+          </p>
           <ul className="mt-1 list-disc space-y-1 pl-5">
             {flags.map(f => (
               <li key={f}>{f}</li>
@@ -228,66 +245,72 @@ export default function MultiResult({
           </button>
         </div>
       )}
-      {merged.length > 0 && onMerged && (
+      {merged.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-800">
           <span>Some outcomes are merged into “Everything else”.</span>
-          <button
-            ref={undoRef}
-            type="button"
-            className={SECONDARY}
-            onClick={() => {
-              focusAfter.current = 'offer'
-              onMerged([])
-            }}
-          >
-            Undo the merge
-          </button>
+          {onMerged && (
+            <button
+              ref={undoRef}
+              type="button"
+              className={SECONDARY}
+              onClick={() => {
+                focusAfter.current = 'offer'
+                onMerged([])
+              }}
+            >
+              Undo the merge
+            </button>
+          )}
         </div>
       )}
 
-      <section aria-labelledby="own-heading" className="space-y-3">
-        <h3 id="own-heading" className="text-lg font-semibold text-gray-900">
-          Your own numbers
-        </h3>
-        <p className="text-sm text-gray-700">
-          They start at the best single number. Change any you know better; they should add up to
-          100%, and Normalize scales them if you want that.
-        </p>
-        <PercentList
-          listLabel="Your own numbers"
-          rows={rows.map(r => ({ id: r.id, label: r.label }))}
-          values={own}
-          onChange={onAdjusted}
-          notes={notes}
-          normalizeRef={normalizeRef}
-        />
-        {onBet && (
-          <div>
-            <button
-              type="button"
-              className={PRIMARY}
-              onClick={bet}
-              aria-describedby={betHint ? betHintId : undefined}
-            >
-              Bet on this
-            </button>
-            {betHint && (
-              <p id={betHintId} role="alert" className="mt-2 text-sm text-gray-800">
-                {betHint}
-              </p>
-            )}
-          </div>
-        )}
-      </section>
+      {other ? (
+        <SharedOwnNumbers rows={rows} adjusted={adjusted} />
+      ) : (
+        <section aria-labelledby="own-heading" className="space-y-3">
+          <h3 id="own-heading" className="text-lg font-semibold text-gray-900">
+            Your own numbers
+          </h3>
+          <p className="text-sm text-gray-700">
+            They start at the best single number. Change any you know better; they should add up to
+            100%, and Normalize scales them if you want that.
+          </p>
+          <PercentList
+            listLabel="Your own numbers"
+            rows={rows.map(r => ({ id: r.id, label: r.label }))}
+            values={own}
+            onChange={onAdjusted}
+            notes={notes}
+            normalizeRef={normalizeRef}
+          />
+          {onBet && (
+            <div>
+              <button
+                type="button"
+                className={PRIMARY}
+                onClick={bet}
+                aria-describedby={betHint ? betHintId : undefined}
+              >
+                Bet on this
+              </button>
+              {betHint && (
+                <p id={betHintId} role="alert" className="mt-2 text-sm text-gray-800">
+                  {betHint}
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
-      {invite && <ShareLinks invite={invite} />}
+      {invite && !other && <ShareLinks invite={invite} result={resultLink} />}
 
       <details className="rounded-lg border border-gray-200 p-3">
         <summary className="cursor-pointer text-sm font-medium text-gray-800">
-          Show the full trace of your answers
+          Show the full trace of {other ? 'the' : 'your'} answers
         </summary>
         <p className="mt-3 text-sm text-gray-800">
-          You started from your first guess:{' '}
+          {other ? 'Started' : 'You started'} from {other ? 'the' : 'your'} first guess:{' '}
           {trace.start.map(s => `${s.label} ${s.chance}`).join(', ')}.
         </p>
         {trace.steps.length === 0 ? (
@@ -313,20 +336,56 @@ export default function MultiResult({
           >
             {trace.adjustments.map(a => (
               <li key={a.label}>
-                {a.label}: your answers implied {a.implied}. You then set it to {a.adjusted}%.{' '}
-                {a.gap}
+                {a.label}: {other ? 'the' : 'your'} answers implied {a.implied}.{' '}
+                {other ? 'They then set it to' : 'You then set it to'} {a.adjusted}%. {a.gap}
               </li>
             ))}
           </ul>
         )}
       </details>
 
-      <div className="border-t border-gray-200 pt-5">
-        <p className="mb-2 text-gray-700">Done with this claim?</p>
-        <button type="button" className={PRIMARY} onClick={onStartAgain}>
-          Start a new claim
-        </button>
-      </div>
+      {sharedBy ? (
+        <div className="border-t border-gray-200 pt-5">
+          <button type="button" className={PRIMARY} onClick={sharedBy.onElicitOwn}>
+            {sharedBy.kind === 'continuous'
+              ? 'Rate the same ranges yourself'
+              : 'Rate the same outcomes yourself'}
+          </button>
+        </div>
+      ) : (
+        <div className="border-t border-gray-200 pt-5">
+          <p className="mb-2 text-gray-700">Done with this claim?</p>
+          <button type="button" className={PRIMARY} onClick={onStartAgain}>
+            Start a new claim
+          </button>
+        </div>
+      )}
+    </section>
+  )
+}
+
+/** The numbers the sharer set themselves, as text: nothing to edit in someone else's result. */
+function SharedOwnNumbers({
+  rows,
+  adjusted,
+}: {
+  rows: { id: string; label: string }[]
+  adjusted: Record<string, string>
+}) {
+  const set = rows.filter(r => adjusted[r.id] !== undefined)
+  if (set.length === 0) return null
+  return (
+    <section aria-labelledby="their-own-heading" className="space-y-2">
+      <h3 id="their-own-heading" className="text-lg font-semibold text-gray-900">
+        Their own numbers
+      </h3>
+      <ul aria-label="Their own numbers" className="space-y-1 text-gray-800">
+        {set.map(r => (
+          <li key={r.id}>
+            {r.label}: {adjusted[r.id]}%
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

@@ -103,7 +103,9 @@ export interface MultiTrace {
 export function multiTrace(
   run: MultiRun,
   adjusted: Readonly<Record<string, string>> = {},
-  merged: readonly string[] = []
+  merged: readonly string[] = [],
+  /** Someone else's run: the gap is not worded as "you set". */
+  other = false
 ): MultiTrace {
   const { sketch } = analyse(run)
   const adjustments = multiResult(run, merged).rows.flatMap(r => {
@@ -116,7 +118,7 @@ export function multiTrace(
         label: r.label,
         implied: describeBand(band),
         adjusted: value,
-        gap: describeGap(adjustmentGap(new Decimal(value).div(100), band)),
+        gap: describeGap(adjustmentGap(new Decimal(value).div(100), band), other),
       },
     ]
   })

@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { continuousInviteLink, inviteLink, multiInviteLink, resultLink } from './shareLinks'
+import {
+  continuousInviteLink,
+  continuousResultLink,
+  inviteLink,
+  multiInviteLink,
+  multiResultLink,
+  resultLink,
+} from './shareLinks'
+import { decodeSharedMulti } from '../../storage/multiShare'
 import { decodeElicitationHash, type RunData } from '../../storage/elicitation'
 
 const run = {
@@ -97,5 +105,49 @@ describe('invites for several outcomes and numbers', () => {
       type: 'invite',
       shape: { kind: 'continuous', min: '-10', max: '30', edges: ['-5', '0', '10'] },
     })
+  })
+})
+
+describe('result links for several outcomes and numbers', () => {
+  it('open the elicitation page of this site and decode to the same result', () => {
+    const base = {
+      kind: 'categorical',
+      claim: 'Who wins?',
+      criteria: '',
+      seed: 'abc',
+      outcomes: {
+        items: [
+          { id: 'o1', label: 'Alice', tier: 'likely' },
+          { id: 'o2', label: 'Bob', tier: 'unlikely' },
+        ],
+        issued: 2,
+      },
+      view: 'tiers',
+      percents: {},
+      kept: false,
+      answers: [],
+      stopped: true,
+      adjusted: {},
+      merged: [],
+    } as never
+    const link = multiResultLink(base)
+    expect(new URL(link).pathname).toBe('/elicit')
+    expect(decodeSharedMulti(hashOf(link))?.type).toBe('result-multi')
+    const cont = {
+      kind: 'continuous',
+      claim: 'Noon',
+      criteria: '',
+      seed: 'abc',
+      unit: '',
+      min: '0',
+      max: '10',
+      thresholds: [],
+      edges: ['5'],
+      percents: { b0: '40', b1: '60' },
+      answers: [],
+      stopped: true,
+      adjusted: {},
+    } as never
+    expect(decodeSharedMulti(hashOf(continuousResultLink(cont)))?.type).toBe('result-continuous')
   })
 })

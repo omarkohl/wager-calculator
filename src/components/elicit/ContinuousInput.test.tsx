@@ -241,6 +241,22 @@ describe('ContinuousInput', () => {
     expect(screen.getAllByRole('textbox', { name: /, percent$/ })[0]).toHaveValue('')
   })
 
+  it('reads range ends typed with a comma, spaces or trailing zeros, and goes on with them plain', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    await range(user, ' 0,5', '10.50')
+    await draw(user)
+    expect(screen.getByRole('heading', { name: 'Draw your distribution' })).toBeInTheDocument()
+    const labels = screen
+      .getAllByRole('textbox', { name: /, percent$/ })
+      .map(f => (f as HTMLInputElement).labels![0].textContent)
+    expect(labels.length).toBeGreaterThanOrEqual(2)
+    // going back shows what the range was read as
+    await user.click(screen.getByRole('button', { name: 'Change the range' }))
+    expect(screen.getByRole('textbox', { name: 'Plausible minimum' })).toHaveValue('0.5')
+    expect(screen.getByRole('textbox', { name: 'Plausible maximum' })).toHaveValue('10.5')
+  })
+
   it('keeps the claim editable and required', async () => {
     const user = userEvent.setup()
     render(<Harness />)
