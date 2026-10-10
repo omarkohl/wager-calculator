@@ -2,7 +2,7 @@
 
 ## Next step
 
-26c.
+27.
 
 ## Stack
 
@@ -45,6 +45,7 @@
 - 25d: howsure/25d-lottery-words, PR #123 (base howsure/25c-new-claim)
 - 25e: howsure/25e-multi-trace, PR #124 (base howsure/25d-lottery-words)
 - 26a: howsure/26a-bet-on-this, PR #125 (base howsure/25e-multi-trace)
+- 26b: howsure/26b-invites, PR #126 (base howsure/26a-bet-on-this)
 
 ## Log
 
@@ -584,7 +585,27 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   curve and no range to change, since a curve would find edges of its own. `locked` is stored in the
   run. Chromium E2E: `elicit-invite-outcomes.spec.ts` (categorical and number: sender, friend, wager).
 
+- **Step 26c (result links)**: the result for several outcomes and number claims offers "Copy result
+  link" beside the invite. The link (`multiShare.ts`; `t=ro` for outcomes, `t=rn` for a number)
+  carries the claim, the criteria, the seed, the outcomes with their ids, tiers or numbers (for a
+  number: the range, the edges and the bars it started from), the answers as compact tokens
+  (`c1-2f`, `l1+3:450w`), the own numbers, the merge and the kept notice; no bands, estimates or
+  trace. Decoding replays `decodeMultiAnswers` over the answers (each must be the question the
+  algorithm would have asked), checks every field strictly and accepts only the canonical spelling
+  (so typed "12,5%" is shared as 12.5). Whether the run was stopped is derived (a run that could
+  still ask was stopped). The page shows it read-only ("Their result": no editing, bet, share or
+  start over; their own numbers as text; the trace replayed) with "Rate the same outcomes
+  yourself", which leads to the gate with an invite for the same outcomes or parts. Chromium E2E:
+  `elicit-invite-outcomes.spec.ts` (both kinds: sender, link, friend, tampered link).
+
 ## Decisions
+
+- Step 26c: a shared result keeps the sender's second-person wording in the texts the domain writes
+  (the flags and the trace steps: "You think ...") with a note that it means the person who shared
+  it; the cheap ones are neutral there ("the answers", "Stopped early", "From the first guess", "Rate
+  the same ranges yourself"). Outcome ids are shared (not renumbered) because the question order
+  depends on how ids sort. Range ends typed as "0,5" or " 10" are read as 0.5 and 10 when the bars are
+  drawn, and shared in that plain form (also in invites).
 
 - Step 26b: the receiver of a locked invite gets no spot checks of the outcomes and cannot report
   that the list overlaps (they can rate an outcome very low); the sender's checks stand. An invite
@@ -658,6 +679,9 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 26c: the second-person wording on someone else's result (a note explains it); a link carries
+  the whole answer history, as for yes/no results.
 
 - Step 26b: an invite from a curve carries the edges `bucketCurve` found, and edges show where the
   sender's curve rises and falls, which may anchor the friend a little (the ranges are the sender's

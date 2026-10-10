@@ -26,6 +26,8 @@ import {
   type MultiRunData,
 } from '../../storage/multiRun'
 import ContinuousInput from './ContinuousInput'
+import SharedMultiResult from './SharedMultiResult'
+import { decodeSharedMulti, type SharedMulti } from '../../storage/multiShare'
 import StaleRunPrompt from './StaleRunPrompt'
 import { isStale, storedRunSavedAt } from '../../storage/runAge'
 import { continuousToMultiRun, toMultiRun, withAnswers } from '../../storage/multiAnswers'
@@ -85,11 +87,15 @@ function faqFromHash(): string | null {
 }
 
 /** What the address bar held when the page opened: a shared invite or a shared result. */
-type Shared = ({ type: 'invite' } & Invite) | { type: 'result'; run: RunData }
+type Shared = ({ type: 'invite' } & Invite) | { type: 'result'; run: RunData } | SharedMulti
 
 function readShared(): Shared | null {
   // A `faq` parameter may ride along with a share link; it is not part of the share
-  const decoded = decodeElicitationHash(removeFaqFromURL(window.location.hash))
+  const hash = removeFaqFromURL(window.location.hash)
+  // the result of a claim with several outcomes or of a number has its own codec
+  const many = decodeSharedMulti(hash)
+  if (many) return many
+  const decoded = decodeElicitationHash(hash)
   if (!decoded) return null
   if (decoded.type === 'invite') return decoded
   // A shared result may have been stopped early: the link does not say, but the algorithm does
@@ -309,6 +315,38 @@ export default function ElicitPage() {
   const asking =
     shared === null && multi === null && cont === null && run !== null && question !== null
 
+  /** From someone's result of several outcomes or a number: an invite to rate the same outcomes. */
+  const elicitOwnMany = (from: SharedMulti) => {
+    const invite =
+      from.type === 'result-multi'
+        ? {
+            type: 'invite' as const,
+            claim: from.run.claim,
+            criteria: from.run.criteria,
+            shape: {
+              kind: 'categorical' as const,
+              outcomes: from.run.outcomes.items.map(o => o.label),
+            },
+          }
+        : {
+            type: 'invite' as const,
+            claim: from.run.claim,
+            criteria: from.run.criteria,
+            shape: {
+              kind: 'continuous' as const,
+              unit: from.run.unit,
+              min: from.run.min,
+              max: from.run.max,
+              thresholds: from.run.thresholds,
+              edges: from.run.edges,
+            },
+          }
+    window.history.replaceState(null, '', encodeInviteHash(invite))
+    setShared(invite)
+    setFocusGate(true)
+    setFocusNext(false)
+  }
+
   const elicitOwn = (from: { claim: string; criteria: string }) => {
     const invite = { type: 'invite' as const, claim: from.claim, criteria: from.criteria }
     window.history.replaceState(null, '', encodeInviteHash(invite))
@@ -343,6 +381,8 @@ export default function ElicitPage() {
           focusOnShow={false}
           onElicitOwn={() => elicitOwn(shared.run)}
         />
+      ) : shared?.type === 'result-multi' || shared?.type === 'result-continuous' ? (
+        <SharedMultiResult shared={shared} onElicitOwn={() => elicitOwnMany(shared)} />
       ) : stale !== null && shared === null ? (
         <StaleRunPrompt
           savedAt={stale}

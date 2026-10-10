@@ -15,7 +15,7 @@ import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
 import { parsePercent } from '../../domain/elicitation/format'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
-import { multiInviteLink } from './shareLinks'
+import { multiInviteLink, multiResultLink } from './shareLinks'
 import KeptNotice from './KeptNotice'
 import LockedRating from './LockedRating'
 import MultiQuestions from './MultiQuestions'
@@ -190,6 +190,7 @@ export default function OutcomeDiscovery({
         onMerged={merged => onChange({ ...run, merged, adjusted: {} })}
         onBet={onBet}
         invite={() => multiInviteLink(run)}
+        resultLink={() => multiResultLink(run)}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}

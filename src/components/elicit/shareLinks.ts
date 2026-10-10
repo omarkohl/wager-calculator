@@ -3,6 +3,7 @@ import { pathFor } from '../../routes'
 import { encodeInviteHash, encodeResultHash, type RunData } from '../../storage/elicitation'
 import type { ContinuousRunData } from '../../storage/continuousRun'
 import type { MultiRunData } from '../../storage/multiRun'
+import { encodeContinuousResultHash, encodeMultiResultHash } from '../../storage/multiShare'
 
 /** The absolute address of the elicitation page with a share hash. */
 function elicitUrl(hash: string): string {
@@ -54,4 +55,14 @@ export function continuousInviteLink(
       },
     })
   )
+}
+
+/** A link to this result: the outcomes, the numbers it started from, the answers, the own numbers. */
+export function multiResultLink(run: MultiRunData): string {
+  return elicitUrl(encodeMultiResultHash(run))
+}
+
+/** A link to this result of a number claim: the range, the edges, the numbers, the answers. */
+export function continuousResultLink(run: ContinuousRunData): string {
+  return elicitUrl(encodeContinuousResultHash(run))
 }

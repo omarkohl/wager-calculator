@@ -10,6 +10,8 @@ import {
   type RunData,
 } from '../../storage/elicitation'
 import { loadMultiRun } from '../../storage/multiRun'
+import { encodeMultiResultHash } from '../../storage/multiShare'
+import { addOutcome, emptyOutcomeList } from '../../domain/elicitation/model'
 import { loadContinuousRun } from '../../storage/continuousRun'
 import { decodeWagerFromHash } from '../../storage/urlHash'
 import { answerQuestion, nextFlowQuestion } from './runFlow'
@@ -672,6 +674,55 @@ describe('ElicitPage FAQ', () => {
       unmount()
       render(<ElicitPage />)
       expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+    })
+  })
+
+  describe('result links for several outcomes', () => {
+    it('opens read-only, and “Rate the same outcomes yourself” leads to the gate with them fixed', async () => {
+      const user = userEvent.setup()
+      let outcomes = emptyOutcomeList()
+      for (const [label, tier] of [
+        ['Alice', 'likely'],
+        ['Bob', 'unlikely'],
+      ] as const) {
+        outcomes = addOutcome(outcomes, label, tier)
+      }
+      window.history.replaceState(
+        null,
+        '',
+        `/elicit${encodeMultiResultHash({
+          kind: 'categorical',
+          claim: 'Who wins?',
+          criteria: 'Final count',
+          seed: 'r-1',
+          outcomes,
+          declinedElse: true,
+          phase: 'ask',
+          view: 'tiers',
+          percents: {},
+          checks: [],
+          kept: false,
+          reviewing: false,
+          replaced: null,
+          answers: [],
+          stopped: true,
+          adjusted: {},
+          merged: [],
+          locked: false,
+        })}`
+      )
+      render(<ElicitPage />)
+      expect(screen.getByRole('heading', { name: 'Their result' })).toBeInTheDocument()
+      expect(screen.queryByRole('textbox')).toBeNull()
+      expect(loadMultiRun()).toBeNull()
+      await user.click(screen.getByRole('button', { name: 'Rate the same outcomes yourself' }))
+      expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveFocus()
+      const list = screen.getByRole('list', { name: 'Outcomes from the invite' })
+      expect(
+        within(list)
+          .getAllByRole('listitem')
+          .map(li => li.textContent)
+      ).toEqual(['Alice', 'Bob'])
     })
   })
 

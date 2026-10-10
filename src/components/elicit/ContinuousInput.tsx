@@ -15,7 +15,7 @@ import {
   type ContinuousRunData,
 } from '../../storage/continuousRun'
 import MultiQuestions from './MultiQuestions'
-import { continuousInviteLink } from './shareLinks'
+import { continuousInviteLink, continuousResultLink } from './shareLinks'
 import type { BetItem } from './MultiResult'
 import CurveInput from './CurveInput'
 import PercentList from './PercentList'
@@ -135,6 +135,7 @@ export default function ContinuousInput({
         onAdjusted={adjusted => onChange({ ...run, adjusted })}
         onBet={onBet}
         invite={() => continuousInviteLink(run)}
+        resultLink={() => continuousResultLink(run)}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}
@@ -287,9 +288,11 @@ export default function ContinuousInput({
     setError(null)
     focusRequest.current = 'bars'
     // Bars drawn for the same buckets are kept (only the unit may have changed)
-    const edges = bucketsOf(run).edges.map(plainNumber)
+    // The range ends go on in their plain form ("0,5" and " 10" are read as 0.5 and 10 here)
+    const plain = { ...run, min: parseNumber(run.min)!, max: parseNumber(run.max)! }
+    const edges = bucketsOf(plain).edges.map(plainNumber)
     const same = edges.length === run.edges.length && edges.every((e, i) => e === run.edges[i])
-    onChange({ ...run, phase: 'bars', edges, percents: same ? run.percents : {} })
+    onChange({ ...plain, phase: 'bars', edges, percents: same ? run.percents : {} })
   }
 
   return (
