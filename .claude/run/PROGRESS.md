@@ -2,7 +2,7 @@
 
 ## Next step
 
-25e.
+26.
 
 ## Stack
 
@@ -40,6 +40,9 @@
 - 24a: howsure/24a-multi-questions, PR #118 (base howsure/23b-curve)
 - 24b: howsure/24b-continuous-questions, PR #119 (base howsure/24a-multi-questions)
 - 25a: howsure/25a-multi-result, PR #120 (base howsure/24b-continuous-questions)
+- 25b: howsure/25b-own-numbers, PR #121 (base howsure/25a-multi-result)
+- 25c: howsure/25c-new-claim, PR #122 (base howsure/25b-own-numbers)
+- 25d: howsure/25d-lottery-words, PR #123 (base howsure/25c-new-claim)
 
 ## Log
 
@@ -549,6 +552,14 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   step 25 "trace" sub-step is now 25e. Chromium E2E run for `elicit-questions`, `elicit-result`,
   `elicit-gate`, `elicit-share`, `elicit-to-wager` and the multi-outcome specs.
 
+- **Step 25e (trace)**: the result for several outcomes and number claims ends with a collapsed
+  "Show the full trace of your answers" (`multiTrace`): the first guess it started from, then each
+  question with its answer, what it implied and, for a lottery, how the range of what was asked
+  about stood afterwards. Wording follows the lottery shown (spinner or ball draw). There is no "drop
+  this answer" as for yes/no runs: comparisons and lotteries interlock through the coherent bands,
+  and dropping one would need the whole question order replayed (a possible follow-up).
+  Chromium E2E: `elicit-multi-questions` (trace open, axe).
+
 ## Decisions
 
 - Step 25d: the winning chance stays on screen (the requirements reject concealing it) but small and
@@ -619,6 +630,9 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 25e: no way to drop a misclicked answer in the multi-outcome trace (the yes/no result has one);
+  decide whether it is wanted before release.
 
 - Step 25d: how small and muted the chance should be (a tooltip-like secondary line, a toggle, or
   nothing for the spinner whose area says it); check it is still readable at normal zoom.

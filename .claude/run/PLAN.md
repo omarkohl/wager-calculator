@@ -201,7 +201,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
         replayed on load, an interim "where your answers stand" screen (step 25 replaces it).
   - [x] 24b. Number claims: the buckets of the bars or the curve become the outcomes and the
         typed percentages (curve: its probabilities) the sketch; the same flow.
-- [ ] 25. **Result**: band per bucket as headline, point estimate, provenance,
+- [x] 25. **Result**: band per bucket as headline, point estimate, provenance,
       incoherence flag, the standing notice when the list was kept despite a failed disjoint or
       exhaustive check (`kept`), insights, merge offer, adjust after with Normalize, the trace.
   - [x] 25a. The result screen: band, point estimate, provenance, flags for what does not fit
@@ -212,7 +212,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
         "Continue" or "Start a new claim".
   - [x] 25d. The lottery words follow the visual (balls: "a ball drawn at random"), and its
         chance is no longer a headline figure (anchoring).
-  - [ ] 25e. The trace: each question, the answer, what it implied.
+  - [x] 25e. The trace: each question, the answer, what it implied.
 - [ ] 26. **Share and handoff**: invites carry outcomes or bucket edges and open in a
       locked-outcome mode; result URLs; "bet on this" only when the adjusted values sum
       to 100%, otherwise it points to Normalize. E2E for categorical and continuous.
