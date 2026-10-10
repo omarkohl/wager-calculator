@@ -2,7 +2,82 @@
 
 ## Next step
 
-28.
+28b (delete `.claude/run/` in its own commit, once the summary and the review list below are in the PR body).
+
+## Summary
+
+The whole of v1 of [HOWSURE-REQUIREMENTS](../../docs/dev/HOWSURE-REQUIREMENTS.md) is built, as a
+stack of PRs (#89 to #128, one per step, each on the one before; step 0 is the environment check).
+
+- **Site shell and routes** (steps 1 to 3): path routes (`/`, `/wager`, `/elicit`), the base path
+  from `BASE_PATH`, the SPA fallback, a shared navigation and footer; old wager links redirect.
+- **Tool 2, yes/no claims** (steps 4 to 15): log-odds core and band rule, quick and thorough
+  searches, the reference lottery (spinner, and balls in the tails), the setup gate, the question
+  flow, the result with trace, contradictions and "drop it", "adjust after", invites and result links,
+  the hand-off to a wager ("Bet on this"), the FAQ.
+- **Several outcomes and numbers** (steps 16 to 26): the model and tiers, coherent bands, comparisons
+  and spot checks, the multi-outcome run, insights and merging, bucketing of curves and bars; the UI
+  for discovery (tiers or numbers), the disjoint-and-exhaustive checks with help to fix, a range with
+  thresholds, bars and a curve, the question flow, the result (bands, best single number, provenance,
+  flags, insights, merge, own numbers with Normalize, trace), "Start a new claim" and a prompt for
+  runs left for a week, "Bet on this" at exactly 100%, invites that fix the outcomes or edges, and
+  result links with an answers codec that is replayed on decoding.
+- **Docs** (step 27): `docs/dev/HOWSURE-SPEC.md`, README, CLAUDE.md, answered open questions.
+- **Late changes from the user**: "Start a new claim" on every result and the stale-run prompt
+  (25c); lottery words that match the visual and a less prominent chance (25d).
+
+Checks: every step ran `make format lint typecheck test` and the chromium E2E specs it touched
+(accessible queries, axe on every screen reached). The unit suite is about 1,070 tests. Only
+chromium was available in the cloud container (Playwright's download is blocked, a local
+executable path was used), so Firefox and WebKit ran only in CI; two WebKit-only E2E failures were
+found there (the curve pointer test) and fixed by reasoning from the code, without a local run.
+`make precommit` (all browsers) was not run locally.
+
+## For review (consolidated)
+
+**Shipping**
+
+- The stack must be merged **together** (or not at all): from step 21 to step 24 a claim with several
+  outcomes or a number ends at its first sketch or bars; only the whole stack is a finished tool.
+- `.claude/run/` is deleted in its own commit after the PR bodies are written (28b).
+- Not run locally: Firefox, WebKit, a full `make precommit`. CI runs them on every PR.
+
+**Prototype variants to look at** (each is one component, so it can be swapped)
+
+- The reference lottery (`ReferenceLottery.tsx`): spinner for 10 to 90%, balls (100 or 1000) in the
+  tails; dot size and contrast of the 1000-ball field.
+- The question screens (yes/no and several outcomes), the result screens (yes/no and several
+  outcomes), the adjust section, the share section and the shared-result banner.
+- The tier-per-outcome UI, the rating screen of an invite (locked outcomes), the range form, the
+  bars and the curve (9 points; a field per point and a drawing to press or drag).
+
+**Decisions to confirm** (details under "Decisions")
+
+- The winning chance of the lottery is shown small and muted, not as a headline figure (anchoring),
+  and is in the accessible name; the requirements reject hiding it.
+- A run left for 7 days is not resumed silently: a prompt offers "Continue" (refreshes the stamp) or
+  "Start a new claim"; no automatic reset. Every result ends with a primary "Start a new claim".
+- A shared result of several outcomes or a number keeps second-person wording in the texts the
+  domain writes, with a note that "you" means the sharer.
+- A curve-based invite carries the edges the sender's curve produced, which show where it rises and
+  falls and may anchor the friend a little; a locked invite has no spot checks.
+- No thorough mode for several outcomes or numbers; no "drop this answer" in their trace; "Everything
+  else" is added as "unlikely"; the merge into "Everything else" is a view, undoable; "Bet on this"
+  only at exactly 100%, never rescaling for the user.
+- "Bet on this" puts the claim and the numbers in the wager's address (its URL is its state); the
+  provenance note stays out of the URL.
+- Thorough runs take 14 to 19 questions (the requirements say 14 to 18); quick takes 3.5 to 6.
+
+**Known gaps and small things**
+
+- Spot checks re-run in full after every change of the list; with two problems on the verdict both
+  fix forms can be open; which of two conflicting order answers is dropped follows input order.
+- Pre-existing and untouched: the wager's cap of 8 outcomes is a literal `8` in its components, and
+  the precache revision of `index.html` does not cover the injected edits.
+- Site and migration questions in the requirements (names, origin move, hosting, analytics) stay
+  open: out of scope for this run.
+
+The per-step notes follow (the detailed list).
 
 ## Stack
 
@@ -47,6 +122,7 @@
 - 26a: howsure/26a-bet-on-this, PR #125 (base howsure/25e-multi-trace)
 - 26b: howsure/26b-invites, PR #126 (base howsure/26a-bet-on-this)
 - 26c: howsure/26c-result-links, PR #127 (base howsure/26b-invites)
+- 27: howsure/27-docs, PR #128 (base howsure/26c-result-links)
 
 ## Log
 
@@ -686,7 +762,7 @@ test-coverage` and the whole chromium E2E suite through the local config; CI run
   could not separate, without a band. A "can't separate" answer outside [H, S] is a
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
-## For review
+## For review (per step, detailed)
 
 - Step 26c: the second-person wording on someone else's result (a note explains it); a link carries
   the whole answer history, as for yes/no results.

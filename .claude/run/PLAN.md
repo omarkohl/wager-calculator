@@ -227,3 +227,5 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       values above. Full `make precommit` (all browsers).
 - [ ] 28. **Finish**: summary and the "For review" list in PROGRESS.md (copied into
       that PR's body), then delete `.claude/run/` in its own commit.
+  - [x] 28a. The summary and the consolidated "For review" list in PROGRESS.md.
+  - [ ] 28b. Delete `.claude/run/` (its own commit, after the PR bodies are written).
