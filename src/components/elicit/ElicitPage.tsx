@@ -11,6 +11,7 @@ import {
   encodeInviteHash,
   generateSeed,
   getSavedElicitStake,
+  type Invite,
   loadRun,
   saveRun,
   type RunData,
@@ -36,7 +37,7 @@ import {
   type ContinuousRunData,
 } from '../../storage/continuousRun'
 import OutcomeDiscovery from './OutcomeDiscovery'
-import { emptyOutcomeList } from '../../domain/elicitation/model'
+import { addOutcome, emptyOutcomeList } from '../../domain/elicitation/model'
 import QuestionScreen from './QuestionScreen'
 import ResultScreen from './ResultScreen'
 import SetupGate, { type SetupResult } from './SetupGate'
@@ -84,7 +85,7 @@ function faqFromHash(): string | null {
 }
 
 /** What the address bar held when the page opened: a shared invite or a shared result. */
-type Shared = { type: 'invite'; claim: string; criteria: string } | { type: 'result'; run: RunData }
+type Shared = ({ type: 'invite' } & Invite) | { type: 'result'; run: RunData }
 
 function readShared(): Shared | null {
   // A `faq` parameter may ride along with a share link; it is not part of the share
@@ -173,28 +174,32 @@ export default function ElicitPage() {
     setFocusGate(false)
     if (shared) window.history.replaceState(null, '', window.location.pathname)
     setShared(null)
+    // An invite with outcomes or edges fixes them: the run starts with those, locked
+    const fixed = shared?.type === 'invite' ? shared.shape : undefined
     if (kind === 'continuous') {
       clearRun()
       clearMultiRun()
       setRun(null)
       setMulti(null)
+      const range = fixed?.kind === 'continuous' ? fixed : null
       const started: ContinuousRunData = {
         kind,
         claim,
         criteria,
         seed: generateSeed(),
-        unit: '',
-        min: '',
-        max: '',
-        thresholds: [],
-        phase: 'range',
-        edges: [],
+        unit: range?.unit ?? '',
+        min: range?.min ?? '',
+        max: range?.max ?? '',
+        thresholds: range?.thresholds ?? [],
+        phase: range ? 'bars' : 'range',
+        edges: range?.edges ?? [],
         percents: {},
         view: 'bars',
         curve: [],
         answers: [],
         stopped: false,
         adjusted: {},
+        locked: range !== null,
       }
       saveContinuousRun(started)
       setCont(started)
@@ -206,12 +211,16 @@ export default function ElicitPage() {
       clearContinuousRun()
       setRun(null)
       setCont(null)
+      const outcomes = fixed?.kind === 'categorical' ? fixed.outcomes : null
       const started: MultiRunData = {
         kind,
         claim,
         criteria,
         seed: generateSeed(),
-        outcomes: emptyOutcomeList(),
+        outcomes: (outcomes ?? []).reduce(
+          (list, label) => addOutcome(list, label, null),
+          emptyOutcomeList()
+        ),
         declinedElse: false,
         phase: 'discover',
         view: 'tiers',
@@ -224,6 +233,7 @@ export default function ElicitPage() {
         stopped: false,
         adjusted: {},
         merged: [],
+        locked: outcomes !== null,
       }
       saveMultiRun(started)
       setMulti(started)

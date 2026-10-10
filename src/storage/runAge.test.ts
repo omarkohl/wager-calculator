@@ -46,6 +46,7 @@ describe('runAge', () => {
       stopped: false,
       adjusted: {},
       merged: [],
+      locked: false,
     } as MultiRunData)
     expect(storedRunSavedAt('categorical')).toBeGreaterThanOrEqual(before)
     sessionStorage.clear()
@@ -66,6 +67,7 @@ describe('runAge', () => {
       answers: [],
       stopped: false,
       adjusted: {},
+      locked: false,
     } as ContinuousRunData)
     expect(storedRunSavedAt('continuous')).toBeGreaterThanOrEqual(before)
   })

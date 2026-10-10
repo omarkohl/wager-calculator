@@ -13,6 +13,7 @@ import { multiResult } from '../../domain/elicitation/multiResult'
 import { multiTrace } from '../../domain/elicitation/multiTrace'
 import type { MultiRun } from '../../domain/elicitation/multiRun'
 import KeptNotice from './KeptNotice'
+import ShareLinks from './ShareLinks'
 import PercentList from './PercentList'
 
 /** One outcome of a bet: its number, and the range the answers gave for it. */
@@ -37,6 +38,8 @@ interface MultiResultProps {
   onMerged?: (ids: string[]) => void
   /** "Bet on this": the wager with these outcomes and the user's numbers (they add up to 100%). */
   onBet?: (items: BetItem[]) => void
+  /** The invite link for a friend to rate the same outcomes. */
+  invite?: () => string
   onStartAgain: () => void
 }
 
@@ -61,6 +64,7 @@ export default function MultiResult({
   merged = [],
   onMerged,
   onBet,
+  invite,
   onStartAgain,
 }: MultiResultProps) {
   const { rows, flags, insights } = multiResult(run, merged)
@@ -275,6 +279,8 @@ export default function MultiResult({
           </div>
         )}
       </section>
+
+      {invite && <ShareLinks invite={invite} />}
 
       <details className="rounded-lg border border-gray-200 p-3">
         <summary className="cursor-pointer text-sm font-medium text-gray-800">

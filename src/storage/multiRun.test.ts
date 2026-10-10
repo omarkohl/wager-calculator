@@ -46,6 +46,7 @@ function sample(): MultiRunData {
     stopped: false,
     adjusted: {},
     merged: [],
+    locked: false,
   }
 }
 
@@ -252,6 +253,50 @@ describe('multi-outcome run storage', () => {
     delete raw.stopped
     sessionStorage.setItem('howsure.multi', JSON.stringify(raw))
     expect(loadMultiRun()).toEqual(sample())
+  })
+
+  describe('locked outcomes (from an invite)', () => {
+    const lockedList = () => addOutcome(addOutcome(emptyOutcomeList(), 'Alice', null), 'Bob', null)
+    const base = (patch: Partial<MultiRunData> = {}): MultiRunData => ({
+      ...sample(),
+      locked: true,
+      phase: 'discover',
+      outcomes: lockedList(),
+      checks: [],
+      ...patch,
+    })
+
+    it('keeps outcomes that are not rated yet, in either view', () => {
+      saveMultiRun(base())
+      expect(loadMultiRun()).toEqual(base())
+      const numbers = base({ view: 'numbers', percents: { o1: '60' } })
+      saveMultiRun(numbers)
+      expect(loadMultiRun()).toEqual(numbers)
+    })
+
+    it('goes to the sketch without spot checks once rated', () => {
+      const rated = addOutcome(addOutcome(emptyOutcomeList(), 'Alice', 'likely'), 'Bob', 'unlikely')
+      const run = base({ phase: 'sketch', outcomes: rated })
+      saveMultiRun(run)
+      expect(loadMultiRun()).toEqual(run)
+    })
+
+    it('wants the outcomes of the invite to be there, also while rating', () => {
+      saveMultiRun(base({ outcomes: addOutcome(emptyOutcomeList(), 'Alice', null) }))
+      expect(loadMultiRun()).toBeNull()
+    })
+
+    it('refuses what an unlocked run would not do: unrated outcomes past the rating, spot checks', () => {
+      saveMultiRun(base({ phase: 'sketch' }))
+      expect(loadMultiRun()).toBeNull()
+      saveMultiRun(base({ phase: 'check' }))
+      expect(loadMultiRun()).toBeNull()
+      saveMultiRun({ ...base(), kept: true })
+      expect(loadMultiRun()).toBeNull()
+      // and an unlocked run may not have unrated outcomes while collecting
+      saveMultiRun({ ...base(), locked: false })
+      expect(loadMultiRun()).toBeNull()
+    })
   })
 
   it('returns null when nothing is stored, after clearing, and for junk', () => {

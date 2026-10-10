@@ -29,6 +29,8 @@ interface PercentListProps {
   notes?: Record<string, string>
   /** The Normalize button, for a caller that needs to send the user there. */
   normalizeRef?: Ref<HTMLButtonElement>
+  /** An empty field is not yet an error (the user is still filling them in); it is still not usable. */
+  allowBlank?: boolean
 }
 
 const PROBLEM_STRICT = 'Enter a percentage above 0 and below 100, with at most two decimals.'
@@ -52,6 +54,7 @@ export default function PercentList({
   bars = false,
   notes = {},
   normalizeRef,
+  allowBlank = false,
 }: PercentListProps) {
   const base = useId()
   const totalRef = useRef<HTMLParagraphElement>(null)
@@ -85,7 +88,7 @@ export default function PercentList({
     <>
       <ul aria-label={listLabel} className="space-y-3">
         {rows.map((row, i) => {
-          const bad = parsed[i] === null
+          const bad = parsed[i] === null && !(allowBlank && (values[row.id] ?? '').trim() === '')
           const inputId = `${base}-${row.id}`
           return (
             <li key={row.id}>

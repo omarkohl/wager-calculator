@@ -3,7 +3,8 @@ import { useId, useState } from 'react'
 interface ShareLinksProps {
   /** Built when the button is pressed, so they always match the current result. */
   invite: () => string
-  result: () => string
+  /** Without it only the invite is offered (a result link for this kind of claim is not there yet). */
+  result?: () => string
 }
 
 type Kind = 'invite' | 'result'
@@ -24,7 +25,7 @@ export default function ShareLinks({ invite, result }: ShareLinksProps) {
   const [shown, setShown] = useState<Kind | null>(null)
   const [copied, setCopied] = useState<{ kind: Kind; url: string; ok: boolean } | null>(null)
 
-  const urlFor = (kind: Kind) => (kind === 'invite' ? invite() : result())
+  const urlFor = (kind: Kind) => (kind === 'invite' || !result ? invite() : result())
   const current = shown ? urlFor(shown) : null
 
   const share = async (kind: Kind) => {
@@ -58,16 +59,20 @@ export default function ShareLinks({ invite, result }: ShareLinksProps) {
         Share
       </h3>
       <p className="mt-1 text-sm text-gray-600">
-        An invite lets a friend put their own number on the same claim, without seeing yours. The
-        result link also carries your answers. Both links contain the claim itself.
+        An invite lets a friend put their own number on the same claim, without seeing yours.{' '}
+        {result
+          ? 'The result link also carries your answers. Both links contain the claim itself.'
+          : 'The link contains the claim and the outcomes, not your answers.'}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" onClick={() => share('invite')} className={BUTTON}>
           Copy invite link
         </button>
-        <button type="button" onClick={() => share('result')} className={BUTTON}>
-          Copy result link
-        </button>
+        {result && (
+          <button type="button" onClick={() => share('result')} className={BUTTON}>
+            Copy result link
+          </button>
+        )}
       </div>
       <div role="status" className="mt-2 text-sm text-gray-700">
         {status}

@@ -7,6 +7,9 @@ import {
   nextThoroughQuestion,
   type ThoroughAnswer,
 } from '../domain/elicitation/thorough'
+import { MAX_NUMBER_TEXT, MAX_OUTCOMES, MIN_OUTCOMES } from '../domain/elicitation/constants'
+import { parseNumber } from '../domain/elicitation/format'
+import { labelProblem, tidy } from '../domain/elicitation/model'
 import { CURRENCY_OPTIONS } from '../domain/stakes'
 
 /**
@@ -190,14 +193,89 @@ function parseRun(raw: RawRun): RunData | null {
 
 // ------------------------------------------------------------------- the URLs
 
-export type SharedElicitation =
-  { type: 'invite'; claim: string; criteria: string } | { type: 'result'; run: RunData }
+/**
+ * What an invite fixes besides the claim, so that friends answer about the same outcomes (which
+ * a wager needs). None: a yes/no claim. Categorical: the list of outcomes. Continuous: the range
+ * and the edges of the buckets (the thresholds and unit ride along for the labels).
+ */
+export type InviteShape =
+  | { kind: 'categorical'; outcomes: string[] }
+  | {
+      kind: 'continuous'
+      unit: string
+      min: string
+      max: string
+      thresholds: string[]
+      edges: string[]
+    }
 
-/** An invite: claim and criteria, no answers, no result. */
-export function encodeInviteHash(invite: { claim: string; criteria: string }): string {
+export interface Invite {
+  claim: string
+  criteria: string
+  shape?: InviteShape
+}
+
+export type SharedElicitation = ({ type: 'invite' } & Invite) | { type: 'result'; run: RunData }
+
+/** An invite: claim, criteria and, for several outcomes or a number, what they are about. */
+export function encodeInviteHash(invite: Invite): string {
   const params = new URLSearchParams({ ev: String(ELICIT_FORMAT_VERSION), t: 'i', c: invite.claim })
   if (invite.criteria) params.set('cr', invite.criteria)
+  const shape = invite.shape
+  if (shape?.kind === 'categorical') {
+    params.set('k', 'o')
+    for (const label of shape.outcomes) params.append('o', label)
+  } else if (shape?.kind === 'continuous') {
+    params.set('k', 'n')
+    if (shape.unit) params.set('u', shape.unit)
+    params.set('lo', shape.min)
+    params.set('hi', shape.max)
+    if (shape.thresholds.length) params.set('th', shape.thresholds.join(','))
+    params.set('ed', shape.edges.join(','))
+  }
   return `#${params.toString()}`
+}
+
+const MAX_UNIT = 20
+
+/** The shape in an invite's parameters; null if it is not a proper one. */
+function decodeShape(params: URLSearchParams): InviteShape | null {
+  if (params.get('k') === 'o') {
+    const outcomes = params.getAll('o')
+    if (outcomes.length < MIN_OUTCOMES || outcomes.length > MAX_OUTCOMES) return null
+    const seen: { label: string }[] = []
+    for (const label of outcomes) {
+      if (label === '' || label !== tidy(label) || label.length > MAX_TEXT_LENGTH) return null
+      if (
+        labelProblem(
+          seen.map(s => ({ id: s.label, label: s.label, tier: null })),
+          label
+        )
+      ) {
+        return null
+      }
+      seen.push({ label })
+    }
+    return { kind: 'categorical', outcomes }
+  }
+  if (params.get('k') === 'n') {
+    const min = params.get('lo') ?? ''
+    const max = params.get('hi') ?? ''
+    const unit = params.get('u') ?? ''
+    const list = (name: string) => (params.get(name) ? params.get(name)!.split(',') : [])
+    const thresholds = list('th')
+    const edges = list('ed')
+    const plain = (n: string) => n.length <= MAX_NUMBER_TEXT && parseNumber(n) === n
+    if (unit.length > MAX_UNIT || !plain(min) || !plain(max)) return null
+    if (!new Decimal(min).lt(max)) return null
+    if (!thresholds.every(plain) || thresholds.length > MAX_OUTCOMES - 1) return null
+    if (new Set(thresholds).size !== thresholds.length) return null
+    if (edges.length < 1 || edges.length > MAX_OUTCOMES - 1 || !edges.every(plain)) return null
+    const ascending = edges.every((e, i) => i === 0 || new Decimal(e).gt(edges[i - 1]))
+    const inside = edges.every(e => new Decimal(e).gt(min) && new Decimal(e).lt(max))
+    return ascending && inside ? { kind: 'continuous', unit, min, max, thresholds, edges } : null
+  }
+  return null
 }
 
 /** A result: everything needed to recompute the band and the trace. */
@@ -221,7 +299,13 @@ export function decodeElicitationHash(hash: string): SharedElicitation | null {
   if (params.get('t') === 'i') {
     const ok =
       claim.trim() !== '' && claim.length <= MAX_TEXT_LENGTH && criteria.length <= MAX_TEXT_LENGTH
-    return ok ? { type: 'invite', claim, criteria } : null
+    if (!ok) return null
+    if (!params.has('k')) return { type: 'invite', claim, criteria }
+    // An invite with outcomes or edges: one URL per invite, anything but its spelling is rejected
+    const shape = decodeShape(params)
+    return shape && encodeInviteHash({ claim, criteria, shape }) === hash
+      ? { type: 'invite', claim, criteria, shape }
+      : null
   }
   if (params.get('t') !== 'r') return null
   const mode = { q: 'quick', t: 'thorough' }[params.get('m') ?? '']

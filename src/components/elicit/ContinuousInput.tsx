@@ -6,6 +6,7 @@ import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
 import { continuousToMultiRun, withAnswers } from '../../storage/multiAnswers'
 import {
   barIds,
+  barLabelsOf,
   bucketsOf,
   freezeDrawing,
   MAX_NUMBER_TEXT,
@@ -14,6 +15,7 @@ import {
   type ContinuousRunData,
 } from '../../storage/continuousRun'
 import MultiQuestions from './MultiQuestions'
+import { continuousInviteLink } from './shareLinks'
 import type { BetItem } from './MultiResult'
 import CurveInput from './CurveInput'
 import PercentList from './PercentList'
@@ -70,7 +72,9 @@ export default function ContinuousInput({
   const barsRef = useRef<HTMLHeadingElement>(null)
   const claimRef = useRef<HTMLTextAreaElement>(null)
   // Where focus goes once the next render has put the target on the page
-  const focusRequest = useRef<Target | null>(focusOnShow ? 'min' : null)
+  const focusRequest = useRef<Target | null>(
+    focusOnShow ? (run.phase === 'bars' ? 'bars' : 'min') : null
+  )
   useEffect(() => {
     const target = focusRequest.current
     if (!target) return
@@ -105,6 +109,7 @@ export default function ContinuousInput({
         ref={claimRef}
         rows={2}
         value={run.claim}
+        readOnly={run.locked}
         maxLength={MAX_TEXT_LENGTH}
         aria-invalid={claimMissing ? true : undefined}
         aria-describedby={claimMissing ? ids.claimError : undefined}
@@ -129,6 +134,7 @@ export default function ContinuousInput({
         adjusted={run.adjusted}
         onAdjusted={adjusted => onChange({ ...run, adjusted })}
         onBet={onBet}
+        invite={() => continuousInviteLink(run)}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}
@@ -140,7 +146,7 @@ export default function ContinuousInput({
 
   // ------------------------------------------------------------------- bars
   if (run.phase === 'bars') {
-    const { labels } = bucketsOf(run)
+    const labels = barLabelsOf(run)
     const rows = barIds(labels.length).map((id, i) => ({ id, label: labels[i] }))
     // The buckets and chances the questions start from: the bars as typed (blank is 0), or the
     // curve's chances per range; null while they are not usable
@@ -192,27 +198,31 @@ export default function ContinuousInput({
           >
             Start the questions
           </button>
-          <button
-            type="button"
-            className={SECONDARY}
-            onClick={() => {
-              focusRequest.current = 'bars'
-              onChange({ ...run, view: run.view === 'curve' ? 'bars' : 'curve' })
-            }}
-          >
-            {run.view === 'curve' ? 'Use bars instead' : 'Draw a curve instead'}
-          </button>
-          <button
-            type="button"
-            className={SECONDARY}
-            onClick={() => {
-              focusRequest.current = 'min'
-              // The bars stay with the run: they carry over if the buckets come out the same
-              onChange({ ...run, phase: 'range' })
-            }}
-          >
-            Change the range
-          </button>
+          {!run.locked && (
+            <>
+              <button
+                type="button"
+                className={SECONDARY}
+                onClick={() => {
+                  focusRequest.current = 'bars'
+                  onChange({ ...run, view: run.view === 'curve' ? 'bars' : 'curve' })
+                }}
+              >
+                {run.view === 'curve' ? 'Use bars instead' : 'Draw a curve instead'}
+              </button>
+              <button
+                type="button"
+                className={SECONDARY}
+                onClick={() => {
+                  focusRequest.current = 'min'
+                  // The bars stay with the run: they carry over if the buckets come out the same
+                  onChange({ ...run, phase: 'range' })
+                }}
+              >
+                Change the range
+              </button>
+            </>
+          )}
           <button type="button" className={SECONDARY} onClick={onStartAgain}>
             Start again
           </button>
