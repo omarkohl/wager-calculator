@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeLottery, lotteryForm } from './lottery'
+import { describeLottery, describeLotteryWin, lotteryForm, lotteryNoun } from './lottery'
 
 describe('lotteryForm', () => {
   it('is an area from 10% to 90%, boundaries included', () => {
@@ -43,11 +43,13 @@ describe('off-grid input: the counts always agree with the label', () => {
 
   it('snaps first: 0.0004 is the 1-in-1000 floor, 0.0995 is the 10% area', () => {
     expect(lotteryForm(0.0004)).toMatchObject({ kind: 'count', winning: 1, total: 1000 })
-    expect(describeLottery(0.0004)).toBe('1 winning ball out of 1000, 0.1% of the time')
+    expect(describeLottery(0.0004)).toBe(
+      'One ball is drawn at random from 1 winning ball out of 1000: it wins 0.1% of the time'
+    )
     expect(lotteryForm(0.0995).kind).toBe('wedge')
     expect(describeLottery(0.0995)).toContain('10%')
     expect(describeLottery(0.9645)).toBe(
-      '964 winning balls and 36 losing balls out of 1000, 96.4% of the time'
+      'One ball is drawn at random from 964 winning balls and 36 losing balls out of 1000: it wins 96.4% of the time'
     )
   })
 })
@@ -55,17 +57,42 @@ describe('off-grid input: the counts always agree with the label', () => {
 describe('describeLottery', () => {
   it('always carries the probability', () => {
     expect(describeLottery(0.45)).toBe('A spinner with a shaded wedge that wins 45% of the time')
-    expect(describeLottery(0.03)).toBe('3 winning balls out of 100, 3% of the time')
-    expect(describeLottery(0.036)).toBe('36 winning balls out of 1000, 3.6% of the time')
-    expect(describeLottery(0.001)).toBe('1 winning ball out of 1000, 0.1% of the time')
+    expect(describeLottery(0.03)).toBe(
+      'One ball is drawn at random from 3 winning balls out of 100: it wins 3% of the time'
+    )
+    expect(describeLottery(0.036)).toBe(
+      'One ball is drawn at random from 36 winning balls out of 1000: it wins 3.6% of the time'
+    )
+    expect(describeLottery(0.001)).toBe(
+      'One ball is drawn at random from 1 winning ball out of 1000: it wins 0.1% of the time'
+    )
   })
 
   it('names the losing balls too in the upper tail', () => {
     expect(describeLottery(0.97)).toBe(
-      '97 winning balls and 3 losing balls out of 100, 97% of the time'
+      'One ball is drawn at random from 97 winning balls and 3 losing balls out of 100: it wins 97% of the time'
     )
     expect(describeLottery(0.999)).toBe(
-      '999 winning balls and 1 losing ball out of 1000, 99.9% of the time'
+      'One ball is drawn at random from 999 winning balls and 1 losing ball out of 1000: it wins 99.9% of the time'
     )
+  })
+})
+
+describe('the words that match the visual', () => {
+  it('speaks of a spinner and its shaded part only when a spinner is shown', () => {
+    expect(lotteryNoun(0.45)).toBe('spinner')
+    expect(describeLotteryWin(0.45)).toBe('the spinner lands in the shaded part')
+  })
+  it('speaks of a ball drawn at random in the tails, never of a spinner or an area', () => {
+    for (const p of [0.03, 0.001, 0.97, 0.999]) {
+      expect(lotteryNoun(p)).toBe('ball draw')
+      expect(describeLotteryWin(p)).toBe('a ball drawn at random is a winning ball')
+      expect(describeLottery(p)).not.toMatch(/spinner|shaded|wedge/i)
+    }
+  })
+  it('switches where the visual switches', () => {
+    expect(lotteryNoun(0.1)).toBe('spinner')
+    expect(lotteryNoun(0.0999)).toBe('spinner')
+    expect(lotteryNoun(0.09)).toBe('ball draw')
   })
 })

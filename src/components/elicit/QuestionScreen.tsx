@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import type { Choice } from '../../domain/elicitation/bandRule'
 import { ARM, SECONDARY } from './questionStyles'
+import { describeLotteryWin } from '../../domain/elicitation/lottery'
 import ReferenceLottery from './ReferenceLottery'
 import type { FlowQuestion } from './runFlow'
 
@@ -24,7 +25,8 @@ interface QuestionScreenProps {
 
 /**
  * One comparison: win the prize if the claim is true (or, for a check on the other
- * side, if it is false), or win the same prize if a spinner lands in the shaded part.
+ * side, if it is false), or win the same prize if the lottery wins: a spinner landing in the
+ * shaded part, or (for chances under 10% or over 90%) a ball drawn at random being a winning one.
  * The three answers are the two arms and "I can't separate these". Both arms read
  * the same whichever side is asked about, so nothing hints at why a question comes.
  * No band is shown while the run goes on. [NEEDS PROTOTYPE]
@@ -64,7 +66,9 @@ export default function QuestionScreen({
   )
   const spinnerArm = (
     <button key="spinner" type="button" onClick={() => onAnswer('wedge')} className={ARM}>
-      <span>{prize} if the spinner lands in the shaded part</span>
+      <span>
+        {prize} if {describeLotteryWin(question.wedge)}
+      </span>
       <ReferenceLottery probability={question.wedge} />
     </button>
   )

@@ -3,20 +3,24 @@ import { render, screen } from '@testing-library/react'
 import ReferenceLottery from './ReferenceLottery'
 
 describe('ReferenceLottery', () => {
-  it('names the probability and shows the number, in the middle range', () => {
+  it('names the probability and shows it small and muted, in the middle range', () => {
     const { container } = render(<ReferenceLottery probability={0.45} />)
     expect(
       screen.getByRole('img', { name: 'A spinner with a shaded wedge that wins 45% of the time' })
     ).toBeInTheDocument()
-    expect(container.textContent).toContain('45%')
+    // on screen too, but not as a headline: small and muted
+    expect(container.textContent).toBe('45%')
+    expect(screen.getByText('45%')).toHaveClass('text-xs', 'text-gray-600')
   })
 
-  it('names the count and shows the number in the tails', () => {
+  it('names the probability and shows the count and the chance small and muted, in the tails', () => {
     const { container } = render(<ReferenceLottery probability={0.03} />)
     expect(
-      screen.getByRole('img', { name: '3 winning balls out of 100, 3% of the time' })
+      screen.getByRole('img', {
+        name: 'One ball is drawn at random from 3 winning balls out of 100: it wins 3% of the time',
+      })
     ).toBeInTheDocument()
-    expect(container.textContent).toContain('3%')
+    expect(container.textContent).toContain('3 winning balls out of 100 (3%)')
     expect(container.textContent).toContain('3 winning balls out of 100')
   })
 
@@ -24,18 +28,20 @@ describe('ReferenceLottery', () => {
     const { container } = render(<ReferenceLottery probability={0.97} />)
     expect(
       screen.getByRole('img', {
-        name: '97 winning balls and 3 losing balls out of 100, 97% of the time',
+        name: 'One ball is drawn at random from 97 winning balls and 3 losing balls out of 100: it wins 97% of the time',
       })
     ).toBeInTheDocument()
     expect(container.textContent).toContain('3 losing balls')
   })
 
-  it('shows the snapped number for an off-grid chance, as in its name', () => {
+  it('names the snapped chance for an off-grid chance, and shows its count', () => {
     const { container } = render(<ReferenceLottery probability={0.0004} />)
     expect(
-      screen.getByRole('img', { name: /1 winning ball out of 1000, 0.1%/ })
+      screen.getByRole('img', {
+        name: /One ball is drawn at random from 1 winning ball out of 1000: it wins 0.1%/,
+      })
     ).toBeInTheDocument()
-    expect(container.textContent).toContain('0.1%')
+    expect(container.textContent).toContain('1 winning ball out of 1000 (0.1%)')
   })
 
   it('hides the drawing from assistive technology (the name says it all)', () => {

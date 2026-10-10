@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Decimal from 'decimal.js'
 import { describeBand, describeGap } from '../../domain/elicitation/format'
 import { handoffProbability } from '../../domain/elicitation/handoff'
+import { lotteryNoun } from '../../domain/elicitation/lottery'
 import { formatPercent, type Band } from '../../domain/elicitation/logOdds'
 import AdjustBelief from './AdjustBelief'
 import ShareLinks from './ShareLinks'
@@ -53,11 +54,11 @@ function buildTraceFor(run: RunData, other: boolean): RunTrace {
       })
 }
 
-/** "a 40% spinner", "an 8% spinner", "an 18% spinner". */
+/** "a 40% spinner", "an 18% spinner", "a 3% ball draw", "an 8% ball draw". */
 function spinnerOf(wedge: TraceStep['wedge']): string {
   const percent = formatPercent(wedge)
   const article = /^(8|11(?!\d)|18(?!\d))/.test(percent) ? 'an' : 'a'
-  return `${article} ${percent} spinner`
+  return `${article} ${percent} ${lotteryNoun(wedge)}`
 }
 
 /** A short reference to an answer for buttons and sentences ("answer 3 (preferred the claim at 40%)"). */
@@ -213,8 +214,8 @@ export default function ResultScreen({
             <>
               <span className="block text-sm font-medium text-gray-600">
                 {say(
-                  'You could not tell the claim from spinners',
-                  'The answers did not separate the claim from spinners'
+                  'You could not tell the claim from the lotteries',
+                  'The answers did not separate the claim from the lotteries'
                 )}
               </span>{' '}
               <span className="mt-1 block text-4xl font-bold text-gray-900">
@@ -276,8 +277,8 @@ export default function ResultScreen({
           <>
             <p className="mt-2 text-base text-gray-700">
               {say(
-                'The answers you kept don’t say which side of any spinner you prefer, so there is nothing to report.',
-                'The answers that were kept don’t say which side of any spinner was preferred, so there is nothing to report.'
+                'The answers you kept don’t say which side of any of the chances offered you prefer, so there is nothing to report.',
+                'The answers that were kept don’t say which side of any of the chances offered was preferred, so there is nothing to report.'
               )}
             </p>
           </>

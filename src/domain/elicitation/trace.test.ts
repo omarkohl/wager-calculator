@@ -21,6 +21,21 @@ const hand = (
 })
 const n = (d: Decimal | null | undefined) => d?.toNumber()
 
+describe('buildTrace wording', () => {
+  it('speaks of a ball draw where the lottery is shown as balls, and of a spinner elsewhere', () => {
+    const t = buildTrace({
+      mode: 'quick',
+      seed: 's',
+      answers: [claim(0.03), wedge(0.03), unsure(0.97)],
+    })
+    expect(t.steps[0].question).toBe('the claim or a ball draw that wins 3% of the time')
+    expect(t.steps[1].answer).toBe('Preferred the 3% ball draw')
+    expect(t.steps[2].implication).toBe('You could not tell the claim and a 97% ball draw apart.')
+    const mid = buildTrace({ mode: 'quick', seed: 's', answers: [claim(0.5)] })
+    expect(mid.steps[0].question).toBe('the claim or a spinner that wins 50% of the time')
+  })
+})
+
 describe('buildTrace', () => {
   it('lists each question with its answer and what it implied, in words', () => {
     const t = buildTrace({

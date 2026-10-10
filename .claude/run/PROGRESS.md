@@ -2,7 +2,7 @@
 
 ## Next step
 
-25d.
+25e.
 
 ## Stack
 
@@ -540,7 +540,20 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   claim", both primary. Runs stored without a stamp count as recent. Share links are not affected.
   Chromium E2E: `elicit-gate.spec.ts` (the clock is moved eight days on, `page.clock`).
 
+- **Step 25d (lottery wording, anchoring)**: where the lottery is shown as balls (a chance under 10%
+  or over 90%) the arm says "if a ball drawn at random is a winning ball", the name of the picture
+  "One ball is drawn at random from N winning balls out of M: it wins p% of the time", the trace
+  says "ball draw" instead of "spinner", the FAQ and the intro mention both; the spinner and
+  shaded-part words appear only with the spinner. The chance is no longer shown as a large figure:
+  it is small and muted under the picture (with the count of balls in the tails) and in the accessible name. The
+  step 25 "trace" sub-step is now 25e. Chromium E2E run for `elicit-questions`, `elicit-result`,
+  `elicit-gate`, `elicit-share`, `elicit-to-wager` and the multi-outcome specs.
+
 ## Decisions
+
+- Step 25d: the winning chance stays on screen (the requirements reject concealing it) but small and
+  muted (`text-xs text-gray-600`, under the picture, with the count of balls in the tails) instead of a
+  headline figure, and stays in the accessible name; a big figure is what anchors the answer.
 
 - Step 25c (review): the staleness prompt is also checked when the tab gets focus or becomes visible
   again (a tab left open for days), it is cleared as soon as a new run starts (also from an invite),
@@ -606,6 +619,9 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 25d: how small and muted the chance should be (a tooltip-like secondary line, a toggle, or
+  nothing for the spinner whose area says it); check it is still readable at normal zoom.
 
 - Step 25c: the 7-day threshold and the wording of the prompt ("Continue" refreshes the stamp, so the
   prompt does not come back after the next reload).

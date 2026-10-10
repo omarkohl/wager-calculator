@@ -58,7 +58,8 @@ function Landing() {
         <li>
           <Link to="elicit">How sure are you?</Link>
           <p className="text-sm text-gray-600">
-            Put a number on how likely you think something is, by comparing it with a spinner.
+            Put a number on how likely you think something is, by comparing it with a spinner or a
+            draw of balls.
           </p>
         </li>
       </ul>

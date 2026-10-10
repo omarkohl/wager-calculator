@@ -95,7 +95,9 @@ describe('MultiQuestions', () => {
     const user = userEvent.setup()
     render(<Harness focusOnShow />)
     expect(heading()).toHaveFocus()
-    const lottery = screen.queryByRole('button', { name: /if the spinner lands/ })
+    const lottery = screen.queryByRole('button', {
+      name: /if the spinner lands|if a ball drawn at random/,
+    })
     if (lottery) await user.click(lottery)
     else await user.click(screen.getByRole('button', { name: 'About equally likely' }))
     expect(loadMultiRun()?.answers).toHaveLength(1)
@@ -108,7 +110,8 @@ describe('MultiQuestions', () => {
     // answer until a lottery comes (the first question is one or the other)
     for (
       let i = 0;
-      i < 12 && !screen.queryByRole('button', { name: /if the spinner lands/ });
+      i < 12 &&
+      !screen.queryByRole('button', { name: /if the spinner lands|if a ball drawn at random/ });
       i++
     ) {
       await user.click(screen.getByRole('button', { name: 'About equally likely' }))
@@ -124,7 +127,9 @@ describe('MultiQuestions', () => {
     const user = userEvent.setup()
     render(<Harness focusOnShow />)
     for (let i = 0; i < 60 && !screen.queryByRole('heading', { name: 'Your result' }); i++) {
-      const spinner = screen.queryByRole('button', { name: /if the spinner lands/ })
+      const spinner = screen.queryByRole('button', {
+        name: /if the spinner lands|if a ball drawn at random/,
+      })
       if (spinner) await user.click(spinner)
       else await user.click(screen.getByRole('button', { name: 'About equally likely' }))
     }
@@ -151,7 +156,9 @@ describe('MultiQuestions', () => {
     const user = userEvent.setup()
     render(<Harness />)
     for (let i = 0; i < 60 && !screen.queryByRole('heading', { name: 'Your result' }); i++) {
-      const spinner = screen.queryByRole('button', { name: /if the spinner lands/ })
+      const spinner = screen.queryByRole('button', {
+        name: /if the spinner lands|if a ball drawn at random/,
+      })
       if (spinner) await user.click(spinner)
       else await user.click(screen.getByRole('button', { name: 'About equally likely' }))
     }

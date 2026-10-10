@@ -210,7 +210,9 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
   - [x] 25c. A clear "Start a new claim" on the result screen for all kinds; runs carry a
         timestamp, and a run older than 7 days is not silently resumed: a prompt offers
         "Continue" or "Start a new claim".
-  - [ ] 25d. The trace: each question, the answer, what it implied.
+  - [x] 25d. The lottery words follow the visual (balls: "a ball drawn at random"), and its
+        chance is no longer a headline figure (anchoring).
+  - [ ] 25e. The trace: each question, the answer, what it implied.
 - [ ] 26. **Share and handoff**: invites carry outcomes or bucket edges and open in a
       locked-outcome mode; result URLs; "bet on this" only when the adjusted values sum
       to 100%, otherwise it points to Normalize. E2E for categorical and continuous.

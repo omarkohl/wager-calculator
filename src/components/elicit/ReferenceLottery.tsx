@@ -24,10 +24,11 @@ function sectorPath(fraction: number): string {
 }
 
 /**
- * The reference lottery: a spinner whose shaded wedge wins with the given chance
- * (10% to 90%), or a field of balls of which some win (the tails). It always shows
- * the number, and its accessible name carries the probability. One component, so a
- * different design can replace it. [NEEDS PROTOTYPE]
+ * The reference lottery: a spinner whose shaded wedge wins with the given chance (10% to 90%),
+ * or, in the tails (under 10% or over 90%), a field of balls of which some win. The chance is
+ * shown small and muted under the picture (a big figure would anchor the answer), beside the
+ * count of balls in the tails, and is in the accessible name. One component, so a different
+ * design can replace it. [NEEDS PROTOTYPE]
  */
 export default function ReferenceLottery({ probability }: ReferenceLotteryProps) {
   const form = lotteryForm(probability)
@@ -51,11 +52,8 @@ export default function ReferenceLottery({ probability }: ReferenceLotteryProps)
       ) : (
         <Balls winning={form.winning} total={form.total} />
       )}
-      <div aria-hidden="true" className="text-center">
-        <div className="text-3xl font-bold text-gray-900">{chance}</div>
-        {form.kind === 'count' && (
-          <div className="text-sm text-gray-700">{describeCount(form)}</div>
-        )}
+      <div aria-hidden="true" className="text-center text-xs text-gray-600">
+        {form.kind === 'count' ? `${describeCount(form)} (${chance})` : chance}
       </div>
     </div>
   )

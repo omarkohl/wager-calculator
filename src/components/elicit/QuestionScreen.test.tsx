@@ -44,6 +44,18 @@ describe('QuestionScreen', () => {
     expect(onAnswer.mock.calls.map(c => c[0])).toEqual(['claim', 'wedge', 'cant-separate'])
   })
 
+  it('speaks of a ball drawn at random, not of a spinner or a shaded part, when balls are shown', async () => {
+    const { onAnswer } = setup({ question: question({ wedge: new Decimal(0.03) }) })
+    const arm = screen.getByRole('button', {
+      name: /Win 20 EUR if a ball drawn at random is a winning ball/,
+    })
+    expect(arm).not.toHaveTextContent(/spinner|shaded/i)
+    expect(arm).toHaveAccessibleName(/One ball is drawn at random from 3 winning balls out of 100/)
+    expect(screen.getByText('3 winning balls out of 100 (3%)')).toBeInTheDocument()
+    await userEvent.click(arm)
+    expect(onAnswer).toHaveBeenCalledWith('wedge')
+  })
+
   it('gives the spinner arm the number in its name', () => {
     setup()
     expect(

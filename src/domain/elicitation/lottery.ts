@@ -49,10 +49,25 @@ export function describeCount(form: Extract<LotteryForm, { kind: 'count' }>): st
   return `${counts} out of ${form.total}`
 }
 
+/** What the lottery is called: a spinner (an area), or a ball draw (a count, in the tails). */
+export function lotteryNoun(probability: Decimal.Value): 'spinner' | 'ball draw' {
+  return lotteryForm(probability).kind === 'wedge' ? 'spinner' : 'ball draw'
+}
+
+/**
+ * What has to happen for the lottery to win, as the question puts it: the wording of the
+ * visual that is shown (a spinner and its shaded part, or one ball drawn at random).
+ */
+export function describeLotteryWin(probability: Decimal.Value): string {
+  return lotteryForm(probability).kind === 'wedge'
+    ? 'the spinner lands in the shaded part'
+    : 'a ball drawn at random is a winning ball'
+}
+
 /** The lottery in words, for its accessible name: always carries the probability. */
 export function describeLottery(probability: Decimal.Value): string {
   const form = lotteryForm(probability)
   const chance = shownChance(probability)
   if (form.kind === 'wedge') return `A spinner with a shaded wedge that wins ${chance} of the time`
-  return `${describeCount(form)}, ${chance} of the time`
+  return `One ball is drawn at random from ${describeCount(form)}: it wins ${chance} of the time`
 }

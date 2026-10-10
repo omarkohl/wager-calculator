@@ -218,7 +218,7 @@ describe('ResultScreen with nothing usable', () => {
     render(<ResultScreen run={onlyUnsure()} {...props} />)
     expect(
       screen.getByRole('heading', {
-        name: /^You could not tell the claim from spinners (between \d+(\.\d)?% and \d+(\.\d)?%|at \d+%)$/,
+        name: /^You could not tell the claim from the lotteries (between \d+(\.\d)?% and \d+(\.\d)?%|at \d+%)$/,
       })
     ).toBeInTheDocument()
     expect(
