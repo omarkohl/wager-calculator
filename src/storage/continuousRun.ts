@@ -1,7 +1,9 @@
 import Decimal from 'decimal.js'
-import { barBuckets } from '../domain/elicitation/bucketing'
+import { barBuckets, bucketCurve, type BucketingResult } from '../domain/elicitation/bucketing'
 import { MAX_OUTCOMES } from '../domain/elicitation/constants'
-import { parseNumber } from '../domain/elicitation/format'
+import { parseHeight, parseNumber, plainNumber } from '../domain/elicitation/format'
+import type { MultiAnswer } from '../domain/elicitation/multiRun'
+import { continuousToMultiRun, decodeMultiAnswers, encodeMultiAnswers } from './multiAnswers'
 import { ELICIT_FORMAT_VERSION, MAX_TEXT_LENGTH } from './elicitation'
 
 /**
@@ -16,8 +18,11 @@ export type ContinuousView = 'bars' | 'curve'
 /** The curve is drawn through this many points, evenly spaced from the minimum to the maximum. */
 export const CURVE_POINTS = 9
 
-/** `range`: minimum, maximum and thresholds are being set; `bars`: a bar per bucket. */
-export type ContinuousPhase = 'range' | 'bars'
+/**
+ * `range`: minimum, maximum and thresholds are being set; `bars`: a bar per bucket (or a
+ * curve); `ask`: the questions, on the buckets and numbers frozen from the drawing.
+ */
+export type ContinuousPhase = 'range' | 'bars' | 'ask'
 
 export interface ContinuousRunData {
   kind: 'continuous'
@@ -39,6 +44,10 @@ export interface ContinuousRunData {
   view: ContinuousView
   /** The relative likelihood at each curve point as typed (0 to 100, unitless); blank is 0. */
   curve: string[]
+  /** The answers to the questions so far (phase `ask`). */
+  answers: MultiAnswer[]
+  /** The user pressed "stop here". */
+  stopped: boolean
 }
 
 const KEY = 'howsure.continuous'
@@ -68,7 +77,14 @@ export function bucketsOf(run: ContinuousRunData) {
 
 export function saveContinuousRun(run: ContinuousRunData): void {
   try {
-    sessionStorage.setItem(KEY, JSON.stringify({ ev: ELICIT_FORMAT_VERSION, ...run }))
+    sessionStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ev: ELICIT_FORMAT_VERSION,
+        ...run,
+        answers: encodeMultiAnswers(run.answers),
+      })
+    )
   } catch {
     // Private mode or quota: the run just does not survive a reload
   }
@@ -87,7 +103,7 @@ export function loadContinuousRun(): ContinuousRunData | null {
     if (typeof raw.seed !== 'string' || !SEED_PATTERN.test(raw.seed)) return null
     if (!isText(raw.unit, MAX_UNIT_LENGTH)) return null
     if (!isText(raw.min, MAX_NUMBER_TEXT) || !isText(raw.max, MAX_NUMBER_TEXT)) return null
-    if (raw.phase !== 'range' && raw.phase !== 'bars') return null
+    if (raw.phase !== 'range' && raw.phase !== 'bars' && raw.phase !== 'ask') return null
     const { thresholds } = raw
     if (!Array.isArray(thresholds) || thresholds.length > MAX_OUTCOMES - 1) return null
     // stored thresholds are numbers in their plain form, without repeats
@@ -125,12 +141,14 @@ export function loadContinuousRun(): ContinuousRunData | null {
       percents: {},
       view: raw.view,
       curve: curve as string[],
+      answers: [],
+      stopped: false,
     }
     // The bars belong to the edges they were drawn for: in the bars view those are the current
     // ones; back in the range form they are the last drawn ones; with no bars there are none
     if (run.phase === 'bars') {
       if (rangeProblem(run) !== null) return null
-      const current = bucketsOf(run).edges.map(String)
+      const current = bucketsOf(run).edges.map(plainNumber)
       if (current.length !== edges.length || current.some((e, i) => e !== edges[i])) return null
     }
     const allowed = new Set(barIds(edges.length + 1))
@@ -138,11 +156,113 @@ export function loadContinuousRun(): ContinuousRunData | null {
     if (run.phase === 'range' && entries.length > 0 && edges.length === 0) return null
     if (!entries.every(([id, v]) => allowed.has(id) && isText(v, 12))) return null
     run.percents = Object.fromEntries(entries) as Record<string, string>
-    return run
+    // Fields added with the questions: a run stored before them has none
+    const stopped = raw.stopped ?? false
+    const stored = raw.answers ?? []
+    if (typeof stopped !== 'boolean' || !Array.isArray(stored)) return null
+    if (run.phase !== 'ask') return stopped || stored.length > 0 ? null : run
+    // The questions: a range that works, edges inside it, a bar for every bucket, and answers
+    // that are those the algorithm asks (replayed)
+    const lo = parseNumber(run.min)
+    const hi = parseNumber(run.max)
+    if (rangeProblem(run) !== null || lo === null || hi === null || edges.length === 0) return null
+    if (!edges.every(e => new Decimal(e).gt(lo) && new Decimal(e).lt(hi))) return null
+    if (entries.length !== edges.length + 1) return null
+    const base = continuousToMultiRun(run)
+    const answers = base && decodeMultiAnswers(stored, base)
+    if (!answers) return null
+    return { ...run, answers, stopped }
   } catch {
     // barEdges throws for a range it cannot cut (too many thresholds)
     return null
   }
+}
+
+/**
+ * The curve's ranges and chances: `result` is null with the reason in `problem` while the
+ * heights are unusable or flat. Shared by the drawing and by the start of the questions.
+ */
+export function curveBucketsOf(
+  run: Pick<ContinuousRunData, 'min' | 'max' | 'thresholds' | 'unit' | 'curve'>
+): {
+  result: BucketingResult | null
+  problem: string | null
+  heights: (string | null)[]
+  xs: Decimal[]
+} {
+  const min = new Decimal(run.min)
+  const max = new Decimal(run.max)
+  const xs = Array.from({ length: CURVE_POINTS }, (_, i) =>
+    min.plus(
+      max
+        .minus(min)
+        .times(i)
+        .div(CURVE_POINTS - 1)
+    )
+  )
+  const heights = Array.from({ length: CURVE_POINTS }, (_, i) => {
+    const h = run.curve[i] ?? ''
+    // blank is 0; null is text that is no height
+    return h.trim() === '' ? '0' : parseHeight(h)
+  })
+  if (heights.some(h => h === null)) {
+    return { result: null, problem: 'Some heights are not usable yet.', heights, xs }
+  }
+  if (heights.every(h => h === '0')) {
+    return { result: null, problem: 'Raise at least one point to draw a curve.', heights, xs }
+  }
+  try {
+    const result = bucketCurve(
+      {
+        min,
+        max,
+        thresholds: run.thresholds,
+        curve: xs.map((x, i) => ({ x, y: heights[i]! })),
+      },
+      run.unit
+    )
+    return { result, problem: null, heights, xs }
+  } catch {
+    return {
+      result: null,
+      problem: 'This curve cannot be cut into ranges: change a point.',
+      heights,
+      xs,
+    }
+  }
+}
+
+/**
+ * The buckets and chances the questions start from, frozen from the drawing: the bars as typed
+ * (blank is 0), or the curve's chance per range (two decimals). Null while the drawing cannot be
+ * used: the single place that decides whether the questions can start.
+ */
+export function freezeDrawing(
+  run: ContinuousRunData
+): Pick<ContinuousRunData, 'edges' | 'percents'> | null {
+  let candidate: Pick<ContinuousRunData, 'edges' | 'percents'>
+  if (run.view === 'curve') {
+    const { result } = curveBucketsOf(run)
+    if (!result) return null
+    candidate = {
+      edges: result.edges.map(plainNumber),
+      percents: Object.fromEntries(
+        result.buckets.map((b, i) => [
+          `b${i}`,
+          b.probability.times(100).toDecimalPlaces(2).toString(),
+        ])
+      ),
+    }
+  } else {
+    const ids = barIds(run.edges.length + 1)
+    candidate = {
+      edges: run.edges,
+      percents: Object.fromEntries(
+        ids.map(id => [id, (run.percents[id] ?? '').trim() === '' ? '0' : run.percents[id]])
+      ),
+    }
+  }
+  return continuousToMultiRun({ ...run, ...candidate }) === null ? null : candidate
 }
 
 export function clearContinuousRun(): void {

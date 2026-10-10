@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import Decimal from 'decimal.js'
 import {
   adjustmentGap,
   defaultAdjusted,
@@ -8,6 +9,7 @@ import {
   parseBar,
   parseHeight,
   parseNumber,
+  plainNumber,
   isAmbiguousNumber,
 } from './format'
 import { bandAbove, bandBelow, bandBetween } from './logOdds'
@@ -148,5 +150,15 @@ describe('parseHeight', () => {
     expect(parseHeight('101')).toBeNull()
     expect(parseHeight('-1')).toBeNull()
     expect(parseHeight('')).toBeNull()
+  })
+})
+
+describe('plainNumber', () => {
+  it('never uses exponent form, rounds to ten decimals, and reads back through parseNumber', () => {
+    expect(plainNumber(new Decimal('5e-8'))).toBe('0.00000005')
+    expect(plainNumber(new Decimal('1e21'))).toBe('1000000000000000000000')
+    expect(plainNumber('0.123456789012345')).toBe('0.123456789')
+    expect(plainNumber('-0')).toBe('0')
+    expect(parseNumber(plainNumber(new Decimal('5e-8')))).toBe('0.00000005')
   })
 })

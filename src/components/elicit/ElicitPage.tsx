@@ -155,6 +155,8 @@ export default function ElicitPage() {
         percents: {},
         view: 'bars',
         curve: [],
+        answers: [],
+        stopped: false,
       }
       saveContinuousRun(started)
       setCont(started)
@@ -271,6 +273,7 @@ export default function ElicitPage() {
         <ContinuousInput
           run={cont}
           focusOnShow={focusNext}
+          stake={stakeText()}
           onChange={changeCont}
           onStartAgain={startAgain}
         />

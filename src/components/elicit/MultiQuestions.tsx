@@ -9,19 +9,24 @@ import {
   answersInvolving,
   nextMultiQuestion,
   type MultiAnswer,
+  type MultiRun,
 } from '../../domain/elicitation/multiRun'
-import { toMultiRun } from '../../storage/multiAnswers'
-import type { MultiRunData } from '../../storage/multiRun'
 import { ARM, SECONDARY } from './questionStyles'
 import QuestionScreen from './QuestionScreen'
 
 interface MultiQuestionsProps {
-  run: MultiRunData
+  /** The claim, as the user wrote it. */
+  claim: string
+  /** The outcomes and the sketch, with the answers so far. Null if they cannot be used. */
+  base: MultiRun | null
+  stopped: boolean
   /** The stake as the user entered it ("20 EUR"), or null if none is remembered. */
   stake: string | null
   /** Move focus to the question heading (after an answer or the start, not on a plain reload). */
   focusOnShow: boolean
-  onChange: (run: MultiRunData) => void
+  /** The answers, with the new one added. */
+  onAnswers: (answers: MultiAnswer[]) => void
+  onStop: () => void
   onStartAgain: () => void
 }
 
@@ -36,37 +41,39 @@ const PRIMARY =
  * stand [the result screen replaces it]. [NEEDS PROTOTYPE]
  */
 export default function MultiQuestions({
-  run,
+  claim,
+  base,
+  stopped,
   stake,
   focusOnShow,
-  onChange,
+  onAnswers,
+  onStop,
   onStartAgain,
 }: MultiQuestionsProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
-  const base = toMultiRun(run)
-  const domainRun = base && { ...base, answers: run.answers }
-  const question = domainRun && !run.stopped ? nextMultiQuestion(domainRun) : null
+  const question = base && !stopped ? nextMultiQuestion(base) : null
+  const answered = base?.answers.length ?? 0
   const acted = useRef(focusOnShow)
   // The heading takes the cursor for each new question and for the standing, once the user acted
   useEffect(() => {
     if (acted.current) headingRef.current?.focus()
-  }, [run.answers.length, run.stopped])
+  }, [answered, stopped])
 
-  const labelOf = (id: string) => run.outcomes.items.find(o => o.id === id)?.label ?? id
+  const labelOf = (id: string) => base?.outcomes.find(o => o.id === id)?.label ?? id
   const record = (answer: MultiAnswer) => {
     acted.current = true
-    onChange({ ...run, answers: domainRun ? answerMulti(domainRun, answer).answers.slice() : [] })
+    if (base) onAnswers(answerMulti(base, answer).answers.slice())
   }
   const stop = () => {
     acted.current = true
-    onChange({ ...run, stopped: true })
+    onStop()
   }
 
-  if (!domainRun) return null
+  if (!base) return null
 
   // TODO(step 25): the result screen replaces this standing
   if (!question) {
-    const bands = analyse(domainRun).coherent.bands
+    const bands = analyse(base).coherent.bands
     return (
       <section aria-labelledby="standing-heading" className="mt-6 max-w-2xl space-y-4">
         <h2
@@ -78,16 +85,16 @@ export default function MultiQuestions({
           Where your answers stand
         </h2>
         <p className="text-gray-700">
-          {run.stopped
+          {stopped
             ? 'You stopped early, so some outcomes are still rough guesses.'
             : 'No further question is worth asking.'}{' '}
           These are the ranges your answers give so far.
         </p>
-        <p className="text-gray-700">“{run.claim}”</p>
+        <p className="text-gray-700">“{claim}”</p>
         <ul aria-label="Where your answers stand" className="space-y-2">
-          {run.outcomes.items.map(o => {
+          {base.outcomes.map(o => {
             const band = bands.find(b => b.id === o.id)!
-            const provenance = provenanceFor(answersInvolving(domainRun, o.id))
+            const provenance = provenanceFor(answersInvolving(base, o.id))
             return (
               <li key={o.id} className="rounded-md bg-gray-50 px-3 py-2">
                 <div className="flex justify-between gap-3">
@@ -137,7 +144,7 @@ export default function MultiQuestions({
         >
           Which is more likely?
         </h2>
-        <p className="mb-4 text-gray-700">“{run.claim}”</p>
+        <p className="mb-4 text-gray-700">“{claim}”</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <button type="button" onClick={() => pick('first')} className={ARM}>
             {labelOf(question.first)}
@@ -161,8 +168,8 @@ export default function MultiQuestions({
   const names = question.targets.map(labelOf).map(n => `“${n}”`)
   return (
     <QuestionScreen
-      key={run.answers.length}
-      claim={run.claim}
+      key={base.answers.length}
+      claim={claim}
       stake={stake}
       question={{
         wedge: question.wedge,
@@ -171,7 +178,7 @@ export default function MultiQuestions({
         tagged: null,
       }}
       questionsLeft={null}
-      focusOnShow={focusOnShow || run.answers.length > 0}
+      focusOnShow={focusOnShow || base.answers.length > 0}
       onAnswer={answer}
       onStop={stop}
       statement={{
@@ -186,7 +193,7 @@ export default function MultiQuestions({
               <span className="mt-1 block font-semibold">{names.join(', ')}</span>
             </>
           ),
-        lead: <p>“{run.claim}”</p>,
+        lead: <p>“{claim}”</p>,
       }}
     />
   )

@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { barEdges } from '../domain/elicitation/bucketing'
+import { answerMulti, nextMultiQuestion, type MultiAnswer } from '../domain/elicitation/multiRun'
+import { continuousToMultiRun } from './multiAnswers'
 import {
   barIds,
   bucketsOf,
   clearContinuousRun,
+  freezeDrawing,
   loadContinuousRun,
   rangeProblem,
   saveContinuousRun,
@@ -27,6 +30,8 @@ function sample(patch: Partial<ContinuousRunData> = {}): ContinuousRunData {
     percents: { b0: '10', b1: '' },
     view: 'bars',
     curve: [],
+    answers: [],
+    stopped: false,
     ...patch,
   }
 }
@@ -88,6 +93,105 @@ describe('continuous run storage', () => {
     })
     saveContinuousRun(run)
     expect(loadContinuousRun()).toEqual(run)
+  })
+
+  describe('questions', () => {
+    /** A run in the `ask` phase on the buckets of the sample, answered by someone who knows. */
+    function asked(count: number): ContinuousRunData {
+      const edges = barEdges(-10, 30, [0]).map(String)
+      const percents = Object.fromEntries(
+        barIds(edges.length + 1).map((id, i) => [id, String(10 + i * 5)])
+      )
+      const run = sample({ phase: 'ask', edges, percents })
+      let current = continuousToMultiRun(run)!
+      for (let i = 0; i < count; i++) {
+        const q = nextMultiQuestion(current)
+        if (!q) break
+        const answer: MultiAnswer =
+          q.kind === 'compare'
+            ? { kind: 'compare', first: q.first, second: q.second, pick: 'equal' }
+            : { kind: 'lottery', targets: q.targets, wedge: q.wedge, choice: 'wedge' }
+        current = answerMulti(current, answer)
+      }
+      return { ...run, answers: [...current.answers] }
+    }
+
+    it('round-trips the questions, with a stop', () => {
+      const run = asked(6)
+      expect(run.answers.length).toBeGreaterThan(2)
+      saveContinuousRun(run)
+      expect(loadContinuousRun()).toEqual(run)
+      saveContinuousRun({ ...asked(2), stopped: true })
+      expect(loadContinuousRun()?.stopped).toBe(true)
+    })
+
+    it('freezes and reloads a curve over a tiny range, whose edges would print in exponent form', () => {
+      const base = sample({
+        min: '0',
+        max: '0.00000005',
+        thresholds: [],
+        unit: '',
+        view: 'curve',
+        curve: ['', '10', '40', '80', '100', '80', '40', '10', ''],
+        phase: 'bars',
+        edges: [],
+        percents: {},
+      })
+      const frozen = freezeDrawing(base)!
+      expect(frozen).not.toBeNull()
+      expect(frozen.edges.every(e => !/e/i.test(e))).toBe(true)
+      const run = { ...base, phase: 'ask' as const, ...frozen }
+      saveContinuousRun(run)
+      expect(loadContinuousRun()).toEqual(run)
+    })
+
+    it('freezes the bars as typed, blank as 0, and refuses empty or unusable bars', () => {
+      const run = sample({ percents: { b0: '30', b2: '' } })
+      const frozen = freezeDrawing(run)!
+      expect(frozen.percents.b0).toBe('30')
+      expect(frozen.percents.b1).toBe('0')
+      expect(freezeDrawing(sample({ percents: {} }))).toBeNull()
+      expect(freezeDrawing(sample({ percents: { b0: 'x' } }))).toBeNull()
+    })
+
+    it('loads a run stored before the questions existed', () => {
+      saveContinuousRun(sample())
+      const raw = JSON.parse(sessionStorage.getItem('howsure.continuous')!)
+      delete raw.answers
+      delete raw.stopped
+      sessionStorage.setItem('howsure.continuous', JSON.stringify(raw))
+      expect(loadContinuousRun()).toEqual(sample())
+    })
+
+    it.each([
+      [
+        'an answer that was not asked',
+        (r: Record<string, unknown>) => (r.answers = [{ k: 'c', a: 'b0', b: 'b0', p: 'first' }]),
+      ],
+      [
+        'a bar missing',
+        (r: Record<string, unknown>) => delete (r.percents as Record<string, string>).b1,
+      ],
+      [
+        'bars that are all empty',
+        (r: Record<string, unknown>) =>
+          (r.percents = Object.fromEntries(Object.keys(r.percents as object).map(k => [k, '0']))),
+      ],
+      ['an edge outside the range', (r: Record<string, unknown>) => (r.edges = ['500'])],
+    ])('rejects %s', (_name, change) => {
+      saveContinuousRun(asked(2))
+      const raw = JSON.parse(sessionStorage.getItem('howsure.continuous')!)
+      change(raw)
+      sessionStorage.setItem('howsure.continuous', JSON.stringify(raw))
+      expect(loadContinuousRun()).toBeNull()
+    })
+
+    it('rejects answers or a stop outside the questions', () => {
+      saveContinuousRun({ ...sample(), answers: asked(2).answers })
+      expect(loadContinuousRun()).toBeNull()
+      saveContinuousRun({ ...sample(), stopped: true })
+      expect(loadContinuousRun()).toBeNull()
+    })
   })
 
   it('keeps the curve while the range is being changed', () => {
