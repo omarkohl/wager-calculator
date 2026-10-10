@@ -11,6 +11,7 @@ import {
   rangeProblem,
   type ContinuousRunData,
 } from '../../storage/continuousRun'
+import CurveInput from './CurveInput'
 import PercentList from './PercentList'
 
 interface ContinuousInputProps {
@@ -121,19 +122,40 @@ export default function ContinuousInput({
         >
           Draw your distribution
         </h2>
-        <p className="text-gray-700">
-          Give each range the chance that the number lands in it. Anything goes while you work; the
-          total says how far you are from 100%, and Normalize scales the bars to 100% if you want
-          that. Nothing has been checked yet. More questions to refine this are coming.
-        </p>
-        <PercentList
-          listLabel="Bars"
-          rows={rows}
-          values={run.percents}
-          onChange={percents => onChange({ ...run, percents })}
-          bars
-        />
+        {run.view === 'curve' ? (
+          <p className="text-gray-700">
+            Draw how likely each value is, relative to the others. The chance for each range follows
+            from the curve. Nothing has been checked yet. More questions to refine this are coming.
+          </p>
+        ) : (
+          <p className="text-gray-700">
+            Give each range the chance that the number lands in it. Anything goes while you work;
+            the total says how far you are from 100%, and Normalize scales the bars to 100% if you
+            want that. Nothing has been checked yet. More questions to refine this are coming.
+          </p>
+        )}
+        {run.view === 'curve' ? (
+          <CurveInput run={run} onChange={onChange} />
+        ) : (
+          <PercentList
+            listLabel="Bars"
+            rows={rows}
+            values={run.percents}
+            onChange={percents => onChange({ ...run, percents })}
+            bars
+          />
+        )}
         <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className={SECONDARY}
+            onClick={() => {
+              focusRequest.current = 'bars'
+              onChange({ ...run, view: run.view === 'curve' ? 'bars' : 'curve' })
+            }}
+          >
+            {run.view === 'curve' ? 'Use bars instead' : 'Draw a curve instead'}
+          </button>
           <button
             type="button"
             className={SECONDARY}

@@ -430,6 +430,15 @@ describe('bars', () => {
   })
 })
 
+describe('bucketCurve labels', () => {
+  it('shows a typed threshold exactly', () => {
+    const curve = [0, 250, 500, 750, 1000].map((x, i) => ({ x, y: [1, 3, 5, 3, 1][i] }))
+    const { buckets } = bucketCurve({ min: 0, max: 1000, thresholds: [12.5], curve })
+    expect(buckets.map(b => b.label).join('|')).toContain('12.5')
+    expect(new Set(buckets.map(b => b.label)).size).toBe(buckets.length)
+  })
+})
+
 describe('barBuckets', () => {
   it('labels the buckets of the bars view, thresholds included', () => {
     const { edges, labels } = barBuckets(-10, 30, [0], '°C')

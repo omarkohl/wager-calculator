@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ContinuousInput from './ContinuousInput'
 import type { ContinuousRunData } from '../../storage/continuousRun'
@@ -17,6 +17,8 @@ const START: ContinuousRunData = {
   phase: 'range',
   edges: [],
   percents: {},
+  view: 'bars',
+  curve: [],
 }
 
 function Harness({ initial = START, focusOnShow = false }) {
@@ -243,5 +245,138 @@ describe('ContinuousInput', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/Write the claim/)
     await draw(user)
     expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveFocus()
+  })
+
+  describe('curve view', () => {
+    async function toCurve(user: User, threshold?: string) {
+      await range(user)
+      await type(user, 'Unit (optional)', '°C')
+      if (threshold) {
+        await type(user, 'Threshold', threshold)
+        await user.click(screen.getByRole('button', { name: 'Add threshold' }))
+      }
+      await draw(user)
+      await user.click(screen.getByRole('button', { name: 'Draw a curve instead' }))
+    }
+    const point = (name: RegExp) => screen.getByRole('textbox', { name })
+
+    it('switches between bars and curve, with the cursor on the heading', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await toCurve(user)
+      expect(screen.getByRole('heading', { name: 'Draw your distribution' })).toHaveFocus()
+      expect(screen.queryByRole('list', { name: 'Bars' })).toBeNull()
+      expect(screen.getByRole('list', { name: 'Curve points' })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Use bars instead' }))
+      expect(screen.getByRole('list', { name: 'Bars' })).toBeInTheDocument()
+    })
+
+    it('has a labelled field per point, spread over the range, in the unit', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await toCurve(user)
+      const fields = screen.getAllByRole('textbox', { name: /^Relative likelihood at/ })
+      expect(fields).toHaveLength(9)
+      expect(fields[0]).toHaveAccessibleName('Relative likelihood at -10 °C')
+      expect(fields[8]).toHaveAccessibleName('Relative likelihood at 30 °C')
+      expect(screen.getByText(/Raise at least one point/)).toBeInTheDocument()
+    })
+
+    it('shows the chance per range live, adding up to 100%, with the thresholds as edges', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await toCurve(user, '0')
+      const fields = screen.getAllByRole('textbox', { name: /^Relative likelihood at/ })
+      for (const [i, h] of [
+        [0, '10'],
+        [1, '40'],
+        [2, '80'],
+        [3, '100'],
+        [4, '80'],
+        [5, '40'],
+      ] as const) {
+        await user.type(fields[i], h)
+      }
+      const list = screen.getByRole('list', { name: 'Chance per range' })
+      const rows = Array.from(list.querySelectorAll('li'))
+      expect(rows.length).toBeGreaterThanOrEqual(2)
+      expect(list.textContent).toMatch(/0 °C/)
+      const total = rows
+        .map(li => Number(/([\d.]+)%$/.exec(li.textContent ?? '')?.[1] ?? NaN))
+        .reduce((a, b) => a + b, 0)
+      expect(Math.abs(total - 100)).toBeLessThan(1)
+      // changing a point changes the percentages
+      const before = list.textContent
+      await user.clear(fields[3])
+      await user.type(fields[3], '0')
+      expect(screen.getByRole('list', { name: 'Chance per range' }).textContent).not.toBe(before)
+    })
+
+    it('flags a height that is not usable', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await toCurve(user)
+      await user.type(point(/at 0 °C/), 'x')
+      expect(point(/at 0 °C/)).toBeInvalid()
+      expect(screen.getByText(/Some heights are not usable yet/)).toBeInTheDocument()
+    })
+
+    it('sets the nearest point from the pointer, also near the edges and in a box of another shape', async () => {
+      const user = userEvent.setup()
+      const { container } = render(<Harness />)
+      await toCurve(user)
+      const svg = container.querySelector('svg')!
+      // 800 x 500: the drawing is scaled by 2 and centred vertically, 60 px above and below
+      svg.getBoundingClientRect = () =>
+        ({
+          left: 0,
+          top: 0,
+          width: 800,
+          height: 500,
+          right: 800,
+          bottom: 500,
+          x: 0,
+          y: 0,
+        }) as DOMRect
+      // the left edge point (SVG x 28), halfway up the plot (SVG y 88)
+      fireEvent.pointerDown(svg, { clientX: 56, clientY: 60 + 2 * 88, pointerId: 1 })
+      fireEvent.pointerUp(svg, { pointerId: 1 })
+      expect(point(/at -10 °C/)).toHaveValue('50')
+      // the right edge point (SVG x 372), at the top of the plot
+      fireEvent.pointerDown(svg, { clientX: 744, clientY: 60 + 2 * 16, pointerId: 1 })
+      fireEvent.pointerUp(svg, { pointerId: 1 })
+      expect(point(/at 30 °C/)).toHaveValue('100')
+    })
+
+    it('refuses a height written as a percentage', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await toCurve(user)
+      await user.type(point(/at 0 °C/), '50%')
+      expect(point(/at 0 °C/)).toBeInvalid()
+    })
+
+    it('labels the axes in the drawing and describes it in text', async () => {
+      const user = userEvent.setup()
+      const { container } = render(<Harness />)
+      await toCurve(user)
+      expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+      expect(container.querySelector('svg')!.textContent).toMatch(/relative likelihood/)
+      expect(container.querySelector('svg')!.textContent).toMatch(/-10 °C/)
+      expect(screen.getByRole('figure')).toHaveTextContent(/not a percentage/)
+    })
+
+    it('carries the heights over to the new x positions when the range changes', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await toCurve(user)
+      await user.type(point(/at 0 °C/), '40')
+      await user.click(screen.getByRole('button', { name: 'Change the range' }))
+      await type(user, 'Plausible maximum', '50')
+      await draw(user)
+      expect(screen.getAllByRole('textbox', { name: /^Relative likelihood at/ })[2]).toHaveValue(
+        '40'
+      )
+    })
   })
 })

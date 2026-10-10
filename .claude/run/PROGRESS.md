@@ -2,7 +2,7 @@
 
 ## Next step
 
-23b.
+24.
 
 ## Stack
 
@@ -35,6 +35,7 @@
 - 21b: howsure/21b-numbers, PR #113 (base howsure/21a-outcomes)
 - 22a: howsure/22a-spot-checks, PR #114 (base howsure/21b-numbers)
 - 22b: howsure/22b-fixes, PR #115 (base howsure/22a-spot-checks)
+- 23a: howsure/23a-bars, PR #116 (base howsure/22b-fixes)
 
 ## Log
 
@@ -478,7 +479,21 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   and 100 are allowed (the bars view lets the user do anything), unlike categorical outcomes.
   Chromium E2E (local workaround config): new `elicit-continuous.spec.ts`, axe on both screens.
 
+- **Step 23b (the curve)**: the bars view has "Draw a curve instead" / "Use bars instead". The curve
+  goes through 9 evenly spaced points, each a relative likelihood (0 to 100, unitless, blank = 0)
+  typed in a labelled field or set by pressing or dragging on the SVG (nearest point, pointer only,
+  so the fields are the keyboard and screen-reader way). Under the drawing the chance per range
+  follows live from `bucketCurve` (thresholds always, plus the shape's edges, open-ended outer
+  ranges, at most 8; dashed lines on the drawing mark the edges). `bucketCurve` labels now show
+  edges exactly, as `barBuckets` does. The run stores `view` and `curve`; the bars are kept when
+  switching. Chromium E2E: continuous spec 2 tests, axe with the curve.
+
 ## Decisions
+
+- Step 23b: after a range change the curve heights stay with their point numbers, so they carry over
+  to the new x positions (the curve keeps its shape over the new range); the bars carry over only
+  when the buckets come out the same. Heights are plain numbers on an arbitrary 0 to 100 scale, never
+  percentages ("%" is refused), and the drawing is not rescaled to the tallest point.
 
 - Step 23a: "A number" is enabled at the gate now (least risky: the bars view is a complete input;
   the curve and the questions come later in the stack, which lands as a whole). A number run ends
@@ -518,6 +533,10 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 23b [NEEDS PROTOTYPE]: the curve is a fixed 9 points with drag-to-set and a number per point;
+  alternatives are a freehand stroke, more or fewer points, or draggable handles with arrow keys.
+  The curve does not feed a probability yet (step 24 onwards use the buckets).
 
 - Steps 24 to 26 must replace the "More questions to refine this are coming" copy (categorical
   sketch, numbers view, bars view) and carry the buckets (`barBuckets`, categorical outcomes) into

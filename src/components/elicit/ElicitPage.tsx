@@ -153,6 +153,8 @@ export default function ElicitPage() {
         phase: 'range',
         edges: [],
         percents: {},
+        view: 'bars',
+        curve: [],
       }
       saveContinuousRun(started)
       setCont(started)

@@ -10,6 +10,12 @@ import { ELICIT_FORMAT_VERSION, MAX_TEXT_LENGTH } from './elicitation'
  * one kind. The decoder returns null for anything malformed.
  */
 
+/** How the distribution is drawn: a bar per bucket, or a curve through points. */
+export type ContinuousView = 'bars' | 'curve'
+
+/** The curve is drawn through this many points, evenly spaced from the minimum to the maximum. */
+export const CURVE_POINTS = 9
+
 /** `range`: minimum, maximum and thresholds are being set; `bars`: a bar per bucket. */
 export type ContinuousPhase = 'range' | 'bars'
 
@@ -30,6 +36,9 @@ export interface ContinuousRunData {
   edges: string[]
   /** The bar heights as typed, by bucket ("b0" is the lowest). */
   percents: Record<string, string>
+  view: ContinuousView
+  /** The relative likelihood at each curve point as typed (0 to 100, unitless); blank is 0. */
+  curve: string[]
 }
 
 const KEY = 'howsure.continuous'
@@ -88,7 +97,11 @@ export function loadContinuousRun(): ContinuousRunData | null {
     ) {
       return null
     }
-    const { percents, edges } = raw
+    const { percents, edges, curve } = raw
+    if (raw.view !== 'bars' && raw.view !== 'curve') return null
+    if (!Array.isArray(curve) || (curve.length !== 0 && curve.length !== CURVE_POINTS)) return null
+    if (!curve.every(v => isText(v, 12))) return null
+    // the view only matters in the bars phase: it is remembered while the range is changed
     if (!Array.isArray(edges) || edges.length > MAX_OUTCOMES - 1) return null
     if (
       !edges.every(
@@ -110,6 +123,8 @@ export function loadContinuousRun(): ContinuousRunData | null {
       phase: raw.phase,
       edges: edges as string[],
       percents: {},
+      view: raw.view,
+      curve: curve as string[],
     }
     // The bars belong to the edges they were drawn for: in the bars view those are the current
     // ones; back in the range form they are the last drawn ones; with no bars there are none

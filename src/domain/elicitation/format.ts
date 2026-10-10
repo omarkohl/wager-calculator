@@ -96,3 +96,14 @@ export function parseNumber(text: string): string | null {
 export function isAmbiguousNumber(text: string): boolean {
   return /,\d{3}(?!\d)/.test(text)
 }
+
+/**
+ * A typed curve height: a plain number from 0 to 100 with at most two decimals, on an arbitrary
+ * scale (it is a relative likelihood, not a percentage, so "%" is refused). Null if not one.
+ */
+export function parseHeight(text: string): string | null {
+  const cleaned = text.trim().replace(',', '.')
+  if (!/^\d{1,3}(\.\d{1,2})?$/.test(cleaned)) return null
+  const value = new Decimal(cleaned)
+  return value.lte(100) ? value.toString() : null
+}
