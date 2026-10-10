@@ -15,6 +15,7 @@ import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
 import { parsePercent } from '../../domain/elicitation/format'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
+import KeptNotice from './KeptNotice'
 import MultiQuestions from './MultiQuestions'
 import PercentList from './PercentList'
 import SpotChecks from './SpotChecks'
@@ -35,16 +36,6 @@ const PERCENT_PROBLEM = 'Enter a percentage above 0 and below 100, with at most 
 
 /** The percentage typed for an outcome, or null if it is not a usable one. */
 const percentOf = (run: MultiRunData, id: string) => parsePercent(run.percents[id] ?? '')
-
-/** The standing notice on numbers whose outcomes the checks found overlapping or incomplete. */
-export function KeptNotice() {
-  return (
-    <p role="note" className="rounded-lg bg-amber-50 p-3 text-sm text-gray-900">
-      The outcomes overlap or leave something out, so these numbers do not mean anything: the
-      probabilities of such outcomes cannot add up to 100%.
-    </p>
-  )
-}
 
 const FIELD =
   'block w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -183,6 +174,7 @@ export default function OutcomeDiscovery({
         claim={run.claim}
         base={withAnswers(toMultiRun(run), run.answers)}
         stopped={run.stopped}
+        kept={run.kept}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}

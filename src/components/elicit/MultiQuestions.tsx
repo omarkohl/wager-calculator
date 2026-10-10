@@ -1,17 +1,14 @@
 import { useEffect, useRef } from 'react'
 import type { Choice } from '../../domain/elicitation/bandRule'
 import type { Pick } from '../../domain/elicitation/comparisons'
-import { describeBand } from '../../domain/elicitation/format'
-import { provenanceFor } from '../../domain/elicitation/model'
 import {
-  analyse,
   answerMulti,
-  answersInvolving,
   nextMultiQuestion,
   type MultiAnswer,
   type MultiRun,
 } from '../../domain/elicitation/multiRun'
 import { ARM, SECONDARY } from './questionStyles'
+import MultiResult from './MultiResult'
 import QuestionScreen from './QuestionScreen'
 
 interface MultiQuestionsProps {
@@ -20,6 +17,8 @@ interface MultiQuestionsProps {
   /** The outcomes and the sketch, with the answers so far. Null if they cannot be used. */
   base: MultiRun | null
   stopped: boolean
+  /** The user kept outcomes the checks found overlapping or incomplete. */
+  kept?: boolean
   /** The stake as the user entered it ("20 EUR"), or null if none is remembered. */
   stake: string | null
   /** Move focus to the question heading (after an answer or the start, not on a plain reload). */
@@ -29,9 +28,6 @@ interface MultiQuestionsProps {
   onStop: () => void
   onStartAgain: () => void
 }
-
-const PRIMARY =
-  'rounded-md bg-blue-600 px-5 py-2 text-base font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
 
 /**
  * The questions of a claim with several outcomes, under the rules of the yes/no screen: no
@@ -44,6 +40,7 @@ export default function MultiQuestions({
   claim,
   base,
   stopped,
+  kept = false,
   stake,
   focusOnShow,
   onAnswers,
@@ -71,54 +68,16 @@ export default function MultiQuestions({
 
   if (!base) return null
 
-  // TODO(step 25): the result screen replaces this standing
   if (!question) {
-    const bands = analyse(base).coherent.bands
     return (
-      <section aria-labelledby="standing-heading" className="mt-6 max-w-2xl space-y-4">
-        <h2
-          id="standing-heading"
-          ref={headingRef}
-          tabIndex={-1}
-          className="text-xl font-semibold text-gray-900 focus:outline-none"
-        >
-          Where your answers stand
-        </h2>
-        <p className="text-gray-700">
-          {stopped
-            ? 'You stopped early, so some outcomes are still rough guesses.'
-            : 'No further question is worth asking.'}{' '}
-          These are the ranges your answers give so far.
-        </p>
-        <p className="text-gray-700">“{claim}”</p>
-        <ul aria-label="Where your answers stand" className="space-y-2">
-          {base.outcomes.map(o => {
-            const band = bands.find(b => b.id === o.id)!
-            const provenance = provenanceFor(answersInvolving(base, o.id))
-            return (
-              <li key={o.id} className="rounded-md bg-gray-50 px-3 py-2">
-                <div className="flex justify-between gap-3">
-                  <span className="font-medium text-gray-900">{o.label}</span>
-                  <span className="text-gray-800">
-                    {describeBand({
-                      lo: band.lo.lte(0) ? null : band.lo,
-                      hi: band.hi.gte(1) ? null : band.hi,
-                    })}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  {provenance.source === 'first-guess'
-                    ? 'From your first guess'
-                    : `From ${provenance.count} ${provenance.count === 1 ? 'answer' : 'answers'}`}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-        <button type="button" className={PRIMARY} onClick={onStartAgain}>
-          Start again
-        </button>
-      </section>
+      <MultiResult
+        claim={claim}
+        run={base}
+        stopped={stopped}
+        kept={kept}
+        headingRef={headingRef}
+        onStartAgain={onStartAgain}
+      />
     )
   }
 

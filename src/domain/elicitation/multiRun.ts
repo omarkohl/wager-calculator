@@ -85,10 +85,17 @@ function edges(result: BandResult | null): { lo: Decimal; hi: Decimal } | null {
   return { lo: result.band.lo ?? ZERO, hi: result.band.hi ?? ONE }
 }
 
+/** A group answer that does not fit the answers on its parts, with the group and the band it got. */
+export interface GroupIncoherence extends Incoherence {
+  members: string[]
+  lo: Decimal
+  hi: Decimal
+}
+
 interface RawBands {
   bands: BucketBand[]
   /** Group lotteries whose answers do not fit the buckets' own bounds (subadditivity). */
-  groupIncoherences: Incoherence[]
+  groupIncoherences: GroupIncoherence[]
   /** A side a group widened to its boundary, so the final tightening leaves it alone. */
   lockedSide: TightenSide
 }
@@ -104,10 +111,14 @@ function rawBands(run: MultiRun): RawBands {
     const own = edges(targetBand(run, [o.id]))
     return { id: o.id, lo: own?.lo ?? ZERO, hi: own?.hi ?? ONE, asked: own !== null }
   })
-  const groupIncoherences: Incoherence[] = []
+  const groupIncoherences: GroupIncoherence[] = []
   let lockedSide: TightenSide = 'both'
-  const note = (r: { incoherence: Incoherence | null; widenedSide: 'lo' | 'hi' | null }) => {
-    if (r.incoherence) groupIncoherences.push(r.incoherence)
+  const note = (
+    r: { incoherence: Incoherence | null; widenedSide: 'lo' | 'hi' | null },
+    members: string[],
+    g: { lo: Decimal; hi: Decimal }
+  ) => {
+    if (r.incoherence) groupIncoherences.push({ ...r.incoherence, members, lo: g.lo, hi: g.hi })
     if (r.widenedSide && lockedSide === 'both')
       lockedSide = r.widenedSide === 'lo' ? 'lo-only' : 'hi-only'
   }
@@ -119,12 +130,12 @@ function rawBands(run: MultiRun): RawBands {
     const g = edges(targetBand(run, members))
     if (!g) continue
     const inside = applySumBand(bands, members, g.lo, g.hi)
-    note(inside)
+    note(inside, members, g)
     bands = inside.bands.map(b => (members.includes(b.id) ? { ...b, asked: true } : b))
     const others = bands.map(b => b.id).filter(id => !members.includes(id))
     if (others.length > 0) {
       const outside = applySumBand(bands, others, ONE.minus(g.hi), ONE.minus(g.lo))
-      note(outside)
+      note(outside, members, g)
       bands = outside.bands
     }
   }
@@ -136,7 +147,7 @@ export interface Analysis {
   /** The coherent bands, in outcome order. */
   coherent: CoherentResult
   /** Group answers that contradict the buckets' own bounds, flagged like subadditivity. */
-  groupIncoherences: Incoherence[]
+  groupIncoherences: GroupIncoherence[]
 }
 
 /** The sketch and the coherent bands the answers give so far. */

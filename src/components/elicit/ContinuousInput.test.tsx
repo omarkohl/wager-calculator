@@ -270,7 +270,7 @@ describe('ContinuousInput', () => {
       await user.click(screen.getByRole('button', { name: 'Start the questions' }))
       expect(screen.getByRole('heading', { level: 2 })).toHaveFocus()
       await user.click(screen.getByRole('button', { name: 'Stop here' }))
-      const list = screen.getByRole('list', { name: 'Where your answers stand' })
+      const list = screen.getByRole('list', { name: 'Result per outcome' })
       expect(list.textContent).toMatch(/or more/)
       expect(list.textContent).toMatch(/From your first guess/)
     })

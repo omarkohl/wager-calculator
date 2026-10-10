@@ -204,6 +204,9 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 - [ ] 25. **Result**: band per bucket as headline, point estimate, provenance,
       incoherence flag, the standing notice when the list was kept despite a failed disjoint or
       exhaustive check (`kept`), insights, merge offer, adjust after with Normalize, the trace.
+  - [x] 25a. The result screen: band, point estimate, provenance, flags for what does not fit
+        (nothing rescaled), the `kept` notice, insights; replaces the placeholder standing.
+  - [ ] 25b. Merge offer (and applying it), adjust after with Normalize, the trace.
 - [ ] 26. **Share and handoff**: invites carry outcomes or bucket edges and open in a
       locked-outcome mode; result URLs; "bet on this" only when the adjusted values sum
       to 100%, otherwise it points to Normalize. E2E for categorical and continuous.

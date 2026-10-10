@@ -41,13 +41,19 @@ function start(): MultiRunData {
   }
 }
 
-function Harness({ initial = start(), onStartAgain = () => {}, focusOnShow = false }) {
+function Harness({
+  initial = start(),
+  onStartAgain = () => {},
+  focusOnShow = false,
+  kept = false,
+}) {
   const [run, setRun] = useState(initial)
   return (
     <MultiQuestions
       claim={run.claim}
       base={withAnswers(toMultiRun(run), run.answers)}
       stopped={run.stopped}
+      kept={kept}
       stake="20 EUR"
       focusOnShow={focusOnShow}
       onAnswers={answers => {
@@ -112,17 +118,13 @@ describe('MultiQuestions', () => {
   it('runs to the end and shows where the answers stand, with provenance', async () => {
     const user = userEvent.setup()
     render(<Harness focusOnShow />)
-    for (
-      let i = 0;
-      i < 60 && !screen.queryByRole('heading', { name: 'Where your answers stand' });
-      i++
-    ) {
+    for (let i = 0; i < 60 && !screen.queryByRole('heading', { name: 'Your result' }); i++) {
       const spinner = screen.queryByRole('button', { name: /if the spinner lands/ })
       if (spinner) await user.click(spinner)
       else await user.click(screen.getByRole('button', { name: 'About equally likely' }))
     }
-    expect(screen.getByRole('heading', { name: 'Where your answers stand' })).toHaveFocus()
-    const list = screen.getByRole('list', { name: 'Where your answers stand' })
+    expect(screen.getByRole('heading', { name: 'Your result' })).toHaveFocus()
+    const list = screen.getByRole('list', { name: 'Result per outcome' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(3)
     expect(list.textContent).toMatch(/From \d+ answers?|From your first guess/)
     expect(list.textContent).toMatch(/%/)
@@ -133,10 +135,39 @@ describe('MultiQuestions', () => {
     let again = 0
     render(<Harness onStartAgain={() => again++} />)
     await user.click(screen.getByRole('button', { name: 'Stop here' }))
-    expect(screen.getByRole('heading', { name: 'Where your answers stand' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Your result' })).toBeInTheDocument()
     expect(screen.getByText(/You stopped early/)).toBeInTheDocument()
     expect(loadMultiRun()?.stopped).toBe(true)
     await user.click(screen.getByRole('button', { name: 'Start again' }))
     expect(again).toBe(1)
+  })
+
+  it('shows the result: band as headline, a best single number, where it comes from, insights', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    for (let i = 0; i < 60 && !screen.queryByRole('heading', { name: 'Your result' }); i++) {
+      const spinner = screen.queryByRole('button', { name: /if the spinner lands/ })
+      if (spinner) await user.click(spinner)
+      else await user.click(screen.getByRole('button', { name: 'About equally likely' }))
+    }
+    const list = screen.getByRole('list', { name: 'Result per outcome' })
+    expect(list.textContent).toMatch(/Best single number: about \d/)
+    expect(list.textContent).toMatch(/From \d+ answers?|From your first guess/)
+  })
+
+  it('says there is no single number for an outcome with an open end, and invents none', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    await user.click(screen.getByRole('button', { name: 'Stop here' }))
+    const list = screen.getByRole('list', { name: 'Result per outcome' })
+    expect(list.textContent).toMatch(/No single number yet/)
+    expect(list.textContent).not.toMatch(/Best single number/)
+  })
+
+  it('carries the standing notice when the list was kept despite a failed check', async () => {
+    const user = userEvent.setup()
+    render(<Harness kept />)
+    await user.click(screen.getByRole('button', { name: 'Stop here' }))
+    expect(screen.getByRole('note')).toHaveTextContent(/do not mean anything/)
   })
 })

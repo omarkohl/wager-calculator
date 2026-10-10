@@ -2,7 +2,7 @@
 
 ## Next step
 
-25.
+25b.
 
 ## Stack
 
@@ -38,6 +38,7 @@
 - 23a: howsure/23a-bars, PR #116 (base howsure/22b-fixes)
 - 23b: howsure/23b-curve, PR #117 (base howsure/23a-bars)
 - 24a: howsure/24a-multi-questions, PR #118 (base howsure/23b-curve)
+- 24b: howsure/24b-continuous-questions, PR #119 (base howsure/24a-multi-questions)
 
 ## Log
 
@@ -511,6 +512,16 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   categorical one; older runs without answers load. The range and the drawing cannot be changed once
   the questions have started (start again). Chromium E2E: continuous spec 3 tests, axe on a question.
 
+- **Step 25a (result, several outcomes and number claims)**: step 25 is split (25b: merge offer and
+  applying it, adjust after with Normalize, the trace). `multiResult` (domain) gives per outcome the
+  coherent band (headline), the point estimate (the band's log-odds midpoint; none for a
+  one-sided band, which says "No single number yet" instead of inventing one; the insights count such an
+  outcome at its first sketch inside the band), the provenance and whether the band was widened;
+  `flags` in words for incoherent bounds, group answers that do not fit their parts, and order
+  answers that were left out (nothing is rescaled); the insights. `MultiResult` replaces the
+  placeholder standing, with the `kept` notice (`KeptNotice`, now its own component) for categorical
+  runs. Chromium E2E: the two question specs, adapted ("Your result", "Result per outcome").
+
 ## Decisions
 
 - Step 24a: no thorough mode and no "approx. N left" for several outcomes (no estimate function
@@ -561,6 +572,10 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 25a [NEEDS PROTOTYPE]: the result layout (band large, "Best single number: about N%" and the
+  provenance under it, one amber box for everything that does not fit). The `kept` notice shows for
+  categorical runs only; number claims have no disjointness check.
 
 - Step 24a [NEEDS PROTOTYPE]: the comparison and group-lottery screens (arms read "Win 20 EUR if the
   result is one of: ..."; the lottery reuses `QuestionScreen` through its `statement` slot), and the
