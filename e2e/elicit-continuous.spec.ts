@@ -96,4 +96,46 @@ test.describe('Number claims: range and bars', () => {
     await page.getByRole('button', { name: 'Use bars instead' }).click()
     await expect(page.getByRole('list', { name: 'Bars' })).toBeVisible()
   })
+
+  test('asks the questions on the buckets of the bars, resumes after a reload, ends with where the answers stand', async ({
+    page,
+  }) => {
+    await page.goto('/elicit')
+    await page.getByRole('radio', { name: /A number/ }).check()
+    await page.getByRole('textbox', { name: 'Claim' }).fill('Noon temperature tomorrow')
+    await page.getByRole('textbox', { name: 'Amount' }).fill('10')
+    await page.getByRole('button', { name: 'Start' }).click()
+    await page.getByRole('textbox', { name: 'Plausible minimum' }).fill('-10')
+    await page.getByRole('textbox', { name: 'Plausible maximum' }).fill('30')
+    await page.getByRole('textbox', { name: 'Unit (optional)' }).fill('°C')
+    await page.getByRole('textbox', { name: 'Threshold' }).fill('0')
+    await page.getByRole('button', { name: 'Add threshold' }).click()
+    await page.getByRole('button', { name: 'Draw the distribution' }).click()
+    await expect(page.getByRole('button', { name: 'Start the questions' })).toBeDisabled()
+    const bars = page.getByRole('textbox', { name: /, percent$/ })
+    for (const [i, v] of ['5', '10', '25', '30', '20', '10'].entries()) await bars.nth(i).fill(v)
+    await page.getByRole('button', { name: 'Start the questions' }).click()
+
+    await expect(page.getByRole('heading', { level: 2 }).first()).toBeFocused()
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
+
+    const spinner = page.getByRole('button', { name: /if the spinner lands/ })
+    const equal = page.getByRole('button', { name: 'About equally likely' })
+    const standing = page.getByRole('heading', { name: 'Where your answers stand' })
+    const answerOne = async () => {
+      await spinner.or(equal).or(standing).first().waitFor()
+      if (await standing.isVisible()) return false
+      await spinner.or(equal).first().click()
+      return true
+    }
+    await answerOne()
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Stop here' })).toBeVisible()
+    for (let i = 0; i < 45 && (await answerOne()); i++);
+    await expect(standing).toBeFocused()
+    const list = page.getByRole('list', { name: 'Where your answers stand' })
+    await expect(list).toContainText('0 °C')
+    await expect(list).toContainText('%')
+  })
 })

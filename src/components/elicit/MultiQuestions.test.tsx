@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import MultiQuestions from './MultiQuestions'
 import { addOutcome, emptyOutcomeList } from '../../domain/elicitation/model'
 import { selectSpotChecks } from '../../domain/elicitation/comparisons'
+import { toMultiRun, withAnswers } from '../../storage/multiAnswers'
 import { loadMultiRun, saveMultiRun, type MultiRunData } from '../../storage/multiRun'
 
 function start(): MultiRunData {
@@ -44,10 +45,18 @@ function Harness({ initial = start(), onStartAgain = () => {}, focusOnShow = fal
   const [run, setRun] = useState(initial)
   return (
     <MultiQuestions
-      run={run}
+      claim={run.claim}
+      base={withAnswers(toMultiRun(run), run.answers)}
+      stopped={run.stopped}
       stake="20 EUR"
       focusOnShow={focusOnShow}
-      onChange={next => {
+      onAnswers={answers => {
+        const next = { ...run, answers }
+        saveMultiRun(next)
+        setRun(next)
+      }}
+      onStop={() => {
+        const next = { ...run, stopped: true }
         saveMultiRun(next)
         setRun(next)
       }}

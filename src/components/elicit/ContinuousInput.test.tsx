@@ -19,6 +19,8 @@ const START: ContinuousRunData = {
   percents: {},
   view: 'bars',
   curve: [],
+  answers: [],
+  stopped: false,
 }
 
 function Harness({ initial = START, focusOnShow = false }) {
@@ -245,6 +247,33 @@ describe('ContinuousInput', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/Write the claim/)
     await draw(user)
     expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveFocus()
+  })
+
+  describe('questions', () => {
+    it('starts the questions on the curve (not before it is usable), with the cursor on the question, and ends with where the answers stand', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await range(user)
+      await draw(user)
+      await user.click(screen.getByRole('button', { name: 'Draw a curve instead' }))
+      expect(screen.getByRole('button', { name: 'Start the questions' })).toBeDisabled()
+      const points = screen.getAllByRole('textbox', { name: /^Relative likelihood at/ })
+      for (const [i, h] of [
+        [2, '30'],
+        [3, '80'],
+        [4, '100'],
+        [5, '80'],
+        [6, '30'],
+      ] as const) {
+        await user.type(points[i], h)
+      }
+      await user.click(screen.getByRole('button', { name: 'Start the questions' }))
+      expect(screen.getByRole('heading', { level: 2 })).toHaveFocus()
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      const list = screen.getByRole('list', { name: 'Where your answers stand' })
+      expect(list.textContent).toMatch(/or more/)
+      expect(list.textContent).toMatch(/From your first guess/)
+    })
   })
 
   describe('curve view', () => {

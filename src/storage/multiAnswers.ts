@@ -1,14 +1,16 @@
 import Decimal from 'decimal.js'
 import type { Choice } from '../domain/elicitation/bandRule'
-import { parsePercent } from '../domain/elicitation/format'
+import { parseBar, parsePercent } from '../domain/elicitation/format'
 import {
   answerMulti,
   nextMultiQuestion,
   type MultiAnswer,
   type MultiRun,
 } from '../domain/elicitation/multiRun'
+import { bucketLabels } from '../domain/elicitation/bucketing'
 import { normalise1 } from '../domain/elicitation/model'
 import type { Pick as ComparePick } from '../domain/elicitation/comparisons'
+import type { ContinuousRunData } from './continuousRun'
 import type { MultiRunData } from './multiRun'
 
 /**
@@ -35,6 +37,42 @@ export function toMultiRun(run: Base): MultiRun | null {
     answers: [],
     sketch: new Map(outcomes.map((o, i) => [o.id, scaled[i]])),
   }
+}
+
+/**
+ * The domain run of a number claim in the questions: the buckets (named by the ranges they
+ * cover, no tiers) and the user's bars or curve, scaled to add up to 1, as the sketch. Null
+ * when the bars cannot be used.
+ */
+export function continuousToMultiRun(
+  run: Pick<
+    ContinuousRunData,
+    'min' | 'max' | 'thresholds' | 'unit' | 'edges' | 'percents' | 'seed'
+  >
+): MultiRun | null {
+  const edges = run.edges.map(e => new Decimal(e))
+  // only thresholds inside the range are edges (as in `bucketCurve`), so only they set the precision
+  const inside = run.thresholds.filter(
+    t => new Decimal(t).gt(run.min) && new Decimal(t).lt(run.max)
+  )
+  const labels = bucketLabels(edges, run.min, run.max, inside, run.unit)
+  const outcomes = labels.map((label, i) => ({ id: `b${i}`, label, tier: null }))
+  const typed = outcomes.map(o => parseBar(run.percents[o.id] ?? ''))
+  if (typed.length < 2 || typed.some(t => t === null)) return null
+  const values = typed.map(t => new Decimal(t!))
+  if (!values.some(v => v.gt(0))) return null
+  const scaled = normalise1(values)
+  return {
+    outcomes,
+    seed: run.seed,
+    answers: [],
+    sketch: new Map(outcomes.map((o, i) => [o.id, scaled[i]])),
+  }
+}
+
+/** The domain run with the stored answers (null stays null). */
+export function withAnswers(base: MultiRun | null, answers: MultiAnswer[]): MultiRun | null {
+  return base && { ...base, answers }
 }
 
 // ----------------------------------------------------------------------------- codec

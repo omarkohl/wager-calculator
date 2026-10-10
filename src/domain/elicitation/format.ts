@@ -85,7 +85,16 @@ export function parseNumber(text: string): string | null {
   const cleaned = text.trim().replace(',', '.')
   // "5." and ".5" are fine; the digits before and after the point are bounded
   if (!/^-?(\d{1,15}(\.\d{0,10})?|\.\d{1,10})$/.test(cleaned)) return null
-  return new Decimal(cleaned).toString()
+  return plainNumber(cleaned)
+}
+
+/**
+ * A number in plain digits (never exponent form, which `parseNumber` would not read back), at
+ * most ten decimals, "0" for zero. For numbers that are stored: edges, thresholds.
+ */
+export function plainNumber(value: Decimal.Value): string {
+  const x = new Decimal(value).toDecimalPlaces(10)
+  return x.isZero() ? '0' : x.toFixed()
 }
 
 /**

@@ -206,6 +206,23 @@ export function labelBuckets(edges: readonly Decimal[], unit = '', places = 6): 
 }
 
 /**
+ * The labels of buckets cut by `edges`: thresholds are shown exactly as typed (a typed threshold
+ * must read as typed, and two buckets must never share a label, since the labels name fields);
+ * other edges at the precision of the range.
+ */
+export function bucketLabels(
+  edges: readonly Decimal[],
+  min: Decimal.Value,
+  max: Decimal.Value,
+  thresholds: readonly Decimal.Value[],
+  unit = ''
+): string[] {
+  const range = new Decimal(max).minus(min)
+  const exact = thresholds.map(t => Math.min(new Decimal(t).decimalPlaces(), 10))
+  return labelBuckets(edges, unit, Math.max(placesFor(range), ...exact))
+}
+
+/**
  * The buckets of a curve. See the file comment. Throws a RangeError for input that is not a
  * curve (min not below max, fewer than two points, repeated x, negative likelihood, no
  * area in range, more thresholds than fit).
@@ -276,8 +293,7 @@ export function bucketCurve(input: BucketingInput, unit = ''): BucketingResult {
 
   const probs = mass(edges)
   // thresholds are shown exactly as typed; shape edges are snapped or rounded to the range's precision
-  const places = Math.max(placesFor(range), ...kept.map(t => Math.min(t.decimalPlaces(), 10)))
-  const labels = labelBuckets(edges, unit, places)
+  const labels = bucketLabels(edges, min, max, kept, unit)
   const cuts = [null, ...edges, null] as (Decimal | null)[]
   return {
     edges,
@@ -359,9 +375,5 @@ export function barBuckets(
   unit = ''
 ): { edges: Decimal[]; labels: string[] } {
   const edges = barEdges(min, max, thresholds)
-  const range = new Decimal(max).minus(min)
-  // Enough decimals to show every edge exactly: a typed threshold must read as typed, and two
-  // buckets must never share a label (the labels name the bars' fields)
-  const places = Math.max(placesFor(range), ...edges.map(e => e.decimalPlaces()))
-  return { edges, labels: labelBuckets(edges, unit, places) }
+  return { edges, labels: bucketLabels(edges, min, max, thresholds, unit) }
 }

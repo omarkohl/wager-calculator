@@ -18,7 +18,7 @@ import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
 import MultiQuestions from './MultiQuestions'
 import PercentList from './PercentList'
 import SpotChecks from './SpotChecks'
-import { toMultiRun } from '../../storage/multiAnswers'
+import { toMultiRun, withAnswers } from '../../storage/multiAnswers'
 import { spotChecksOf, type MultiRunData, type MultiView } from '../../storage/multiRun'
 
 interface OutcomeDiscoveryProps {
@@ -180,10 +180,13 @@ export default function OutcomeDiscovery({
   if (run.phase === 'ask') {
     return (
       <MultiQuestions
-        run={run}
+        claim={run.claim}
+        base={withAnswers(toMultiRun(run), run.answers)}
+        stopped={run.stopped}
         stake={stake}
         focusOnShow={askFocus}
-        onChange={onChange}
+        onAnswers={answers => onChange({ ...run, answers })}
+        onStop={() => onChange({ ...run, stopped: true })}
         onStartAgain={onStartAgain}
       />
     )

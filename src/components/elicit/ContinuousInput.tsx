@@ -1,16 +1,19 @@
 import Decimal from 'decimal.js'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
-import { isAmbiguousNumber, parseNumber } from '../../domain/elicitation/format'
+import { isAmbiguousNumber, parseNumber, plainNumber } from '../../domain/elicitation/format'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
+import { continuousToMultiRun, withAnswers } from '../../storage/multiAnswers'
 import {
   barIds,
   bucketsOf,
+  freezeDrawing,
   MAX_NUMBER_TEXT,
   MAX_UNIT_LENGTH,
   rangeProblem,
   type ContinuousRunData,
 } from '../../storage/continuousRun'
+import MultiQuestions from './MultiQuestions'
 import CurveInput from './CurveInput'
 import PercentList from './PercentList'
 
@@ -18,6 +21,8 @@ interface ContinuousInputProps {
   run: ContinuousRunData
   /** Put the cursor in the first field on arrival (after the user acted, not on a plain load). */
   focusOnShow?: boolean
+  /** The stake as the user entered it ("20 EUR"), for the questions. */
+  stake?: string | null
   onChange: (run: ContinuousRunData) => void
   onStartAgain: () => void
 }
@@ -46,6 +51,7 @@ type Target = 'min' | 'max' | 'threshold' | 'bars' | 'claim'
 export default function ContinuousInput({
   run,
   focusOnShow,
+  stake = null,
   onChange,
   onStartAgain,
 }: ContinuousInputProps) {
@@ -53,6 +59,7 @@ export default function ContinuousInput({
   const [error, setError] = useState<{ field: Target; text: string } | null>(null)
   // Counts failures, so the same message twice in a row is announced twice
   const [failures, setFailures] = useState(0)
+  const [askFocus, setAskFocus] = useState(false)
   const minRef = useRef<HTMLInputElement>(null)
   const maxRef = useRef<HTMLInputElement>(null)
   const thresholdRef = useRef<HTMLInputElement>(null)
@@ -108,10 +115,34 @@ export default function ContinuousInput({
     </div>
   )
 
+  // -------------------------------------------------------------- questions
+  if (run.phase === 'ask') {
+    return (
+      <MultiQuestions
+        claim={run.claim}
+        base={withAnswers(continuousToMultiRun(run), run.answers)}
+        stopped={run.stopped}
+        stake={stake}
+        focusOnShow={askFocus}
+        onAnswers={answers => onChange({ ...run, answers })}
+        onStop={() => onChange({ ...run, stopped: true })}
+        onStartAgain={onStartAgain}
+      />
+    )
+  }
+
   // ------------------------------------------------------------------- bars
   if (run.phase === 'bars') {
     const { labels } = bucketsOf(run)
     const rows = barIds(labels.length).map((id, i) => ({ id, label: labels[i] }))
+    // The buckets and chances the questions start from: the bars as typed (blank is 0), or the
+    // curve's chances per range; null while they are not usable
+    const frozen = freezeDrawing(run)
+    const startQuestions = () => {
+      if (!frozen) return
+      setAskFocus(true)
+      onChange({ ...run, phase: 'ask', ...frozen, answers: [], stopped: false })
+    }
     return (
       <div className="mt-4 max-w-2xl space-y-6">
         {claimField}
@@ -125,13 +156,13 @@ export default function ContinuousInput({
         {run.view === 'curve' ? (
           <p className="text-gray-700">
             Draw how likely each value is, relative to the others. The chance for each range follows
-            from the curve. Nothing has been checked yet. More questions to refine this are coming.
+            from the curve. Questions can refine it from here.
           </p>
         ) : (
           <p className="text-gray-700">
             Give each range the chance that the number lands in it. Anything goes while you work;
             the total says how far you are from 100%, and Normalize scales the bars to 100% if you
-            want that. Nothing has been checked yet. More questions to refine this are coming.
+            want that. Questions can refine it from here.
           </p>
         )}
         {run.view === 'curve' ? (
@@ -146,6 +177,14 @@ export default function ContinuousInput({
           />
         )}
         <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className={PRIMARY}
+            disabled={frozen === null}
+            onClick={startQuestions}
+          >
+            Start the questions
+          </button>
           <button
             type="button"
             className={SECONDARY}
@@ -231,7 +270,7 @@ export default function ContinuousInput({
     setError(null)
     focusRequest.current = 'bars'
     // Bars drawn for the same buckets are kept (only the unit may have changed)
-    const edges = bucketsOf(run).edges.map(String)
+    const edges = bucketsOf(run).edges.map(plainNumber)
     const same = edges.length === run.edges.length && edges.every((e, i) => e === run.edges[i])
     onChange({ ...run, phase: 'bars', edges, percents: same ? run.percents : {} })
   }

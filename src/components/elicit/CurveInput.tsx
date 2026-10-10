@@ -1,10 +1,9 @@
 import Decimal from 'decimal.js'
 import { useId, useRef } from 'react'
-import { bucketCurve, formatEdge, placesFor } from '../../domain/elicitation/bucketing'
-import { parseHeight } from '../../domain/elicitation/format'
+import { formatEdge, placesFor } from '../../domain/elicitation/bucketing'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { BOTTOM, H, PAD, TOP, toSvgPoint, W } from './curveGeometry'
-import { CURVE_POINTS, type ContinuousRunData } from '../../storage/continuousRun'
+import { CURVE_POINTS, curveBucketsOf, type ContinuousRunData } from '../../storage/continuousRun'
 
 interface CurveInputProps {
   run: ContinuousRunData
@@ -32,38 +31,10 @@ export default function CurveInput({ run, onChange }: CurveInputProps) {
   const range = max.minus(min)
   const places = Math.min(6, placesFor(range) + 1)
   const unit = run.unit ? ` ${run.unit}` : ''
-  const xs = Array.from({ length: CURVE_POINTS }, (_, i) =>
-    min.plus(range.times(i).div(CURVE_POINTS - 1))
-  )
+  const { result, problem, heights: parsed, xs } = curveBucketsOf(run)
+  const buckets = result?.buckets ?? null
+  const edges = result?.edges ?? []
   const heights = Array.from({ length: CURVE_POINTS }, (_, i) => run.curve[i] ?? '')
-  // blank is 0; null is text that is no height
-  const parsed = heights.map(h => (h.trim() === '' ? '0' : parseHeight(h)))
-  const allUsable = parsed.every(p => p !== null)
-
-  let buckets: ReturnType<typeof bucketCurve>['buckets'] | null = null
-  let edges: Decimal[] = []
-  let problem: string | null = null
-  if (!allUsable) {
-    problem = 'Some heights are not usable yet.'
-  } else if (parsed.every(p => p === '0')) {
-    problem = 'Raise at least one point to draw a curve.'
-  } else {
-    try {
-      const result = bucketCurve(
-        {
-          min,
-          max,
-          thresholds: run.thresholds,
-          curve: xs.map((x, i) => ({ x, y: parsed[i]! })),
-        },
-        run.unit
-      )
-      buckets = result.buckets
-      edges = result.edges
-    } catch {
-      problem = 'This curve cannot be cut into ranges: change a point.'
-    }
-  }
 
   const setHeight = (index: number, value: string) => {
     const curve = heights.slice()

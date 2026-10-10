@@ -2,7 +2,7 @@
 
 ## Next step
 
-24b.
+25.
 
 ## Stack
 
@@ -37,6 +37,7 @@
 - 22b: howsure/22b-fixes, PR #115 (base howsure/22a-spot-checks)
 - 23a: howsure/23a-bars, PR #116 (base howsure/22b-fixes)
 - 23b: howsure/23b-curve, PR #117 (base howsure/23a-bars)
+- 24a: howsure/24a-multi-questions, PR #118 (base howsure/23b-curve)
 
 ## Log
 
@@ -499,6 +500,16 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   `nextMultiQuestion` (`multiAnswers.ts`). When no question is worth asking, or the user stops, a
   placeholder "Where your answers stand" lists the coherent band and provenance per outcome; step 25
   replaces it. Chromium E2E: `elicit-multi-questions.spec.ts` (2 tests, axe on a question and the end).
+
+- **Step 24b (question flow, number claims)**: "Start the questions" in the bars and the curve view
+  freezes the buckets and the starting chances into the run (phase `ask`): for bars, the edges and
+  typed percentages (blank is 0, at least one above 0); for the curve, `bucketCurve`'s edges and its
+  chances per range (two decimals). The ranges, named with the unit ("0 to 8 °C"), are the outcomes
+  without tiers, and the numbers are the sketch (`continuousToMultiRun`); tail checks use the sketch
+  (at or below 5% / at or above 85%). The question screens are the same `MultiQuestions`, now taking
+  the domain run, so both kinds share it. The ask-phase run is validated on load by replay like the
+  categorical one; older runs without answers load. The range and the drawing cannot be changed once
+  the questions have started (start again). Chromium E2E: continuous spec 3 tests, axe on a question.
 
 ## Decisions
 
