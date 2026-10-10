@@ -83,3 +83,9 @@ export const MERGE_BELOW = 0.03
 
 /** Continuous buckets: neighbouring buckets both below this chance are merged into one. */
 export const BUCKET_MERGE_BELOW = 0.03
+
+/**
+ * A stored run (any kind) last touched more than this many days ago is not resumed silently:
+ * the user is asked whether to continue or start a new claim.
+ */
+export const RUN_STALE_AFTER_DAYS = 7

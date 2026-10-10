@@ -135,7 +135,7 @@ describe('MultiQuestions', () => {
     expect(list.textContent).toMatch(/%/)
   })
 
-  it('stops on request, and "Start again" is offered at the end', async () => {
+  it('stops on request, and "Start a new claim" is offered at the end', async () => {
     const user = userEvent.setup()
     let again = 0
     render(<Harness onStartAgain={() => again++} />)
@@ -143,7 +143,7 @@ describe('MultiQuestions', () => {
     expect(screen.getByRole('heading', { name: 'Your result' })).toBeInTheDocument()
     expect(screen.getByText(/You stopped early/)).toBeInTheDocument()
     expect(loadMultiRun()?.stopped).toBe(true)
-    await user.click(screen.getByRole('button', { name: 'Start again' }))
+    await user.click(screen.getByRole('button', { name: 'Start a new claim' }))
     expect(again).toBe(1)
   })
 

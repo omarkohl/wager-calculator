@@ -233,7 +233,7 @@ describe('ResultScreen with nothing usable', () => {
     const onStartAgain = vi.fn()
     render(<ResultScreen run={run} {...props} onStartAgain={onStartAgain} />)
     expect(screen.getByText('No range yet')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Start again' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Start a new claim' })).toBeInTheDocument()
   })
 })
 

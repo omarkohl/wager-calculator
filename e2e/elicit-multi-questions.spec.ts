@@ -76,11 +76,12 @@ test.describe('Several outcomes: the questions', () => {
     const ownResults = await new AxeBuilder({ page }).analyze()
     expect(ownResults.violations).toEqual([])
 
-    // the standing survives a reload, and "Start again" returns to the gate
+    // the standing survives a reload, and "Start a new claim" returns to the gate
     await page.reload()
     await expect(standing).toBeVisible()
     await expect(rain).toHaveValue(/\d/)
-    await page.getByRole('button', { name: 'Start again' }).click()
+    await page.getByRole('button', { name: 'Start a new claim' }).click()
     await expect(page.getByRole('button', { name: 'Start' })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Claim' })).toBeFocused()
   })
 })

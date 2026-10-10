@@ -96,4 +96,60 @@ test.describe('Elicitation FAQ', () => {
         .getByRole('button', { name: 'Why do the spinner chances jump in odd steps?' })
     ).toHaveAttribute('aria-expanded', 'true')
   })
+
+  test('a run left for over a week asks before resuming; "Start a new claim" starts clean', async ({
+    page,
+  }) => {
+    await page.goto('/elicit')
+    await page.getByRole('textbox', { name: 'Claim' }).fill('It rains in Berlin tomorrow')
+    await page.getByRole('textbox', { name: 'Amount' }).fill('20')
+    await page.getByRole('button', { name: 'Start' }).click()
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+    ).toBeVisible()
+
+    // eight days later
+    await page.clock.setFixedTime(Date.now() + 8 * 24 * 60 * 60 * 1000)
+    await page.reload()
+    await expect(page.getByRole('heading', { name: /unfinished estimate from/ })).toBeVisible()
+    await expect(page.getByText('It rains in Berlin tomorrow')).toBeVisible()
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
+
+    // Continue changes nothing
+    await page.getByRole('button', { name: 'Continue' }).click()
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+    ).toBeVisible()
+
+    // Continue made the run recent again: a reload does not ask a second time
+    await page.reload()
+    await expect(page.getByRole('heading', { name: /estimate from/ })).toHaveCount(0)
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+    ).toBeVisible()
+
+    // after another two weeks it asks again, and a new claim starts clean
+    await page.clock.setFixedTime(Date.now() + 16 * 24 * 60 * 60 * 1000)
+    await page.reload()
+    await page.getByRole('button', { name: 'Start a new claim' }).click()
+    await expect(page.getByRole('textbox', { name: 'Claim' })).toBeFocused()
+    await expect(page.getByRole('textbox', { name: 'Claim' })).toHaveValue('')
+    await page.reload()
+    await expect(page.getByRole('heading', { name: /estimate from/ })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Start' })).toBeVisible()
+  })
+
+  test('the result has a clear "Start a new claim" button', async ({ page }) => {
+    await page.goto('/elicit')
+    await page.getByRole('textbox', { name: 'Claim' }).fill('It rains in Berlin tomorrow')
+    await page.getByRole('textbox', { name: 'Amount' }).fill('20')
+    await page.getByRole('button', { name: 'Start' }).click()
+    await page.getByRole('button', { name: /I can.t separate these/ }).click()
+    await page.getByRole('button', { name: 'Stop here' }).click()
+    await page.getByRole('button', { name: 'Start a new claim' }).click()
+    await expect(page.getByRole('textbox', { name: 'Claim' })).toBeFocused()
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Start' })).toBeVisible()
+  })
 })

@@ -280,11 +280,6 @@ export default function ResultScreen({
                 'The answers that were kept don’t say which side of any spinner was preferred, so there is nothing to report.'
               )}
             </p>
-            {onStartAgain && (
-              <button type="button" onClick={onStartAgain} className={`${PRIMARY} mt-3`}>
-                Start again
-              </button>
-            )}
           </>
         )}
       </div>
@@ -451,6 +446,15 @@ export default function ResultScreen({
           </p>
         )}
       </details>
+
+      {onStartAgain && (
+        <div className="border-t border-gray-200 pt-5">
+          <p className="mb-2 text-gray-700">Done with this claim?</p>
+          <button type="button" onClick={onStartAgain} className={PRIMARY}>
+            Start a new claim
+          </button>
+        </div>
+      )}
     </section>
   )
 }
