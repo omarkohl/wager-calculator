@@ -14,6 +14,8 @@ import {
   type SpotCheckAnswer,
 } from '../domain/elicitation/comparisons'
 import { MAX_OUTCOMES } from '../domain/elicitation/constants'
+import type { MultiAnswer } from '../domain/elicitation/multiRun'
+import { decodeMultiAnswers, encodeMultiAnswers, toMultiRun } from './multiAnswers'
 import { ELICIT_FORMAT_VERSION, MAX_TEXT_LENGTH } from './elicitation'
 
 /**
@@ -24,9 +26,10 @@ import { ELICIT_FORMAT_VERSION, MAX_TEXT_LENGTH } from './elicitation'
 
 /**
  * `discover`: outcomes are being collected; `check`: the list is closed and being spot-checked
- * for overlap and gaps; `sketch`: the first sketch is shown.
+ * for overlap and gaps; `sketch`: the first sketch is shown; `ask`: the questions (and, when
+ * they are over or stopped, where the answers stand).
  */
-export type MultiPhase = 'discover' | 'check' | 'sketch'
+export type MultiPhase = 'discover' | 'check' | 'sketch' | 'ask'
 
 /** `tiers`: each outcome is dropped into a tier; `numbers`: the user types a percentage each. */
 export type MultiView = 'tiers' | 'numbers'
@@ -51,6 +54,10 @@ export interface MultiRunData {
   reviewing: boolean
   /** The outcome the user is replacing with narrower ones, for the reminder; else null. */
   replaced: string | null
+  /** The answers to the questions so far (phase `ask`). */
+  answers: MultiAnswer[]
+  /** The user pressed "stop here". */
+  stopped: boolean
 }
 
 const KEY = 'howsure.multi'
@@ -146,7 +153,14 @@ function parseChecks(raw: unknown, outcomes: OutcomeList, seed: string): SpotChe
 
 export function saveMultiRun(run: MultiRunData): void {
   try {
-    sessionStorage.setItem(KEY, JSON.stringify({ ev: ELICIT_FORMAT_VERSION, ...run }))
+    sessionStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ev: ELICIT_FORMAT_VERSION,
+        ...run,
+        answers: encodeMultiAnswers(run.answers),
+      })
+    )
   } catch {
     // Private mode or quota: the run just does not survive a reload
   }
@@ -163,7 +177,13 @@ export function loadMultiRun(): MultiRunData | null {
     if (typeof raw.criteria !== 'string' || raw.criteria.length > MAX_TEXT_LENGTH) return null
     if (typeof raw.seed !== 'string' || !SEED_PATTERN.test(raw.seed)) return null
     if (typeof raw.declinedElse !== 'boolean') return null
-    if (raw.phase !== 'discover' && raw.phase !== 'check' && raw.phase !== 'sketch') return null
+    if (
+      raw.phase !== 'discover' &&
+      raw.phase !== 'check' &&
+      raw.phase !== 'sketch' &&
+      raw.phase !== 'ask'
+    )
+      return null
     if (raw.view !== 'tiers' && raw.view !== 'numbers') return null
     const view = raw.view
     const outcomes = parseOutcomes(raw.outcomes, view)
@@ -187,8 +207,24 @@ export function loadMultiRun(): MultiRunData | null {
     // decided about a flaw; a sketch follows clean checks, or a flaw the user chose to keep
     if (raw.phase === 'discover' && (checks.length > 0 || raw.kept)) return null
     if (raw.phase === 'check' && (raw.kept || (complete && !flawed))) return null
-    if (raw.phase === 'sketch' && !complete) return null
-    if (raw.phase === 'sketch' && raw.kept !== flawed) return null
+    const past = raw.phase === 'sketch' || raw.phase === 'ask'
+    if (past && !complete) return null
+    if (past && raw.kept !== flawed) return null
+    // Fields added with the questions: a run stored before them has none
+    const stopped = raw.stopped ?? false
+    if (typeof stopped !== 'boolean') return null
+    const storedAnswers = raw.answers ?? []
+    // Questions come only in the `ask` phase, replayed against the algorithm
+    let answers: MultiAnswer[] = []
+    if (raw.phase === 'ask') {
+      const base = toMultiRun({ outcomes, seed: raw.seed, view, percents })
+      if (!base) return null
+      const decoded = decodeMultiAnswers(storedAnswers, base)
+      if (!decoded) return null
+      answers = decoded
+    } else if (stopped || !Array.isArray(storedAnswers) || storedAnswers.length > 0) {
+      return null
+    }
     return {
       kind: 'categorical',
       claim: raw.claim,
@@ -203,6 +239,8 @@ export function loadMultiRun(): MultiRunData | null {
       kept: raw.kept,
       reviewing: raw.reviewing,
       replaced: raw.replaced,
+      answers,
+      stopped,
     }
   } catch {
     return null

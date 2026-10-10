@@ -38,6 +38,10 @@ export const TIER_SKETCH = {
   'near-certain': 0.9,
 } as const
 
+/** Without a tier (numbers, bars, curve): a sketch at or below / above this counts as a tail. */
+export const TAIL_SKETCH_BELOW = 0.05
+export const TAIL_SKETCH_ABOVE = 0.85
+
 /** A claim needs at least this many outcomes: one outcome is no question. */
 export const MIN_OUTCOMES = 2
 

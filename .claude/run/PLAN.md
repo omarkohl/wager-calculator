@@ -196,6 +196,11 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
         per bucket underneath, a keyboard alternative (a value per point).
 - [ ] 24. **Question flow**: comparison and lottery questions under the yes/no
       presentation rules; useful after two answers; provenance per bucket.
+  - [x] 24a. Categorical claims: "Start the questions" from the sketch (the typed numbers are
+        the sketch in the numbers view), comparison and lottery screens, stop, answers stored and
+        replayed on load, an interim "where your answers stand" screen (step 25 replaces it).
+  - [ ] 24b. Number claims: the buckets of the bars or the curve become the outcomes and the
+        typed percentages (curve: its probabilities) the sketch; the same flow.
 - [ ] 25. **Result**: band per bucket as headline, point estimate, provenance,
       incoherence flag, the standing notice when the list was kept despite a failed disjoint or
       exhaustive check (`kept`), insights, merge offer, adjust after with Normalize, the trace.

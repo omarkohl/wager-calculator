@@ -180,6 +180,8 @@ export default function ElicitPage() {
         kept: false,
         reviewing: false,
         replaced: null,
+        answers: [],
+        stopped: false,
       }
       saveMultiRun(started)
       setMulti(started)
@@ -276,6 +278,7 @@ export default function ElicitPage() {
         <OutcomeDiscovery
           run={multi}
           focusOnShow={focusNext}
+          stake={stakeText()}
           onChange={changeMulti}
           onStartAgain={startAgain}
         />

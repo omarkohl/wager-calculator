@@ -15,14 +15,18 @@ import { MAX_OUTCOMES } from '../../domain/elicitation/constants'
 import { parsePercent } from '../../domain/elicitation/format'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { MAX_TEXT_LENGTH } from '../../storage/elicitation'
+import MultiQuestions from './MultiQuestions'
 import PercentList from './PercentList'
 import SpotChecks from './SpotChecks'
+import { toMultiRun } from '../../storage/multiAnswers'
 import { spotChecksOf, type MultiRunData, type MultiView } from '../../storage/multiRun'
 
 interface OutcomeDiscoveryProps {
   run: MultiRunData
   /** Put the cursor in the first field on arrival (after the user acted, not on a plain load). */
   focusOnShow?: boolean
+  /** The stake as the user entered it ("20 EUR"), for the questions. */
+  stake?: string | null
   onChange: (run: MultiRunData) => void
   onStartAgain: () => void
 }
@@ -59,6 +63,7 @@ type FocusTarget = 'label' | 'percent' | 'claim' | 'sketch' | 'cap'
 export default function OutcomeDiscovery({
   run,
   focusOnShow,
+  stake = null,
   onChange,
   onStartAgain,
 }: OutcomeDiscoveryProps) {
@@ -66,6 +71,12 @@ export default function OutcomeDiscovery({
   const [tier, setTier] = useState<Tier | null>(null)
   const [percent, setPercent] = useState('')
   const [checkFocus, setCheckFocus] = useState(false)
+  const [askFocus, setAskFocus] = useState(false)
+  const startQuestions = () => {
+    setAskFocus(true)
+    onChange({ ...run, phase: 'ask', answers: [], stopped: false })
+  }
+  const numbersUsable = toMultiRun(run) !== null
   const [error, setError] = useState<string | null>(null)
   /** Which field the message is about. */
   const [errorField, setErrorField] = useState<'label' | 'percent'>('label')
@@ -166,6 +177,18 @@ export default function OutcomeDiscovery({
     </ul>
   )
 
+  if (run.phase === 'ask') {
+    return (
+      <MultiQuestions
+        run={run}
+        stake={stake}
+        focusOnShow={askFocus}
+        onChange={onChange}
+        onStartAgain={onStartAgain}
+      />
+    )
+  }
+
   if (run.phase === 'check') {
     return (
       <div className="mt-4 max-w-2xl space-y-6">
@@ -212,6 +235,14 @@ export default function OutcomeDiscovery({
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
+            className={PRIMARY}
+            disabled={!numbersUsable}
+            onClick={startQuestions}
+          >
+            Start the questions
+          </button>
+          <button
+            type="button"
             className={SECONDARY}
             onClick={() => {
               focusRequest.current = 'label'
@@ -254,6 +285,9 @@ export default function OutcomeDiscovery({
           ))}
         </ul>
         <div className="flex flex-wrap gap-3">
+          <button type="button" className={PRIMARY} onClick={startQuestions}>
+            Start the questions
+          </button>
           <button
             type="button"
             className={SECONDARY}

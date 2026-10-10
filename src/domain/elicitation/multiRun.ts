@@ -17,6 +17,8 @@ import {
   NEAR_EVEN_SPREAD,
   NEAR_EVEN_WEIGHT,
   TAIL_CHECK_SCORE,
+  TAIL_SKETCH_ABOVE,
+  TAIL_SKETCH_BELOW,
   TAIL_WEIGHT,
 } from './constants'
 import { firstSketch, type ElicitOutcome } from './model'
@@ -38,6 +40,11 @@ export interface MultiRun {
   outcomes: readonly ElicitOutcome[]
   seed: string
   answers: readonly MultiAnswer[]
+  /**
+   * The starting chances when they do not come from the outcomes' tiers: the user's own
+   * numbers (the numbers view, the bars or curve of a number claim), summing to 1.
+   */
+  sketch?: ReadonlyMap<string, Decimal>
 }
 
 export type MultiQuestion =
@@ -136,7 +143,7 @@ export interface Analysis {
 export function analyse(run: MultiRun): Analysis {
   const raw = rawBands(run)
   return {
-    sketch: firstSketch(run.outcomes),
+    sketch: run.sketch ? new Map(run.sketch) : firstSketch(run.outcomes),
     coherent: makeCoherent(raw.bands, orderAnswers(comparisonsOf(run)), raw.lockedSide),
     groupIncoherences: raw.groupIncoherences,
   }
@@ -219,7 +226,12 @@ export function nextMultiQuestion(run: MultiRun): MultiQuestion | null {
     if (!asked) {
       score = Math.min(score, 2 * sketch.get(o.id)!.toNumber())
       if (nearEven) score *= NEAR_EVEN_WEIGHT
-      if (o.tier === 'very unlikely' || o.tier === 'near-certain') {
+      const chance = sketch.get(o.id)!.toNumber()
+      const tail =
+        o.tier === null
+          ? chance <= TAIL_SKETCH_BELOW || chance >= TAIL_SKETCH_ABOVE
+          : o.tier === 'very unlikely' || o.tier === 'near-certain'
+      if (tail) {
         score = Math.max(score * TAIL_WEIGHT, TAIL_CHECK_SCORE)
       }
     }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import Decimal from 'decimal.js'
 import {
   analyse,
   answerMulti,
@@ -353,5 +354,49 @@ describe('more outcomes, fewer outcomes', () => {
       { id: 'b', label: 'B', tier: null },
     ]
     expect(() => nextMultiQuestion(run0(untiered))).toThrow('Outcome "B" has no tier yet')
+  })
+})
+
+describe('a run with its own sketch (numbers, bars, curve)', () => {
+  const buckets: ElicitOutcome[] = ['b0', 'b1', 'b2'].map(id => ({ id, label: id, tier: null }))
+  const sketch = new Map([
+    ['b0', new Decimal(0.2)],
+    ['b1', new Decimal(0.5)],
+    ['b2', new Decimal(0.3)],
+  ])
+
+  it('works without tiers, starting from the numbers given', () => {
+    const run: MultiRun = { outcomes: buckets, seed: 's', answers: [], sketch }
+    expect(analyse(run).sketch.get('b1')?.toNumber()).toBe(0.5)
+    expect(nextMultiQuestion(run)).not.toBeNull()
+  })
+
+  it('throws without tiers and without a sketch', () => {
+    expect(() => analyse({ outcomes: buckets, seed: 's', answers: [] })).toThrow()
+  })
+
+  it('is deterministic: the same run asks the same question', () => {
+    const run: MultiRun = { outcomes: buckets, seed: 's', answers: [], sketch }
+    expect(JSON.stringify(nextMultiQuestion(run))).toBe(JSON.stringify(nextMultiQuestion(run)))
+  })
+})
+
+describe('tail checks without tiers', () => {
+  it('asks about an outcome typed at about 1%, which would otherwise be worth too little', () => {
+    const buckets: ElicitOutcome[] = ['b0', 'b1', 'b2'].map(id => ({ id, label: id, tier: null }))
+    const sketch = new Map([
+      ['b0', new Decimal(0.01)],
+      ['b1', new Decimal(0.5)],
+      ['b2', new Decimal(0.49)],
+    ])
+    let run: MultiRun = { outcomes: buckets, seed: 'tail', answers: [], sketch }
+    const seen = new Set<string>()
+    for (let i = 0; i < 12; i++) {
+      const q = nextMultiQuestion(run)
+      if (!q) break
+      if (q.kind === 'lottery') q.targets.forEach(t => seen.add(t))
+      run = answerMulti(run, answerFor(q, { b0: 0.01, b1: 0.5, b2: 0.49 }))
+    }
+    expect(seen.has('b0')).toBe(true)
   })
 })
