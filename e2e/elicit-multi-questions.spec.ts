@@ -42,7 +42,7 @@ test.describe('Several outcomes: the questions', () => {
 
     const spinner = page.getByRole('button', { name: /if the spinner lands/ })
     const equal = page.getByRole('button', { name: 'About equally likely' })
-    const standing = page.getByRole('heading', { name: 'Where your answers stand' })
+    const standing = page.getByRole('heading', { name: 'Your result' })
     const answerOne = async () => {
       await spinner.or(equal).or(standing).first().waitFor()
       if (await standing.isVisible()) return false
@@ -57,9 +57,10 @@ test.describe('Several outcomes: the questions', () => {
 
     for (let i = 0; i < 45 && (await answerOne()); i++);
     await expect(standing).toBeFocused()
-    const list = page.getByRole('list', { name: 'Where your answers stand' })
+    const list = page.getByRole('list', { name: 'Result per outcome' })
     await expect(list.getByRole('listitem')).toHaveCount(3)
     await expect(list).toContainText('%')
+    await expect(list).toContainText('Best single number')
     const endResults = await new AxeBuilder({ page }).analyze()
     expect(endResults.violations).toEqual([])
 

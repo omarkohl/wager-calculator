@@ -122,7 +122,7 @@ test.describe('Number claims: range and bars', () => {
 
     const spinner = page.getByRole('button', { name: /if the spinner lands/ })
     const equal = page.getByRole('button', { name: 'About equally likely' })
-    const standing = page.getByRole('heading', { name: 'Where your answers stand' })
+    const standing = page.getByRole('heading', { name: 'Your result' })
     const answerOne = async () => {
       await spinner.or(equal).or(standing).first().waitFor()
       if (await standing.isVisible()) return false
@@ -134,7 +134,7 @@ test.describe('Number claims: range and bars', () => {
     await expect(page.getByRole('button', { name: 'Stop here' })).toBeVisible()
     for (let i = 0; i < 45 && (await answerOne()); i++);
     await expect(standing).toBeFocused()
-    const list = page.getByRole('list', { name: 'Where your answers stand' })
+    const list = page.getByRole('list', { name: 'Result per outcome' })
     await expect(list).toContainText('0 °C')
     await expect(list).toContainText('%')
   })
