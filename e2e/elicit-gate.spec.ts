@@ -93,7 +93,7 @@ test.describe('Elicitation FAQ', () => {
     await expect(
       page
         .getByRole('dialog')
-        .getByRole('button', { name: 'Why do the spinner chances jump in odd steps?' })
+        .getByRole('button', { name: 'Why do the chances jump in odd steps?' })
     ).toHaveAttribute('aria-expanded', 'true')
   })
 

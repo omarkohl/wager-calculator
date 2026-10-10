@@ -120,7 +120,9 @@ test.describe('Number claims: range and bars', () => {
     const results = await new AxeBuilder({ page }).analyze()
     expect(results.violations).toEqual([])
 
-    const spinner = page.getByRole('button', { name: /if the spinner lands/ })
+    const spinner = page.getByRole('button', {
+      name: /if the spinner lands|if a ball drawn at random/,
+    })
     const equal = page.getByRole('button', { name: 'About equally likely' })
     const standing = page.getByRole('heading', { name: 'Your result' })
     const answerOne = async () => {

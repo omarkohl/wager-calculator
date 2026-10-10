@@ -94,7 +94,7 @@ describe('ElicitPage', () => {
     }
     // all "can't separate": the span of wedges, not a band
     expect(
-      screen.getByRole('heading', { name: /You could not tell the claim from spinners/ })
+      screen.getByRole('heading', { name: /You could not tell the claim from the lotteries/ })
     ).toHaveFocus()
   })
 })
@@ -269,7 +269,9 @@ describe('ElicitPage shared links', () => {
     window.history.replaceState(null, '', `/elicit${encodeResultHash(early)}`)
     render(<ElicitPage />)
     expect(screen.getByText(/This is coarse/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /spinner lands/ })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /spinner lands|a ball drawn at random/ })
+    ).not.toBeInTheDocument()
   })
 
   it('"Elicit your own" starts the gate from the shared claim, as an invite', async () => {
@@ -444,7 +446,7 @@ describe('ElicitPage FAQ', () => {
     window.history.replaceState(null, '', '/elicit#faq=why-log-odds')
     render(<ElicitPage />)
     const question = await screen.findByRole('button', {
-      name: 'Why do the spinner chances jump in odd steps?',
+      name: 'Why do the chances jump in odd steps?',
     })
     expect(question).toHaveAttribute('aria-expanded', 'true')
     await userEvent.click(screen.getByRole('button', { name: /close help dialog/i }))

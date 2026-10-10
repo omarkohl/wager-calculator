@@ -13,14 +13,16 @@ export const ELICIT_FAQ_ENTRIES = [
         <p className="mb-3">
           You are asked, again and again, which you would rather have: win a prize if the claim
           turns out true, or win the same prize if a spinner lands in a shaded part that wins, say,
-          40% of the time. Because the prize is the same either way, only your sense of how likely
-          the claim is can decide. Prefer the claim and you think it is more likely than 40%; prefer
-          the spinner and you think it is less likely.
+          40% of the time (for chances under 10% or over 90%, one ball is drawn at random from a
+          grid of balls, some of them winners, instead). Because the prize is the same either way,
+          only your sense of how likely the claim is can decide. Prefer the claim and you think it
+          is more likely than 40%; prefer the spinner and you think it is less likely.
         </p>
         <p className="mb-3">
-          The shaded part moves until the tool finds where you stop being sure which you prefer, and
-          the stretch in between is your range. &ldquo;I can&rsquo;t separate these&rdquo; is an
-          honest answer: it sends the search further out, it does not end it.
+          The chance moves (the shaded part grows or shrinks, or more or fewer balls win) until the
+          tool finds where you stop being sure which you prefer, and the stretch in between is your
+          range. &ldquo;I can&rsquo;t separate these&rdquo; is an honest answer: it sends the search
+          further out, it does not end it.
         </p>
         <p>
           A quick run takes about six questions. A thorough run takes around fifteen to eighteen and
@@ -31,7 +33,7 @@ export const ELICIT_FAQ_ENTRIES = [
   },
   {
     id: 'why-log-odds',
-    question: 'Why do the spinner chances jump in odd steps?',
+    question: 'Why do the chances jump in odd steps?',
     answer: (
       <>
         <p className="mb-3">

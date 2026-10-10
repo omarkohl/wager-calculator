@@ -9,7 +9,7 @@ async function startRun(page: Page, mode: 'Quick' | 'Thorough') {
   await page.getByRole('button', { name: 'Start' }).click()
 }
 
-const chanceOnScreen = async (page: Page) => {
+const lotteryChance = async (page: Page) => {
   const label = await page.getByRole('img', { name: /of the time/ }).getAttribute('aria-label')
   return Number(/([\d.]+)% of the time/.exec(label!)![1])
 }
@@ -21,9 +21,9 @@ async function answerAll(page: Page, sensible: boolean) {
     i < 30 && (await page.getByRole('button', { name: /I can.t separate/ }).count()) > 0;
     i++
   ) {
-    const claimWins = (await chanceOnScreen(page)) < 50 === sensible
+    const claimWins = (await lotteryChance(page)) < 50 === sensible
     if (claimWins) await page.getByRole('button', { name: /if this is (true|false)/ }).click()
-    else await page.getByRole('button', { name: /spinner lands/ }).click()
+    else await page.getByRole('button', { name: /spinner lands|a ball drawn at random/ }).click()
   }
 }
 
@@ -129,14 +129,14 @@ test.describe('Elicitation result', () => {
       i < 30 && (await page.getByRole('button', { name: /I can.t separate/ }).count()) > 0;
       i++
     ) {
-      const chance = await chanceOnScreen(page)
+      const chance = await lotteryChance(page)
       const key = `${chance}|${await page.getByRole('button', { name: /if this is (true|false)/ }).textContent()}`
       const repeat = seen.has(key)
       seen.add(key)
       // sensible answers, except that a comparison seen before gets the opposite answer
       const claimWins = chance < 50 !== repeat
       if (claimWins) await page.getByRole('button', { name: /if this is (true|false)/ }).click()
-      else await page.getByRole('button', { name: /spinner lands/ }).click()
+      else await page.getByRole('button', { name: /spinner lands|a ball drawn at random/ }).click()
     }
     await expect(page.getByText(/differently when it came back/).first()).toBeVisible()
     await expect(

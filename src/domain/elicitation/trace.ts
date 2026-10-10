@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js'
 import { computeBand, isHardContradiction, type Choice, type WedgeAnswer } from './bandRule'
+import { lotteryNoun } from './lottery'
 import { adjustmentGap, type AdjustmentGap } from './format'
 import { type Band, formatPercent, fromPercent, logit } from './logOdds'
 import { nextQuestion } from './quickSearch'
@@ -126,9 +127,10 @@ function describe(
   other: boolean
 ): Pick<TraceStep, 'question' | 'answer' | 'implication'> {
   const w = pct(a.wedge)
+  const noun = lotteryNoun(a.wedge)
   const c = pct(complement(a.wedge))
   const subject = frame === 'claim' ? 'the claim' : 'the claim being false'
-  const question = `${subject} or a spinner that wins ${w} of the time`
+  const question = `${subject} or a ${noun} that wins ${w} of the time`
   const believe = other ? 'The claim was judged' : 'You think the claim is'
   switch (a.choice) {
     case 'claim':
@@ -143,7 +145,7 @@ function describe(
     case 'wedge':
       return {
         question,
-        answer: `Preferred the ${w} spinner`,
+        answer: `Preferred the ${w} ${noun}`,
         implication:
           frame === 'claim'
             ? `${believe} less likely than ${w}.`
@@ -155,8 +157,8 @@ function describe(
         question,
         answer: 'Could not separate them',
         implication: other
-          ? `${what[0].toUpperCase()}${what.slice(1)} and a ${w} spinner could not be told apart.`
-          : `You could not tell ${what} and a ${w} spinner apart.`,
+          ? `${what[0].toUpperCase()}${what.slice(1)} and a ${w} ${noun} could not be told apart.`
+          : `You could not tell ${what} and a ${w} ${noun} apart.`,
       }
     }
   }

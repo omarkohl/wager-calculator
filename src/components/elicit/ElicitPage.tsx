@@ -335,7 +335,8 @@ export default function ElicitPage() {
       ) : shared?.type === 'invite' || (run === null && multi === null && cont === null) ? (
         <div className="max-w-2xl">
           <p className="mt-2 mb-6 text-gray-700">
-            Put a number on how likely you think something is, by comparing it with a spinner.
+            Put a number on how likely you think something is, by comparing it with a spinner or a
+            draw of balls.
           </p>
           <SetupGate
             onStart={start}

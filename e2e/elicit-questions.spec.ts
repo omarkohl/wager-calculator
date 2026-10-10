@@ -12,7 +12,7 @@ async function startRun(page: Page, mode: 'Quick' | 'Thorough' = 'Quick') {
 const separate = (page: Page) => page.getByRole('button', { name: /I can.t separate these/ })
 
 test.describe('Elicitation questions', () => {
-  test('shows the reference lottery with its number and an accessible name, and passes axe', async ({
+  test('shows the reference lottery with its chance small on screen and in an accessible name, and passes axe', async ({
     page,
   }) => {
     await startRun(page)
@@ -23,8 +23,10 @@ test.describe('Elicitation questions', () => {
     await expect(lottery).toBeVisible()
     const name = (await lottery.getAttribute('aria-label'))!
     const chance = /wins (\d+%) of the time/.exec(name)![1]
-    // the number is on screen too, not only in the name
-    await expect(page.getByText(chance, { exact: true })).toBeVisible()
+    // the number is on screen too, small and muted (a headline figure would anchor the answer)
+    const shown = page.getByText(chance, { exact: true })
+    await expect(shown).toBeVisible()
+    await expect(shown).toHaveClass(/text-xs/)
 
     const results = await new AxeBuilder({ page }).analyze()
     expect(results.violations).toEqual([])
@@ -123,8 +125,32 @@ test.describe('Elicitation questions', () => {
         expect(body).not.toMatch(/check|consisten|coheren|opposite|negat/)
       }
       if (chance < 50) await page.getByRole('button', { name: /if this is (true|false)/ }).click()
-      else await page.getByRole('button', { name: /spinner lands/ }).click()
+      else await page.getByRole('button', { name: /spinner lands|a ball drawn at random/ }).click()
     }
     expect(sawFalse).toBe(true)
+  })
+
+  test('in the tails the lottery is balls, and the words follow: a ball drawn at random, no spinner', async ({
+    page,
+  }) => {
+    await startRun(page)
+    const lotteryArm = page.getByRole('button', {
+      name: /if the spinner lands in the shaded part|if a ball drawn at random is a winning ball/,
+    })
+    const balls = page.getByRole('button', { name: /if a ball drawn at random is a winning ball/ })
+    // always prefer the lottery: the search goes down the tail until balls are shown
+    for (let i = 0; i < 12 && (await balls.count()) === 0; i++) {
+      await lotteryArm.click()
+    }
+    await expect(balls).toBeVisible()
+    await expect(balls).not.toContainText(/spinner|shaded/i)
+    await expect(
+      page.getByRole('img', {
+        name: /One ball is drawn at random from \d+ winning balls? out of \d+/,
+      })
+    ).toBeVisible()
+    await expect(page.getByText(/winning balls? out of \d+ \(/)).toBeVisible()
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations).toEqual([])
   })
 })

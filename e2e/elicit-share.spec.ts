@@ -16,7 +16,7 @@ async function answerAll(page: Page) {
     const label = await page.getByRole('img', { name: /of the time/ }).getAttribute('aria-label')
     const chance = Number(/([\d.]+)% of the time/.exec(label!)![1])
     if (chance < 50) await page.getByRole('button', { name: /if this is (true|false)/ }).click()
-    else await page.getByRole('button', { name: /spinner lands/ }).click()
+    else await page.getByRole('button', { name: /spinner lands|a ball drawn at random/ }).click()
   }
 }
 
