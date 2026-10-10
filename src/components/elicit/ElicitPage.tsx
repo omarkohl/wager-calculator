@@ -157,6 +157,7 @@ export default function ElicitPage() {
         curve: [],
         answers: [],
         stopped: false,
+        adjusted: {},
       }
       saveContinuousRun(started)
       setCont(started)
@@ -184,6 +185,8 @@ export default function ElicitPage() {
         replaced: null,
         answers: [],
         stopped: false,
+        adjusted: {},
+        merged: [],
       }
       saveMultiRun(started)
       setMulti(started)

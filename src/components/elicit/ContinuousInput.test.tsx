@@ -21,6 +21,7 @@ const START: ContinuousRunData = {
   curve: [],
   answers: [],
   stopped: false,
+  adjusted: {},
 }
 
 function Harness({ initial = START, focusOnShow = false }) {

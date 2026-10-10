@@ -48,6 +48,8 @@ export interface ContinuousRunData {
   answers: MultiAnswer[]
   /** The user pressed "stop here". */
   stopped: boolean
+  /** The user's own numbers in the result (percent as typed), by bucket id. */
+  adjusted: Record<string, string>
 }
 
 const KEY = 'howsure.continuous'
@@ -143,6 +145,7 @@ export function loadContinuousRun(): ContinuousRunData | null {
       curve: curve as string[],
       answers: [],
       stopped: false,
+      adjusted: {},
     }
     // The bars belong to the edges they were drawn for: in the bars view those are the current
     // ones; back in the range form they are the last drawn ones; with no bars there are none
@@ -160,7 +163,20 @@ export function loadContinuousRun(): ContinuousRunData | null {
     const stopped = raw.stopped ?? false
     const stored = raw.answers ?? []
     if (typeof stopped !== 'boolean' || !Array.isArray(stored)) return null
-    if (run.phase !== 'ask') return stopped || stored.length > 0 ? null : run
+    const adjusted = raw.adjusted ?? {}
+    if (!adjusted || typeof adjusted !== 'object' || Array.isArray(adjusted)) return null
+    const adjustedEntries = Object.entries(adjusted as Record<string, unknown>)
+    const bucketIds = new Set(barIds(edges.length + 1))
+    if (
+      !adjustedEntries.every(
+        ([id, v]) => bucketIds.has(id) && typeof v === 'string' && v.length <= 12
+      )
+    ) {
+      return null
+    }
+    if (run.phase !== 'ask') {
+      return stopped || stored.length > 0 || adjustedEntries.length > 0 ? null : run
+    }
     // The questions: a range that works, edges inside it, a bar for every bucket, and answers
     // that are those the algorithm asks (replayed)
     const lo = parseNumber(run.min)
@@ -171,7 +187,12 @@ export function loadContinuousRun(): ContinuousRunData | null {
     const base = continuousToMultiRun(run)
     const answers = base && decodeMultiAnswers(stored, base)
     if (!answers) return null
-    return { ...run, answers, stopped }
+    return {
+      ...run,
+      answers,
+      stopped,
+      adjusted: Object.fromEntries(adjustedEntries) as Record<string, string>,
+    }
   } catch {
     // barEdges throws for a range it cannot cut (too many thresholds)
     return null

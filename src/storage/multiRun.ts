@@ -58,6 +58,10 @@ export interface MultiRunData {
   answers: MultiAnswer[]
   /** The user pressed "stop here". */
   stopped: boolean
+  /** The user's own numbers in the result (percent as typed), by outcome id. */
+  adjusted: Record<string, string>
+  /** Outcomes the user chose to merge into "Everything else" in the result (a view only). */
+  merged: string[]
 }
 
 const KEY = 'howsure.multi'
@@ -214,6 +218,25 @@ export function loadMultiRun(): MultiRunData | null {
     const stopped = raw.stopped ?? false
     if (typeof stopped !== 'boolean') return null
     const storedAnswers = raw.answers ?? []
+    // The result's own numbers and merge: only after the questions, only for known outcomes
+    const outcomeIds = new Set(outcomes.items.map(o => o.id))
+    const adjusted = raw.adjusted ?? {}
+    const merged = raw.merged ?? []
+    if (!adjusted || typeof adjusted !== 'object' || Array.isArray(adjusted)) return null
+    if (!Array.isArray(merged) || merged.length === 1 || merged.length > outcomeIds.size)
+      return null
+    if (new Set(merged).size !== merged.length) return null
+    if (!merged.every(id => typeof id === 'string' && outcomeIds.has(id))) return null
+    const adjustedEntries = Object.entries(adjusted as Record<string, unknown>)
+    if (
+      !adjustedEntries.every(
+        ([id, v]) =>
+          (outcomeIds.has(id) || id === 'merged') && typeof v === 'string' && v.length <= 12
+      )
+    ) {
+      return null
+    }
+    if (raw.phase !== 'ask' && (adjustedEntries.length > 0 || merged.length > 0)) return null
     // Questions come only in the `ask` phase, replayed against the algorithm
     let answers: MultiAnswer[] = []
     if (raw.phase === 'ask') {
@@ -241,6 +264,8 @@ export function loadMultiRun(): MultiRunData | null {
       replaced: raw.replaced,
       answers,
       stopped,
+      adjusted: Object.fromEntries(adjustedEntries) as Record<string, string>,
+      merged: merged as string[],
     }
   } catch {
     return null

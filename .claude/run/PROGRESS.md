@@ -2,7 +2,7 @@
 
 ## Next step
 
-25b.
+25c.
 
 ## Stack
 
@@ -39,6 +39,7 @@
 - 23b: howsure/23b-curve, PR #117 (base howsure/23a-bars)
 - 24a: howsure/24a-multi-questions, PR #118 (base howsure/23b-curve)
 - 24b: howsure/24b-continuous-questions, PR #119 (base howsure/24a-multi-questions)
+- 25a: howsure/25a-multi-result, PR #120 (base howsure/24b-continuous-questions)
 
 ## Log
 
@@ -522,8 +523,21 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   placeholder standing, with the `kept` notice (`KeptNotice`, now its own component) for categorical
   runs. Chromium E2E: the two question specs, adapted ("Your result", "Result per outcome").
 
+- **Step 25b (own numbers, merge)**: step 25 is now 25a to 25d (25c: start a new claim and stale runs;
+  25d: the trace). On the result, "Your own numbers" (`PercentList`) start at the best single number
+  (the sketch inside the band for an outcome with an open end), say neutrally how each sits against
+  its range, and Normalize scales them (cursor on the total). The merge offer (`mergeOffer`) is shown
+  for categorical claims only; "Merge them into Everything else" applies a view (`mergeRows`: bands and
+  numbers add, answers untouched), "Undo the merge" reverses it; either resets the own numbers. Own
+  numbers and the merge are stored in the run (`adjusted`, `merged`; absent in older runs).
+
 ## Decisions
 
+- Step 25b (review): a merged "Everything else" has the summed band kept within what the other outcomes
+  leave over (lo >= 1 - their highs, hi <= 1 - their lows) and its single number is that band's
+  midpoint again (none if it is one-sided), not the sum of the parts' numbers; the answers behind it are
+  counted once. The view names no merged-away outcome in the insights or flags. `applyMerge` in
+  `insights.ts` was dropped: `mergeRows` is the only merge rule.
 - Step 24a: no thorough mode and no "approx. N left" for several outcomes (no estimate function
   exists, and a countdown from the 40-question cap would be the forbidden "question k of N"): the
   screen shows no line about questions left until there is a real estimate.

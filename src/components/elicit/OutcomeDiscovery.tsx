@@ -175,6 +175,10 @@ export default function OutcomeDiscovery({
         base={withAnswers(toMultiRun(run), run.answers)}
         stopped={run.stopped}
         kept={run.kept}
+        adjusted={run.adjusted}
+        onAdjusted={adjusted => onChange({ ...run, adjusted })}
+        merged={run.merged}
+        onMerged={merged => onChange({ ...run, merged, adjusted: {} })}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}

@@ -25,6 +25,8 @@ interface PercentListProps {
    * every row needs a usable percentage above 0 and below 100.
    */
   bars?: boolean
+  /** A line under a row's field (say, how it sits against what the answers imply), by row id. */
+  notes?: Record<string, string>
 }
 
 const PROBLEM_STRICT = 'Enter a percentage above 0 and below 100, with at most two decimals.'
@@ -46,6 +48,7 @@ export default function PercentList({
   values,
   onChange,
   bars = false,
+  notes = {},
 }: PercentListProps) {
   const base = useId()
   const totalRef = useRef<HTMLParagraphElement>(null)
@@ -95,7 +98,9 @@ export default function PercentList({
                   value={values[row.id] ?? ''}
                   onChange={e => onChange({ ...values, [row.id]: e.target.value })}
                   aria-invalid={bad ? true : undefined}
-                  aria-describedby={bad ? `${inputId}-error` : undefined}
+                  aria-describedby={
+                    bad ? `${inputId}-error` : notes[row.id] ? `${inputId}-note` : undefined
+                  }
                   className={FIELD}
                 />
                 {bars && (
@@ -107,6 +112,11 @@ export default function PercentList({
                   </div>
                 )}
               </div>
+              {!bad && notes[row.id] && (
+                <p id={`${inputId}-note`} className="mt-1 text-sm text-gray-600">
+                  {notes[row.id]}
+                </p>
+              )}
               {bad && (
                 <p id={`${inputId}-error`} className="mt-1 text-sm text-red-700">
                   {bars ? PROBLEM_BARS : PROBLEM_STRICT}

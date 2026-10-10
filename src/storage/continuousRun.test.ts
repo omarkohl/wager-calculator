@@ -32,6 +32,7 @@ function sample(patch: Partial<ContinuousRunData> = {}): ContinuousRunData {
     curve: [],
     answers: [],
     stopped: false,
+    adjusted: {},
     ...patch,
   }
 }
@@ -183,6 +184,16 @@ describe('continuous run storage', () => {
       const raw = JSON.parse(sessionStorage.getItem('howsure.continuous')!)
       change(raw)
       sessionStorage.setItem('howsure.continuous', JSON.stringify(raw))
+      expect(loadContinuousRun()).toBeNull()
+    })
+
+    it('keeps the own numbers, for known buckets only and only in the questions', () => {
+      const run = { ...asked(2), adjusted: { b0: '20', b1: '30' } }
+      saveContinuousRun(run)
+      expect(loadContinuousRun()).toEqual(run)
+      saveContinuousRun({ ...run, adjusted: { b99: '1' } })
+      expect(loadContinuousRun()).toBeNull()
+      saveContinuousRun({ ...sample(), adjusted: { b0: '1' } })
       expect(loadContinuousRun()).toBeNull()
     })
 

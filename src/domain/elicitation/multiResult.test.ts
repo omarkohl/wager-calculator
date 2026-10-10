@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js'
 import { describe, expect, it } from 'vitest'
 import { answerMulti, nextMultiQuestion, type MultiAnswer, type MultiRun } from './multiRun'
-import { estimateOf, multiResult } from './multiResult'
+import { estimateOf, MERGED_ID, mergeRows, multiResult, type ResultRow } from './multiResult'
 import type { ElicitOutcome, Tier } from './model'
 
 const list = (...entries: [string, Tier][]): ElicitOutcome[] =>
@@ -107,5 +107,74 @@ describe('multiResult', () => {
   it('is deterministic: a run rebuilt from the seed and the answers gives the same result', () => {
     const rebuilt = multiResult({ outcomes: weather, seed: 'r1', answers: [...finished.answers] })
     expect(JSON.stringify(rebuilt)).toBe(JSON.stringify(multiResult(finished)))
+  })
+})
+
+describe('mergeRows', () => {
+  const row = (id: string, lo: number, hi: number, label = id.toUpperCase()): ResultRow => ({
+    id,
+    label,
+    lo: new Decimal(lo),
+    hi: new Decimal(hi),
+    estimate: null,
+    central: new Decimal((lo + hi) / 2),
+    widened: false,
+    provenance: { source: 'first-guess' },
+  })
+
+  it('keeps the merged band within what the other outcomes leave (three 0-60% bands, two merged)', () => {
+    const merged = mergeRows([row('a', 0, 0.6), row('b', 0, 0.6), row('c', 0, 0.6)], ['a', 'b'])
+    const el = merged.find(r => r.label === 'Everything else')!
+    expect(el.lo.toNumber()).toBeCloseTo(0.4, 10)
+    expect(el.hi.toNumber()).toBe(1)
+    expect(el.id).toBe(MERGED_ID)
+    expect(merged).toHaveLength(2)
+  })
+
+  it('caps the high end by what the others leave, and gives a midpoint for a two-sided band', () => {
+    const merged = mergeRows(
+      [row('a', 0.05, 0.1), row('b', 0.05, 0.1), row('c', 0.7, 0.8), row('d', 0.05, 0.1)],
+      ['a', 'b']
+    )
+    const el = merged.find(r => r.label === 'Everything else')!
+    // others: lows sum to 0.75, highs to 1.0; the merged part is at most 0.25 and at least 0.1
+    expect(el.lo.toNumber()).toBeCloseTo(0.1, 10)
+    expect(el.hi.toNumber()).toBeCloseTo(0.2, 10)
+    expect(el.estimate!.gt(el.lo) && el.estimate!.lt(el.hi)).toBe(true)
+    expect(el.central.gte(el.lo) && el.central.lte(el.hi)).toBe(true)
+  })
+
+  it('counts the answers behind the merged outcome once, and joins an existing "Everything else"', () => {
+    const rows = [
+      row('a', 0.05, 0.1),
+      row('b', 0.05, 0.1),
+      row('c', 0.7, 0.8),
+      row('e', 0.01, 0.05, ' everything   ELSE '),
+    ]
+    const merged = mergeRows(rows, ['a', 'b'], ids => (ids.length === 3 ? 5 : 0))
+    expect(merged).toHaveLength(2)
+    const el = merged.find(r => r.id === 'e')!
+    expect(el.label).toBe('Everything else')
+    expect(el.provenance).toEqual({ source: 'comparisons', count: 5 })
+  })
+
+  it('does nothing with fewer than two', () => {
+    const rows = [row('a', 0.05, 0.1), row('b', 0.2, 0.3)]
+    expect(mergeRows(rows, ['a'])).toEqual(rows)
+  })
+})
+
+describe('multiResult with a merge', () => {
+  const run = play({ outcomes: weather, seed: 'r1', answers: [] }, truth)
+
+  it('shows the merged outcome and names no merged-away outcome in the flags or insights', () => {
+    const view = multiResult(run, ['cloud', 'snow'])
+    expect(view.rows.map(r => r.label)).toEqual(['RAIN', 'Everything else'])
+    const text = [...view.flags, ...view.insights.map(i => i.text)].join(' ')
+    expect(text).not.toMatch(/CLOUD|SNOW/)
+  })
+
+  it('is the plain result when fewer than two are merged', () => {
+    expect(multiResult(run, ['snow']).rows).toHaveLength(3)
   })
 })

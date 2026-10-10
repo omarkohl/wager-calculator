@@ -3,18 +3,20 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import MultiQuestions from './MultiQuestions'
-import { addOutcome, emptyOutcomeList } from '../../domain/elicitation/model'
+import { addOutcome, emptyOutcomeList, type Tier } from '../../domain/elicitation/model'
 import { selectSpotChecks } from '../../domain/elicitation/comparisons'
 import { toMultiRun, withAnswers } from '../../storage/multiAnswers'
 import { loadMultiRun, saveMultiRun, type MultiRunData } from '../../storage/multiRun'
 
-function start(): MultiRunData {
-  let outcomes = emptyOutcomeList()
-  for (const [label, tier] of [
+function start(
+  list: readonly (readonly [string, Tier])[] = [
     ['Rain', 'likely'],
     ['Cloud', 'plausible'],
     ['Snow', 'very unlikely'],
-  ] as const) {
+  ]
+): MultiRunData {
+  let outcomes = emptyOutcomeList()
+  for (const [label, tier] of list) {
     outcomes = addOutcome(outcomes, label, tier)
   }
   const ids = outcomes.items.map(o => o.id)
@@ -38,6 +40,8 @@ function start(): MultiRunData {
     replaced: null,
     answers: [],
     stopped: false,
+    adjusted: {},
+    merged: [],
   }
 }
 
@@ -46,26 +50,27 @@ function Harness({
   onStartAgain = () => {},
   focusOnShow = false,
   kept = false,
+  allowMerge = true,
 }) {
   const [run, setRun] = useState(initial)
+  const update = (next: MultiRunData) => {
+    saveMultiRun(next)
+    setRun(next)
+  }
   return (
     <MultiQuestions
       claim={run.claim}
       base={withAnswers(toMultiRun(run), run.answers)}
       stopped={run.stopped}
       kept={kept}
+      adjusted={run.adjusted}
+      onAdjusted={adjusted => update({ ...run, adjusted })}
+      merged={run.merged}
+      onMerged={allowMerge ? merged => update({ ...run, merged, adjusted: {} }) : undefined}
       stake="20 EUR"
       focusOnShow={focusOnShow}
-      onAnswers={answers => {
-        const next = { ...run, answers }
-        saveMultiRun(next)
-        setRun(next)
-      }}
-      onStop={() => {
-        const next = { ...run, stopped: true }
-        saveMultiRun(next)
-        setRun(next)
-      }}
+      onAnswers={answers => update({ ...run, answers })}
+      onStop={() => update({ ...run, stopped: true })}
       onStartAgain={onStartAgain}
     />
   )
@@ -169,5 +174,60 @@ describe('MultiQuestions', () => {
     render(<Harness kept />)
     await user.click(screen.getByRole('button', { name: 'Stop here' }))
     expect(screen.getByRole('note')).toHaveTextContent(/do not mean anything/)
+  })
+
+  describe('own numbers and the merge offer', () => {
+    const rare = start([
+      ['Rain', 'likely'],
+      ['Hail', 'very unlikely'],
+      ['Sleet', 'very unlikely'],
+      ['Fog', 'very unlikely'],
+      ['Frost', 'very unlikely'],
+    ])
+
+    it('starts the own numbers at the best single number, says how they sit, and keeps edits', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      const rain = screen.getByRole('textbox', { name: 'Rain, percent' })
+      expect((rain as HTMLInputElement).value).toMatch(/^\d/)
+      // untouched starting values carry no remark about what "you set"
+      expect(screen.queryByText(/You set this/)).toBeNull()
+      await user.clear(rain)
+      await user.type(rain, '40')
+      expect(loadMultiRun()?.adjusted.o1).toBe('40')
+      expect(rain).toHaveAccessibleDescription(/You set this/)
+    })
+
+    it('offers to merge rare outcomes, only on request, and can undo it', async () => {
+      const user = userEvent.setup()
+      render(<Harness initial={rare} />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      expect(screen.getByRole('group', { name: 'Merge rare outcomes' })).toHaveTextContent(
+        /Hail, Sleet, Fog, Frost/
+      )
+      expect(screen.queryByRole('textbox', { name: 'Everything else, percent' })).toBeNull()
+      expect(screen.getByRole('group', { name: 'Merge rare outcomes' })).toHaveTextContent(
+        /resets your own numbers/
+      )
+      await user.click(screen.getByRole('button', { name: /Merge them into/ }))
+      expect(screen.getByRole('button', { name: 'Undo the merge' })).toHaveFocus()
+      const list = screen.getByRole('list', { name: 'Result per outcome' })
+      expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+      expect(within(list).getByText('Everything else')).toBeInTheDocument()
+      expect(screen.getByRole('textbox', { name: 'Everything else, percent' })).toBeInTheDocument()
+      expect(loadMultiRun()?.merged).toHaveLength(4)
+      await user.click(screen.getByRole('button', { name: 'Undo the merge' }))
+      expect(
+        within(screen.getByRole('list', { name: 'Result per outcome' })).getAllByRole('listitem')
+      ).toHaveLength(5)
+    })
+
+    it('offers no merge where it is not possible (number claims)', async () => {
+      const user = userEvent.setup()
+      render(<Harness initial={rare} allowMerge={false} />)
+      await user.click(screen.getByRole('button', { name: 'Stop here' }))
+      expect(screen.queryByRole('group', { name: 'Merge rare outcomes' })).toBeNull()
+    })
   })
 })

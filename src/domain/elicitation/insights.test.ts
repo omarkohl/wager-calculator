@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import Decimal from 'decimal.js'
-import { addOutcome, emptyOutcomeList, isEverythingElse, issueId } from './model'
 import {
-  applyMerge,
   buildInsights,
   canBet,
   describeTotal,
@@ -157,68 +155,6 @@ describe('merging rare outcomes into "everything else"', () => {
     const before = [...buckets]
     mergeOffer(buckets)
     expect(buckets).toEqual(before)
-  })
-
-  it('merges into a new "Everything else" in the place of the first merged one', () => {
-    const merged = applyMerge(buckets, ['hail', 'snow', 'ash'], 'o7')
-    expect(merged.map(x => x.label)).toEqual(['rain', 'cloud', 'Fog', 'Everything else'])
-    expect(merged[3].estimate.toNumber()).toBeCloseTo(0.04, 12)
-    expect(merged.reduce((s, x) => s + x.estimate.toNumber(), 0)).toBeCloseTo(1, 12)
-  })
-
-  it('adds to an "Everything else" that is already there', () => {
-    const withElse = [
-      ...buckets.slice(0, 3),
-      b('else', 0.03, 'Everything else'),
-      b('snow', 0.01, 'Snow'),
-      b('ash', 0.005, 'Ash'),
-    ]
-    const offer = mergeOffer(withElse)!
-    const merged = applyMerge(withElse, offer.ids, 'o9')
-    expect(merged.filter(x => x.label === 'Everything else')).toHaveLength(1)
-    expect(merged.find(x => x.label === 'Everything else')!.estimate.toNumber()).toBeCloseTo(
-      0.045,
-      12
-    )
-    expect(merged.find(x => x.label === 'Everything else')!.id).toBe('else')
-  })
-
-  it('refuses to merge fewer than two or unknown outcomes', () => {
-    expect(() => applyMerge(buckets, ['hail'], 'o7')).toThrow('two or more')
-    expect(() => applyMerge(buckets, ['hail', 'nope'], 'o7')).toThrow('two or more')
-  })
-
-  it('gives a new "Everything else" a fresh id, never one of the merged-away outcomes', () => {
-    const list = ['rain', 'cloud', 'fog', 'hail', 'snow', 'ash'].reduce(
-      (l, id) => addOutcome(l, id, null),
-      emptyOutcomeList()
-    )
-    const { id, list: after } = issueId(list)
-    expect(id).toBe('o7')
-    expect(after.issued).toBe(7)
-    const merged = applyMerge(buckets, ['hail', 'snow', 'ash'], id)
-    expect(merged.find(x => isEverythingElse(x.label))!.id).toBe('o7')
-    for (const old of ['hail', 'snow', 'ash']) expect(merged.some(x => x.id === old)).toBe(false)
-    // an id that is in the list, or none, is refused
-    expect(() => applyMerge(buckets, ['hail', 'snow'], 'rain')).toThrow('never used')
-    expect(() => applyMerge(buckets, ['hail', 'snow'], '')).toThrow('never used')
-  })
-
-  it('finds "Everything else" whatever its case, spacing or Unicode form', () => {
-    const odd = [
-      b('a', 0.5),
-      b('b', 0.2),
-      b('e', 0.02, '  EVERYTHING   else '),
-      b('s', 0.01, 'Snow'),
-      b('t', 0.005, 'Tail'),
-    ]
-    const offer = mergeOffer(odd)!
-    expect(offer.ids).toEqual(['e', 's', 't'])
-    const merged = applyMerge(odd, ['s', 't'], 'o9')
-    expect(merged.filter(x => isEverythingElse(x.label))).toHaveLength(1)
-    expect(merged.find(x => x.id === 'e')!.estimate.toNumber()).toBeCloseTo(0.035, 12)
-    expect(isEverythingElse('everything else')).toBe(true)
-    expect(isEverythingElse('Everything elsewhere')).toBe(false)
   })
 })
 
