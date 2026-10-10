@@ -206,7 +206,11 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
       exhaustive check (`kept`), insights, merge offer, adjust after with Normalize, the trace.
   - [x] 25a. The result screen: band, point estimate, provenance, flags for what does not fit
         (nothing rescaled), the `kept` notice, insights; replaces the placeholder standing.
-  - [ ] 25b. Merge offer (and applying it), adjust after with Normalize, the trace.
+  - [x] 25b. Merge offer (and applying it, as a view), adjust after with Normalize.
+  - [ ] 25c. A clear "Start a new claim" on the result screen for all kinds; runs carry a
+        timestamp, and a run older than 7 days is not silently resumed: a prompt offers
+        "Continue" or "Start a new claim".
+  - [ ] 25d. The trace: each question, the answer, what it implied.
 - [ ] 26. **Share and handoff**: invites carry outcomes or bucket edges and open in a
       locked-outcome mode; result URLs; "bet on this" only when the adjusted values sum
       to 100%, otherwise it points to Normalize. E2E for categorical and continuous.

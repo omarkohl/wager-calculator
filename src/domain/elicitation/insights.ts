@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js'
 import { MERGE_BELOW, MIN_OUTCOMES, TINY_BELOW, TOP_K } from './constants'
 import { formatPercent } from './logOdds'
-import { EVERYTHING_ELSE_LABEL, isEverythingElse } from './model'
+import { isEverythingElse } from './model'
 import type { OrderAnswer } from './coherence'
 
 /**
@@ -165,40 +165,6 @@ export function mergeOffer(buckets: readonly ResultBucket[]): MergeOffer | null 
     ids: rare.map(b => b.id),
     combined: rare.reduce((s, b) => s.plus(b.estimate), new Decimal(0)),
   }
-}
-
-/**
- * The buckets with `ids` merged into one "Everything else" (added to the one already there,
- * if any, which keeps its id), its estimate the sum of theirs. The merged bucket takes the
- * place of the first merged one. A new "Everything else" needs a fresh id from the caller
- * (see `issueId`): ids of merged-away outcomes are never reused, since answers recorded for
- * them must not attach to the new bucket. Throws on unknown ids, fewer than two, or an id
- * that is already in the list.
- */
-export function applyMerge(
-  buckets: readonly ResultBucket[],
-  ids: readonly string[],
-  freshId: string
-): ResultBucket[] {
-  const merging = buckets.filter(b => ids.includes(b.id))
-  if (new Set(ids).size < 2 || merging.length !== new Set(ids).size) {
-    throw new Error('Merging needs two or more known outcomes')
-  }
-  const existing = buckets.find(b => isEverythingElse(b.label))
-  const members = existing && !merging.includes(existing) ? [...merging, existing] : merging
-  if (!existing && (freshId === '' || buckets.some(b => b.id === freshId))) {
-    throw new Error('Merging into a new "Everything else" needs an id that was never used')
-  }
-  const merged: ResultBucket = {
-    id: existing?.id ?? freshId,
-    label: EVERYTHING_ELSE_LABEL,
-    estimate: members.reduce((s, b) => s.plus(b.estimate), new Decimal(0)),
-  }
-  const gone = new Set(members.map(b => b.id))
-  const firstAt = buckets.findIndex(b => gone.has(b.id))
-  const kept = buckets.filter(b => !gone.has(b.id))
-  kept.splice(firstAt, 0, merged)
-  return kept
 }
 
 // ----------------------------------------------------- adjusted values (percent)

@@ -122,6 +122,8 @@ export default function ContinuousInput({
         claim={run.claim}
         base={withAnswers(continuousToMultiRun(run), run.answers)}
         stopped={run.stopped}
+        adjusted={run.adjusted}
+        onAdjusted={adjusted => onChange({ ...run, adjusted })}
         stake={stake}
         focusOnShow={askFocus}
         onAnswers={answers => onChange({ ...run, answers })}

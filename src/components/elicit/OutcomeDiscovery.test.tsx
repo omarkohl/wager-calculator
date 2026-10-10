@@ -22,6 +22,8 @@ const START: MultiRunData = {
   replaced: null,
   answers: [],
   stopped: false,
+  adjusted: {},
+  merged: [],
 }
 
 function Harness({

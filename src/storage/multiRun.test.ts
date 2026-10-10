@@ -44,6 +44,8 @@ function sample(): MultiRunData {
     replaced: null,
     answers: [],
     stopped: false,
+    adjusted: {},
+    merged: [],
   }
 }
 
@@ -210,6 +212,26 @@ describe('multi-outcome run storage', () => {
       const raw = JSON.parse(sessionStorage.getItem('howsure.multi')!)
       change(raw.answers)
       sessionStorage.setItem('howsure.multi', JSON.stringify(raw))
+      expect(loadMultiRun()).toBeNull()
+    })
+
+    it('keeps the own numbers and the merge, and refuses them where they cannot be', () => {
+      const run = { ...asked(3), adjusted: { o1: '55', merged: '10' }, merged: ['o2', 'o3'] }
+      saveMultiRun(run)
+      expect(loadMultiRun()).toEqual(run)
+      for (const bad of [
+        { ...run, adjusted: { o9: '5' } },
+        { ...run, adjusted: { o1: 5 } },
+        { ...run, merged: ['o2'] },
+        { ...run, merged: ['o2', 'o2'] },
+        { ...run, merged: ['o2', 'o9'] },
+      ]) {
+        saveMultiRun(bad as unknown as MultiRunData)
+        expect(loadMultiRun()).toBeNull()
+      }
+      saveMultiRun({ ...sample(), merged: ['o1', 'o2'] })
+      expect(loadMultiRun()).toBeNull()
+      saveMultiRun({ ...sample(), adjusted: { o1: '5' } })
       expect(loadMultiRun()).toBeNull()
     })
 

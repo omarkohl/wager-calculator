@@ -64,9 +64,22 @@ test.describe('Several outcomes: the questions', () => {
     const endResults = await new AxeBuilder({ page }).analyze()
     expect(endResults.violations).toEqual([])
 
+    // the own numbers start at the best single number; a change is kept, Normalize closes the sum
+    const rain = page.getByRole('textbox', { name: 'Rain, percent' })
+    await expect(rain).not.toHaveValue('')
+    await rain.fill('95')
+    const total = page.getByRole('status').filter({ hasText: /points|100%/ })
+    await expect(total).toContainText('too many')
+    await page.getByRole('button', { name: 'Normalize' }).click()
+    await expect(total).toContainText('add up to 100%')
+    await expect(total).toBeFocused()
+    const ownResults = await new AxeBuilder({ page }).analyze()
+    expect(ownResults.violations).toEqual([])
+
     // the standing survives a reload, and "Start again" returns to the gate
     await page.reload()
     await expect(standing).toBeVisible()
+    await expect(rain).toHaveValue(/\d/)
     await page.getByRole('button', { name: 'Start again' }).click()
     await expect(page.getByRole('button', { name: 'Start' })).toBeVisible()
   })

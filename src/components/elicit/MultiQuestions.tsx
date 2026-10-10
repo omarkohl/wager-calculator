@@ -19,6 +19,10 @@ interface MultiQuestionsProps {
   stopped: boolean
   /** The user kept outcomes the checks found overlapping or incomplete. */
   kept?: boolean
+  adjusted?: Record<string, string>
+  onAdjusted?: (adjusted: Record<string, string>) => void
+  merged?: string[]
+  onMerged?: (ids: string[]) => void
   /** The stake as the user entered it ("20 EUR"), or null if none is remembered. */
   stake: string | null
   /** Move focus to the question heading (after an answer or the start, not on a plain reload). */
@@ -41,6 +45,10 @@ export default function MultiQuestions({
   base,
   stopped,
   kept = false,
+  adjusted = {},
+  onAdjusted = () => {},
+  merged,
+  onMerged,
   stake,
   focusOnShow,
   onAnswers,
@@ -75,6 +83,10 @@ export default function MultiQuestions({
         run={base}
         stopped={stopped}
         kept={kept}
+        adjusted={adjusted}
+        onAdjusted={onAdjusted}
+        merged={merged}
+        onMerged={onMerged}
         headingRef={headingRef}
         onStartAgain={onStartAgain}
       />

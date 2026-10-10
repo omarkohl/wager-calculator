@@ -1,9 +1,18 @@
-import type { RefObject } from 'react'
-import { describeBand } from '../../domain/elicitation/format'
+import { useEffect, useRef, type RefObject } from 'react'
+import Decimal from 'decimal.js'
+import {
+  adjustmentGap,
+  defaultAdjusted,
+  describeBand,
+  describeGap,
+  parseAdjusted,
+} from '../../domain/elicitation/format'
+import { mergeOffer } from '../../domain/elicitation/insights'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { multiResult } from '../../domain/elicitation/multiResult'
 import type { MultiRun } from '../../domain/elicitation/multiRun'
 import KeptNotice from './KeptNotice'
+import PercentList from './PercentList'
 
 interface MultiResultProps {
   claim: string
@@ -12,9 +21,17 @@ interface MultiResultProps {
   /** The user kept outcomes that overlap or leave something out: the numbers carry a notice. */
   kept: boolean
   headingRef: RefObject<HTMLHeadingElement | null>
+  /** The user's own numbers (percent as typed) by row id; missing ones start at the best single number. */
+  adjusted: Record<string, string>
+  onAdjusted: (adjusted: Record<string, string>) => void
+  /** Outcomes merged into "Everything else" (a view). Without `onMerged` no merge is offered. */
+  merged?: string[]
+  onMerged?: (ids: string[]) => void
   onStartAgain: () => void
 }
 
+const SECONDARY =
+  'rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
 const PRIMARY =
   'rounded-md bg-blue-600 px-5 py-2 text-base font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
 
@@ -29,9 +46,50 @@ export default function MultiResult({
   stopped,
   kept,
   headingRef,
+  adjusted,
+  onAdjusted,
+  merged = [],
+  onMerged,
   onStartAgain,
 }: MultiResultProps) {
-  const { rows, flags, insights } = multiResult(run)
+  const { rows, flags, insights } = multiResult(run, merged)
+  const offer =
+    onMerged && merged.length === 0
+      ? mergeOffer(rows.map(r => ({ id: r.id, label: r.label, estimate: r.central })))
+      : null
+  const label = (id: string) => run.outcomes.find(o => o.id === id)?.label ?? id
+
+  // Merging and undoing swap one button for the other: the cursor follows
+  const undoRef = useRef<HTMLButtonElement>(null)
+  const offerRef = useRef<HTMLDivElement>(null)
+  const focusAfter = useRef<'undo' | 'offer' | null>(null)
+  useEffect(() => {
+    const target = focusAfter.current
+    if (!target) return
+    focusAfter.current = null
+    ;(target === 'undo' ? undoRef.current : (offerRef.current ?? headingRef.current))?.focus()
+  })
+
+  // The user's own numbers start at the best single number, or the sketch where there is none
+  const own = Object.fromEntries(
+    rows.map(r => [
+      r.id,
+      adjusted[r.id] ??
+        Decimal.min(
+          Decimal.max(new Decimal(defaultAdjusted(r.central)), new Decimal('0.01')),
+          new Decimal('99.99')
+        ).toString(),
+    ])
+  )
+  const notes = Object.fromEntries(
+    rows.flatMap(r => {
+      // untouched starting values are not "set" by the user: no remark on them
+      const value = adjusted[r.id] === undefined ? null : parseAdjusted(own[r.id])
+      if (value === null) return []
+      const band = { lo: r.lo.lte(0) ? null : r.lo, hi: r.hi.gte(1) ? null : r.hi }
+      return [[r.id, describeGap(adjustmentGap(new Decimal(value).div(100), band))]]
+    })
+  )
   return (
     <section aria-labelledby="result-heading" className="mt-6 max-w-2xl space-y-5">
       <h2
@@ -98,6 +156,65 @@ export default function MultiResult({
           ))}
         </ul>
       )}
+
+      {offer && onMerged && (
+        <div
+          ref={offerRef}
+          tabIndex={-1}
+          role="group"
+          aria-label="Merge rare outcomes"
+          className="rounded-lg bg-blue-50 p-3 focus:outline-none"
+        >
+          <p className="text-sm text-gray-800">
+            {offer.ids.map(label).join(', ')} are each very unlikely (together about{' '}
+            {formatPercent(offer.combined)}). You can merge them into “Everything else”; nothing is
+            merged unless you choose to. Merging, and undoing it, resets your own numbers below.
+          </p>
+          <button
+            type="button"
+            className={`mt-2 ${SECONDARY}`}
+            onClick={() => {
+              focusAfter.current = 'undo'
+              onMerged(offer.ids)
+            }}
+          >
+            Merge them into “Everything else”
+          </button>
+        </div>
+      )}
+      {merged.length > 0 && onMerged && (
+        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-800">
+          <span>Some outcomes are merged into “Everything else”.</span>
+          <button
+            ref={undoRef}
+            type="button"
+            className={SECONDARY}
+            onClick={() => {
+              focusAfter.current = 'offer'
+              onMerged([])
+            }}
+          >
+            Undo the merge
+          </button>
+        </div>
+      )}
+
+      <section aria-labelledby="own-heading" className="space-y-3">
+        <h3 id="own-heading" className="text-lg font-semibold text-gray-900">
+          Your own numbers
+        </h3>
+        <p className="text-sm text-gray-700">
+          They start at the best single number. Change any you know better; they should add up to
+          100%, and Normalize scales them if you want that.
+        </p>
+        <PercentList
+          listLabel="Your own numbers"
+          rows={rows.map(r => ({ id: r.id, label: r.label }))}
+          values={own}
+          onChange={onAdjusted}
+          notes={notes}
+        />
+      </section>
 
       <button type="button" className={PRIMARY} onClick={onStartAgain}>
         Start again

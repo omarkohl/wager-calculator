@@ -76,6 +76,15 @@ export function answersInvolving(run: MultiRun, id: string): number {
   ).length
 }
 
+/** How many different answers involve any of the outcomes (each counted once). */
+export function answersInvolvingAny(run: MultiRun, ids: readonly string[]): number {
+  return run.answers.filter(a =>
+    a.kind === 'compare'
+      ? ids.includes(a.first) || ids.includes(a.second)
+      : a.targets.some(t => ids.includes(t))
+  ).length
+}
+
 const ZERO = new Decimal(0)
 const ONE = new Decimal(1)
 
