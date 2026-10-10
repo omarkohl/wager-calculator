@@ -2,7 +2,7 @@
 
 ## Next step
 
-25c.
+25d.
 
 ## Stack
 
@@ -531,13 +531,33 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   numbers add, answers untouched), "Undo the merge" reverses it; either resets the own numbers. Own
   numbers and the merge are stored in the run (`adjusted`, `merged`; absent in older runs).
 
+- **Step 25c (start a new claim, stale runs)**: every result screen (yes/no, several outcomes, number)
+  ends with "Done with this claim?" and a primary "Start a new claim". It clears the stored run and
+  any share link in the address bar and moves the cursor to the claim field of the gate, where the
+  kind is chosen. Every saved run (all three kinds) is stamped with `savedAt`; a stored run older than
+  `RUN_STALE_AFTER_DAYS` (7, in `constants.ts`) is not resumed silently: a boxed notice, "You have a
+  finished / an unfinished estimate from <date>" with the claim, offers "Continue" and "Start a new
+  claim", both primary. Runs stored without a stamp count as recent. Share links are not affected.
+  Chromium E2E: `elicit-gate.spec.ts` (the clock is moved eight days on, `page.clock`).
+
 ## Decisions
+
+- Step 25c (review): the staleness prompt is also checked when the tab gets focus or becomes visible
+  again (a tab left open for days), it is cleared as soon as a new run starts (also from an invite),
+  and "Continue" saves the run again so its stamp is fresh (the prompt does not come back on the
+  next reload). The age is read from the run that actually loaded.
 
 - Step 25b (review): a merged "Everything else" has the summed band kept within what the other outcomes
   leave over (lo >= 1 - their highs, hi <= 1 - their lows) and its single number is that band's
   midpoint again (none if it is one-sided), not the sum of the parts' numbers; the answers behind it are
   counted once. The view names no merged-away outcome in the insights or flags. `applyMerge` in
   `insights.ts` was dropped: `mergeRows` is the only merge rule.
+
+- Step 25c: a prompt instead of an automatic reset after a week: an automatic reset could lose a
+  result the user came back for, while the prompt costs one click. The threshold is 7 days of
+  inactivity (the stamp is refreshed on every save, not only at the start). Runs live in
+  sessionStorage, so this matters for tabs that stay open or are restored by the browser.
+
 - Step 24a: no thorough mode and no "approx. N left" for several outcomes (no estimate function
   exists, and a countdown from the 40-question cap would be the forbidden "question k of N"): the
   screen shows no line about questions left until there is a real estimate.
@@ -586,6 +606,9 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 25c: the 7-day threshold and the wording of the prompt ("Continue" refreshes the stamp, so the
+  prompt does not come back after the next reload).
 
 - Step 25a [NEEDS PROTOTYPE]: the result layout (band large, "Best single number: about N%" and the
   provenance under it, one amber box for everything that does not fit). The `kept` notice shows for

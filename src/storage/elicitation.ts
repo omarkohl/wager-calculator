@@ -240,7 +240,7 @@ export function decodeElicitationHash(hash: string): SharedElicitation | null {
 
 // ------------------------------------------------------------ the run in the tab
 
-const RUN_STORAGE_KEY = 'howsure.run'
+export const RUN_STORAGE_KEY = 'howsure.run'
 
 export function saveRun(run: RunData): void {
   // Encoded outside the try: a bad wedge is a programming error and must surface
@@ -254,6 +254,7 @@ export function saveRun(run: RunData): void {
     dropped: run.dropped.join(','),
     adjusted: run.adjusted ?? '',
     stopped: run.stopped ? '1' : '',
+    savedAt: Date.now(),
   })
   try {
     sessionStorage.setItem(RUN_STORAGE_KEY, stored)

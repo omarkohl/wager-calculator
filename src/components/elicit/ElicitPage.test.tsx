@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ElicitPage from './ElicitPage'
 import {
@@ -81,7 +81,7 @@ describe('ElicitPage', () => {
     expect(message).toHaveFocus()
     expect(screen.queryByText(/Your answers are in/)).not.toBeInTheDocument()
 
-    await press('Start again')
+    await press('Start a new claim')
     expect(loadRun()).toBeNull()
     expect(screen.getByRole('textbox', { name: 'Claim' })).toBeInTheDocument()
   })
@@ -532,5 +532,144 @@ describe('ElicitPage FAQ', () => {
     expect(loadContinuousRun()?.claim).toBe('Noon temperature')
     expect(loadRun()).toBeNull()
     expect(loadMultiRun()).toBeNull()
+  })
+
+  describe('starting a new claim, and runs left for a while', () => {
+    const DAY = 24 * 60 * 60 * 1000
+    /** Make the stored run look as if it was last touched `days` ago. */
+    function age(days: number) {
+      for (const key of ['howsure.run', 'howsure.multi', 'howsure.continuous']) {
+        const text = sessionStorage.getItem(key)
+        if (!text) continue
+        const raw = JSON.parse(text)
+        raw.savedAt = Date.now() - days * DAY
+        sessionStorage.setItem(key, JSON.stringify(raw))
+      }
+    }
+
+    it('has a "Start a new claim" on the result that clears the run and moves to the claim field', async () => {
+      render(<ElicitPage />)
+      await start()
+      await press(/if this is true/)
+      await press('Stop here')
+      await press('Start a new claim')
+      expect(loadRun()).toBeNull()
+      expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveFocus()
+      expect(screen.getByRole('radio', { name: /One of several outcomes/ })).toBeInTheDocument()
+    })
+
+    it('resumes a recent run without asking', async () => {
+      const { unmount } = render(<ElicitPage />)
+      await start()
+      age(6)
+      unmount()
+      render(<ElicitPage />)
+      expect(screen.queryByRole('button', { name: 'Continue' })).toBeNull()
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+      ).toBeInTheDocument()
+    })
+
+    it('asks about a run left for over a week, and continuing changes nothing', async () => {
+      const { unmount } = render(<ElicitPage />)
+      await start()
+      await press(/if this is true/)
+      age(8)
+      unmount()
+      render(<ElicitPage />)
+      expect(screen.getByRole('heading', { name: /unfinished estimate from/ })).toBeInTheDocument()
+      expect(screen.getByText(/It rains/)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /if this is true/ })).toBeNull()
+      expect(loadRun()).not.toBeNull()
+      await press('Continue')
+      expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+      expect(loadRun()!.answers).toHaveLength(1)
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+      ).toBeInTheDocument()
+    })
+
+    it('calls a stopped run finished, and "Start a new claim" clears it', async () => {
+      const { unmount } = render(<ElicitPage />)
+      await start()
+      await press(/if this is true/)
+      await press('Stop here')
+      age(30)
+      unmount()
+      render(<ElicitPage />)
+      expect(screen.getByRole('heading', { name: /finished estimate from/ })).toBeInTheDocument()
+      await press('Start a new claim')
+      expect(loadRun()).toBeNull()
+      expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+      expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveFocus()
+    })
+
+    it('does not show the prompt over a new claim started from an invite', async () => {
+      const { unmount } = render(<ElicitPage />)
+      await start()
+      age(9)
+      unmount()
+      window.history.replaceState(
+        null,
+        '',
+        encodeInviteHash({ claim: 'A friend’s claim', criteria: '' })
+      )
+      render(<ElicitPage />)
+      // the invite takes the page; the old run waits behind it
+      expect(screen.getByRole('textbox', { name: 'Claim' })).toHaveValue('A friend’s claim')
+      await userEvent.type(screen.getByRole('textbox', { name: 'Amount' }), '5')
+      await press('Start')
+      expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+      expect(loadRun()!.claim).toBe('A friend’s claim')
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Which would you rather have?' })
+      ).toBeInTheDocument()
+    })
+
+    it('asks when a tab that stayed open is looked at again after a week', async () => {
+      render(<ElicitPage />)
+      await start()
+      expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+      age(8)
+      act(() => {
+        window.dispatchEvent(new Event('focus'))
+      })
+      expect(screen.getByRole('heading', { name: /unfinished estimate from/ })).toBeInTheDocument()
+    })
+
+    it('"Continue" makes the run recent again, so the prompt does not come back', async () => {
+      const { unmount } = render(<ElicitPage />)
+      await start()
+      age(8)
+      unmount()
+      render(<ElicitPage />)
+      await press('Continue')
+      expect(JSON.parse(sessionStorage.getItem('howsure.run')!).savedAt).toBeGreaterThan(
+        Date.now() - 60000
+      )
+      cleanup()
+      render(<ElicitPage />)
+      expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+    })
+
+    it('replaces a leftover #faq part of the address when a new claim starts', async () => {
+      render(<ElicitPage />)
+      await start()
+      await press('Stop here')
+      window.history.replaceState(null, '', '/#faq=anything')
+      await press('Start a new claim')
+      expect(window.location.hash).toBe('')
+    })
+
+    it('treats a run stored without a timestamp as recent', async () => {
+      const { unmount } = render(<ElicitPage />)
+      await start()
+      const raw = JSON.parse(sessionStorage.getItem('howsure.run')!)
+      delete raw.savedAt
+      sessionStorage.setItem('howsure.run', JSON.stringify(raw))
+      unmount()
+      render(<ElicitPage />)
+      expect(screen.queryByRole('heading', { name: /estimate from/ })).toBeNull()
+    })
   })
 })

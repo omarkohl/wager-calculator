@@ -52,7 +52,8 @@ export interface ContinuousRunData {
   adjusted: Record<string, string>
 }
 
-const KEY = 'howsure.continuous'
+export const CONTINUOUS_STORAGE_KEY = 'howsure.continuous'
+const KEY = CONTINUOUS_STORAGE_KEY
 const SEED_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 export const MAX_UNIT_LENGTH = 20
 /** Longest number as typed. */
@@ -85,6 +86,7 @@ export function saveContinuousRun(run: ContinuousRunData): void {
         ev: ELICIT_FORMAT_VERSION,
         ...run,
         answers: encodeMultiAnswers(run.answers),
+        savedAt: Date.now(),
       })
     )
   } catch {

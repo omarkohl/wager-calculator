@@ -64,7 +64,8 @@ export interface MultiRunData {
   merged: string[]
 }
 
-const KEY = 'howsure.multi'
+export const MULTI_STORAGE_KEY = 'howsure.multi'
+const KEY = MULTI_STORAGE_KEY
 /** Ids ever issued in one claim: far above the cap, far below anything hostile. */
 const MAX_ISSUED = 1000
 const SEED_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
@@ -163,6 +164,7 @@ export function saveMultiRun(run: MultiRunData): void {
         ev: ELICIT_FORMAT_VERSION,
         ...run,
         answers: encodeMultiAnswers(run.answers),
+        savedAt: Date.now(),
       })
     )
   } catch {

@@ -207,7 +207,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
   - [x] 25a. The result screen: band, point estimate, provenance, flags for what does not fit
         (nothing rescaled), the `kept` notice, insights; replaces the placeholder standing.
   - [x] 25b. Merge offer (and applying it, as a view), adjust after with Normalize.
-  - [ ] 25c. A clear "Start a new claim" on the result screen for all kinds; runs carry a
+  - [x] 25c. A clear "Start a new claim" on the result screen for all kinds; runs carry a
         timestamp, and a run older than 7 days is not silently resumed: a prompt offers
         "Continue" or "Start a new claim".
   - [ ] 25d. The trace: each question, the answer, what it implied.

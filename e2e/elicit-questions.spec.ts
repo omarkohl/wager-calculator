@@ -105,7 +105,7 @@ test.describe('Elicitation questions', () => {
     await expect(
       page.getByText('You stopped before answering, so there is no result.')
     ).toBeFocused()
-    await page.getByRole('button', { name: 'Start again' }).click()
+    await page.getByRole('button', { name: 'Start a new claim' }).click()
     await expect(page.getByRole('textbox', { name: 'Claim' })).toBeVisible()
   })
 

@@ -25,6 +25,10 @@ import {
   type MultiRunData,
 } from '../../storage/multiRun'
 import ContinuousInput from './ContinuousInput'
+import StaleRunPrompt from './StaleRunPrompt'
+import { isStale, storedRunSavedAt } from '../../storage/runAge'
+import { continuousToMultiRun, toMultiRun, withAnswers } from '../../storage/multiAnswers'
+import { nextMultiQuestion } from '../../domain/elicitation/multiRun'
 import {
   clearContinuousRun,
   loadContinuousRun,
@@ -68,7 +72,7 @@ function NoResult({
         onClick={onStartAgain}
         className="mt-4 rounded-md bg-blue-600 px-5 py-2 text-base font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
       >
-        Start again
+        Start a new claim
       </button>
     </div>
   )
@@ -99,6 +103,19 @@ export default function ElicitPage() {
   const [cont, setCont] = useState<ContinuousRunData | null>(loadContinuousRun)
   const [shared, setShared] = useState<Shared | null>(readShared)
   const [focusGate, setFocusGate] = useState(false)
+  // A run left for a week or more is not resumed silently: the user is asked
+  const staleStamp = (): number | null => {
+    // the stamp of the run that is actually on screen
+    const at = run
+      ? storedRunSavedAt('yes-no')
+      : multi
+        ? storedRunSavedAt('categorical')
+        : cont
+          ? storedRunSavedAt('continuous')
+          : null
+    return at !== null && isStale(at) ? at : null
+  }
+  const [stale, setStale] = useState<number | null>(staleStamp)
   // The FAQ opens from its button or from a `#faq=<id>` link
   const [faqId, setFaqId] = useState<string | null>(() => faqFromHash())
   const [faqOpen, setFaqOpen] = useState(() => faqFromHash() !== null)
@@ -124,7 +141,24 @@ export default function ElicitPage() {
     }
   }, [])
 
+  // A tab left open for days and then looked at again asks too, not only a fresh load
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === 'hidden') return
+      const at = staleStamp()
+      if (at !== null) setStale(at)
+    }
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('focus', check)
+    return () => {
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('focus', check)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run, multi, cont])
+
   const update = (next: RunData) => {
+    setStale(null)
     saveRun(next)
     setRun(next)
     setFocusNext(true)
@@ -134,6 +168,9 @@ export default function ElicitPage() {
     // From an invite the criteria come along; the invite has done its job, so the address
     // bar goes back to the plain page
     const criteria = shared?.type === 'invite' ? shared.criteria : ''
+    // a new run is on screen now: whatever was asked about the old one is moot
+    setStale(null)
+    setFocusGate(false)
     if (shared) window.history.replaceState(null, '', window.location.pathname)
     setShared(null)
     if (kind === 'continuous') {
@@ -208,15 +245,36 @@ export default function ElicitPage() {
     setRun(null)
     setMulti(null)
     setCont(null)
+    setStale(null)
+    // Nothing of the old claim stays in the address bar either (a leftover `#faq=` goes too)
+    if (window.location.hash) window.history.replaceState(null, '', window.location.pathname)
+    setShared(null)
+    // The claim field takes the cursor: the next thing to do is to write a new claim
+    setFocusGate(true)
     setFocusNext(false)
   }
 
+  /** The stored run got to its result, or was stopped, rather than being left half-way. */
+  const storedFinished = (): boolean => {
+    if (run) return run.stopped === true || nextFlowQuestion(run) === null
+    const stored = multi ?? cont
+    if (!stored || stored.phase !== 'ask') return false
+    const domain = multi
+      ? withAnswers(toMultiRun(multi), multi.answers)
+      : cont
+        ? withAnswers(continuousToMultiRun(cont), cont.answers)
+        : null
+    return stored.stopped || !domain || nextMultiQuestion(domain) === null
+  }
+
   const changeCont = (next: ContinuousRunData) => {
+    setStale(null)
     saveContinuousRun(next)
     setCont(next)
   }
 
   const changeMulti = (next: MultiRunData) => {
+    setStale(null)
     saveMultiRun(next)
     setMulti(next)
   }
@@ -259,6 +317,20 @@ export default function ElicitPage() {
           run={shared.run}
           focusOnShow={false}
           onElicitOwn={() => elicitOwn(shared.run)}
+        />
+      ) : stale !== null && shared === null ? (
+        <StaleRunPrompt
+          savedAt={stale}
+          claim={(run ?? multi ?? cont)?.claim ?? ''}
+          finished={storedFinished()}
+          onContinue={() => {
+            // Looked at again: the run is as fresh as if it had just been touched
+            if (run) saveRun(run)
+            else if (multi) saveMultiRun(multi)
+            else if (cont) saveContinuousRun(cont)
+            setStale(null)
+          }}
+          onStartNew={startAgain}
         />
       ) : shared?.type === 'invite' || (run === null && multi === null && cont === null) ? (
         <div className="max-w-2xl">

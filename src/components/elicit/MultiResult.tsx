@@ -216,9 +216,12 @@ export default function MultiResult({
         />
       </section>
 
-      <button type="button" className={PRIMARY} onClick={onStartAgain}>
-        Start again
-      </button>
+      <div className="border-t border-gray-200 pt-5">
+        <p className="mb-2 text-gray-700">Done with this claim?</p>
+        <button type="button" className={PRIMARY} onClick={onStartAgain}>
+          Start a new claim
+        </button>
+      </div>
     </section>
   )
 }
