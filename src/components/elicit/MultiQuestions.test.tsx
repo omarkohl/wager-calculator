@@ -183,6 +183,35 @@ describe('MultiQuestions', () => {
     expect(screen.getByRole('note')).toHaveTextContent(/do not mean anything/)
   })
 
+  it('has a trace of the answers, collapsed, with the question, the answer and what it implied', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    for (let i = 0; i < 3; i++) {
+      const lottery = screen.queryByRole('button', {
+        name: /if the spinner lands|if a ball drawn at random/,
+      })
+      if (lottery) await user.click(lottery)
+      else await user.click(screen.getByRole('button', { name: 'About equally likely' }))
+    }
+    await user.click(screen.getByRole('button', { name: 'Stop here' }))
+    const own = screen.getByRole('textbox', { name: 'Rain, percent' })
+    await user.clear(own)
+    await user.type(own, '80')
+    const summary = screen.getByText('Show the full trace of your answers')
+    expect(summary.closest('details')).not.toHaveAttribute('open')
+    await user.click(summary)
+    const steps = within(screen.getByRole('list', { name: 'Answers' })).getAllByRole('listitem')
+    expect(steps).toHaveLength(3)
+    expect(steps[0].textContent).toMatch(/^Answer 1\. [^?]+\? [^.]+\./)
+    for (const step of steps) expect(step.textContent).not.toContain('??')
+    expect(screen.getByText(/You started from your first guess: Rain \d+%/)).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('list', { name: 'Your own numbers against the answers' })).getByText(
+        /Rain: your answers implied .* You then set it to 80%\./
+      )
+    ).toBeInTheDocument()
+  })
+
   describe('own numbers and the merge offer', () => {
     const rare = start([
       ['Rain', 'likely'],

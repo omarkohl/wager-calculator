@@ -10,6 +10,7 @@ import {
 import { mergeOffer } from '../../domain/elicitation/insights'
 import { formatPercent } from '../../domain/elicitation/logOdds'
 import { multiResult } from '../../domain/elicitation/multiResult'
+import { multiTrace } from '../../domain/elicitation/multiTrace'
 import type { MultiRun } from '../../domain/elicitation/multiRun'
 import KeptNotice from './KeptNotice'
 import PercentList from './PercentList'
@@ -57,6 +58,7 @@ export default function MultiResult({
     onMerged && merged.length === 0
       ? mergeOffer(rows.map(r => ({ id: r.id, label: r.label, estimate: r.central })))
       : null
+  const trace = multiTrace(run, adjusted, merged)
   const label = (id: string) => run.outcomes.find(o => o.id === id)?.label ?? id
 
   // Merging and undoing swap one button for the other: the cursor follows
@@ -215,6 +217,45 @@ export default function MultiResult({
           notes={notes}
         />
       </section>
+
+      <details className="rounded-lg border border-gray-200 p-3">
+        <summary className="cursor-pointer text-sm font-medium text-gray-800">
+          Show the full trace of your answers
+        </summary>
+        <p className="mt-3 text-sm text-gray-800">
+          You started from your first guess:{' '}
+          {trace.start.map(s => `${s.label} ${s.chance}`).join(', ')}.
+        </p>
+        {trace.steps.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-700">No question was answered.</p>
+        ) : (
+          <ol aria-label="Answers" className="mt-3 space-y-3">
+            {trace.steps.map(step => (
+              <li key={step.index} className="text-gray-800">
+                <p>
+                  <span className="font-medium">Answer {step.index + 1}.</span> {step.question}{' '}
+                  {step.answer}.
+                </p>
+                <p className="text-sm">{step.implication}</p>
+                {step.rangeAfter && <p className="text-sm text-gray-600">{step.rangeAfter}</p>}
+              </li>
+            ))}
+          </ol>
+        )}
+        {trace.adjustments.length > 0 && (
+          <ul
+            aria-label="Your own numbers against the answers"
+            className="mt-3 space-y-2 border-t border-gray-200 pt-3 text-gray-800"
+          >
+            {trace.adjustments.map(a => (
+              <li key={a.label}>
+                {a.label}: your answers implied {a.implied}. You then set it to {a.adjusted}%.{' '}
+                {a.gap}
+              </li>
+            ))}
+          </ul>
+        )}
+      </details>
 
       <div className="border-t border-gray-200 pt-5">
         <p className="mb-2 text-gray-700">Done with this claim?</p>

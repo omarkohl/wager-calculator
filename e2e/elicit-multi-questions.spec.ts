@@ -78,6 +78,15 @@ test.describe('Several outcomes: the questions', () => {
     const ownResults = await new AxeBuilder({ page }).analyze()
     expect(ownResults.violations).toEqual([])
 
+    // the trace is there, collapsed, and says what each answer implied
+    await page.getByText('Show the full trace of your answers').click()
+    // beside what the answers implied, the user's own number is kept
+    await expect(
+      page.getByRole('list', { name: 'Your own numbers against the answers' })
+    ).toContainText('You then set it to')
+    const traceResults = await new AxeBuilder({ page }).analyze()
+    expect(traceResults.violations).toEqual([])
+
     // the standing survives a reload, and "Start a new claim" returns to the gate
     await page.reload()
     await expect(standing).toBeVisible()
