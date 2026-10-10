@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { answerMulti, nextMultiQuestion, type MultiAnswer } from '../domain/elicitation/multiRun'
+import { toMultiRun } from './multiAnswers'
 import { selectSpotChecks, type SpotCheckAnswer } from '../domain/elicitation/comparisons'
 import { addOutcome, emptyOutcomeList } from '../domain/elicitation/model'
 import {
@@ -40,6 +42,8 @@ function sample(): MultiRunData {
     kept: false,
     reviewing: false,
     replaced: null,
+    answers: [],
+    stopped: false,
   }
 }
 
@@ -136,6 +140,96 @@ describe('multi-outcome run storage', () => {
     raw.replaced = 7
     sessionStorage.setItem('howsure.multi', JSON.stringify(raw))
     expect(loadMultiRun()).toBeNull()
+  })
+
+  describe('questions', () => {
+    /** A run in the `ask` phase, answered like a respondent who knows the chances. */
+    function asked(count: number, view: 'tiers' | 'numbers' = 'tiers'): MultiRunData {
+      const base = view === 'tiers' ? sample() : numbers()
+      let outcomes = base.outcomes
+      outcomes = addOutcome(outcomes, 'Carol', view === 'tiers' ? 'plausible' : null)
+      const percents: Record<string, string> =
+        view === 'tiers' ? {} : { o1: '50', o2: '30', o3: '20' }
+      const ids = outcomes.items.map(o => o.id)
+      const run: MultiRunData = {
+        ...base,
+        outcomes,
+        view,
+        percents,
+        phase: 'ask',
+        checks: answersFor(ids, base.seed),
+        answers: [],
+      }
+      let current = toMultiRun(run)!
+      const truth: Record<string, number> = { o1: 0.5, o2: 0.1, o3: 0.4 }
+      for (let i = 0; i < count; i++) {
+        const q = nextMultiQuestion(current)
+        if (!q) break
+        const answer: MultiAnswer =
+          q.kind === 'compare'
+            ? {
+                kind: 'compare',
+                first: q.first,
+                second: q.second,
+                pick: truth[q.first] > truth[q.second] ? 'first' : 'second',
+              }
+            : {
+                kind: 'lottery',
+                targets: q.targets,
+                wedge: q.wedge,
+                choice: q.wedge.lt(q.targets.reduce((t, id) => t + truth[id], 0))
+                  ? 'claim'
+                  : 'wedge',
+              }
+        current = answerMulti(current, answer)
+      }
+      return { ...run, answers: [...current.answers] }
+    }
+
+    it('round-trips the answers in either view, and a stop', () => {
+      for (const view of ['tiers', 'numbers'] as const) {
+        const run = asked(8, view)
+        expect(run.answers.length).toBeGreaterThan(3)
+        saveMultiRun(run)
+        expect(loadMultiRun()).toEqual(run)
+      }
+      saveMultiRun({ ...asked(3), stopped: true })
+      expect(loadMultiRun()?.stopped).toBe(true)
+    })
+
+    it.each([
+      [
+        'an answer to a question that was not asked',
+        (a: Record<string, unknown>[]) => (a[0].w = 7 + Number(a[0].w ?? 0)),
+      ],
+      ['an unknown kind', (a: Record<string, unknown>[]) => (a[0].k = 'x')],
+      ['a repeated answer', (a: Record<string, unknown>[]) => void a.push(a[0])],
+      ['an answer that is no object', (a: Record<string, unknown>[]) => void a.push(5 as never)],
+    ])('rejects %s', (_name, change) => {
+      saveMultiRun(asked(3))
+      const raw = JSON.parse(sessionStorage.getItem('howsure.multi')!)
+      change(raw.answers)
+      sessionStorage.setItem('howsure.multi', JSON.stringify(raw))
+      expect(loadMultiRun()).toBeNull()
+    })
+
+    it('rejects answers outside the ask phase, a stop outside it, and unusable numbers', () => {
+      saveMultiRun({ ...sample(), answers: asked(2).answers })
+      expect(loadMultiRun()).toBeNull()
+      saveMultiRun({ ...sample(), stopped: true })
+      expect(loadMultiRun()).toBeNull()
+      saveMultiRun({ ...asked(0, 'numbers'), percents: { o1: 'x', o2: '30', o3: '20' } })
+      expect(loadMultiRun()).toBeNull()
+    })
+  })
+
+  it('loads a run stored before the questions existed', () => {
+    saveMultiRun(sample())
+    const raw = JSON.parse(sessionStorage.getItem('howsure.multi')!)
+    delete raw.answers
+    delete raw.stopped
+    sessionStorage.setItem('howsure.multi', JSON.stringify(raw))
+    expect(loadMultiRun()).toEqual(sample())
   })
 
   it('returns null when nothing is stored, after clearing, and for junk', () => {

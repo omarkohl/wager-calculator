@@ -2,7 +2,7 @@
 
 ## Next step
 
-24.
+24b.
 
 ## Stack
 
@@ -36,6 +36,7 @@
 - 22a: howsure/22a-spot-checks, PR #114 (base howsure/21b-numbers)
 - 22b: howsure/22b-fixes, PR #115 (base howsure/22a-spot-checks)
 - 23a: howsure/23a-bars, PR #116 (base howsure/22b-fixes)
+- 23b: howsure/23b-curve, PR #117 (base howsure/23a-bars)
 
 ## Log
 
@@ -488,7 +489,23 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   edges exactly, as `barBuckets` does. The run stores `view` and `curve`; the bars are kept when
   switching. Chromium E2E: continuous spec 2 tests, axe with the curve.
 
+- **Step 24a (question flow, categorical)**: step 24 is split (24b: the same flow for number claims,
+  where the bars/curve buckets become the outcomes and the typed numbers the sketch). From the
+  sketch, "Start the questions" moves to phase `ask`: comparison ("which is more likely?" with "about
+  equally likely") and lottery screens (win if the result is "X" / one of ..., or on the spinner;
+  "I can't separate these"; "Stop here"; no band; "at most N questions left"). The domain `MultiRun`
+  takes an optional `sketch`, so the numbers view works: its typed percentages, scaled to 1, are the
+  sketch (`toMultiRun`). Answers are stored as `{k:'c'|'l', ...}` and checked on load by replaying
+  `nextMultiQuestion` (`multiAnswers.ts`). When no question is worth asking, or the user stops, a
+  placeholder "Where your answers stand" lists the coherent band and provenance per outcome; step 25
+  replaces it. Chromium E2E: `elicit-multi-questions.spec.ts` (2 tests, axe on a question and the end).
+
 ## Decisions
+
+- Step 24a: no thorough mode and no "approx. N left" for several outcomes (no estimate function
+  exists, and a countdown from the 40-question cap would be the forbidden "question k of N"): the
+  screen shows no line about questions left until there is a real estimate.
+  Outcomes cannot be edited once the questions have started (start again instead).
 
 - Step 23b: after a range change the curve heights stay with their point numbers, so they carry over
   to the new x positions (the curve keeps its shape over the new range); the bars carry over only
@@ -533,6 +550,13 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   contradiction the band rule ignores; the trace (step 8) can point it out.
 
 ## For review
+
+- Step 24a [NEEDS PROTOTYPE]: the comparison and group-lottery screens (arms read "Win 20 EUR if the
+  result is one of: ..."; the lottery reuses `QuestionScreen` through its `statement` slot), and the
+  placeholder standing. Runs stored before 24a load with no answers (missing fields default). In
+  the numbers view and for 24b (no tiers) a sketch at or below 5% or at or above 85% counts as a
+  tail, so a 1% outcome is still asked. The shared-URL codec for multi-outcome runs
+  (step 26) must carry `answers` in the same `{k, ...}` form and replay them like `loadMultiRun`.
 
 - Step 23b [NEEDS PROTOTYPE]: the curve is a fixed 9 points with drag-to-set and a number per point;
   alternatives are a freehand stroke, more or fewer points, or draggable handles with arrow keys.

@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import type { Choice } from '../../domain/elicitation/bandRule'
+import { ARM, SECONDARY } from './questionStyles'
 import ReferenceLottery from './ReferenceLottery'
 import type { FlowQuestion } from './runFlow'
 
@@ -14,12 +15,12 @@ interface QuestionScreenProps {
   focusOnShow: boolean
   onAnswer: (choice: Choice) => void
   onStop: () => void
+  /**
+   * What the statement arm says after "Win the prize if" and a line above the arms, for claims
+   * that are not a single true-or-false statement (an outcome among several).
+   */
+  statement?: { arm: ReactNode; lead: ReactNode }
 }
-
-const ARM =
-  'flex w-full flex-col items-center gap-3 rounded-lg border-2 border-gray-300 bg-white p-4 text-center text-base text-gray-900 hover:border-blue-500 hover:bg-blue-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
-const SECONDARY =
-  'rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
 
 /**
  * One comparison: win the prize if the claim is true (or, for a check on the other
@@ -36,6 +37,7 @@ export default function QuestionScreen({
   focusOnShow,
   onAnswer,
   onStop,
+  statement,
 }: QuestionScreenProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
   const prize = stake ? `Win ${stake}` : 'Win the prize'
@@ -48,10 +50,16 @@ export default function QuestionScreen({
 
   const statementArm = (
     <button key="statement" type="button" onClick={() => onAnswer('claim')} className={ARM}>
-      <span>
-        {prize} if this is <strong>{question.frame === 'claim' ? 'true' : 'false'}</strong>:{' '}
-        <span className="mt-1 block font-semibold">&ldquo;{claim}&rdquo;</span>
-      </span>
+      {statement ? (
+        <span>
+          {prize} if {statement.arm}
+        </span>
+      ) : (
+        <span>
+          {prize} if this is <strong>{question.frame === 'claim' ? 'true' : 'false'}</strong>:{' '}
+          <span className="mt-1 block font-semibold">&ldquo;{claim}&rdquo;</span>
+        </span>
+      )}
     </button>
   )
   const spinnerArm = (
@@ -72,6 +80,7 @@ export default function QuestionScreen({
         Which would you rather have?
       </h2>
 
+      {statement && <div className="mb-4 text-gray-700">{statement.lead}</div>}
       <div className="grid gap-4 sm:grid-cols-2">
         {question.armOrder === 'claim-first'
           ? [statementArm, spinnerArm]

@@ -20,6 +20,8 @@ const START: MultiRunData = {
   kept: false,
   reviewing: false,
   replaced: null,
+  answers: [],
+  stopped: false,
 }
 
 function Harness({
@@ -302,6 +304,44 @@ describe('OutcomeDiscovery', () => {
       await user.type(screen.getByRole('textbox', { name: 'Bob, percent' }), 'x')
       expect(screen.getByRole('textbox', { name: 'Bob, percent' })).toBeInvalid()
       expect(screen.queryByRole('button', { name: 'Normalize' })).toBeNull()
+    })
+  })
+
+  describe('starting the questions', () => {
+    it('goes from the sketch to the first question, with the cursor on it', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await add(user, 'Alice', 'likely')
+      await add(user, 'Bob', 'unlikely')
+      await closeAndPass(user)
+      await user.click(screen.getByRole('button', { name: 'Start the questions' }))
+      const heading = screen.getByRole('heading', { level: 2 })
+      expect(['Which would you rather have?', 'Which is more likely?']).toContain(
+        heading.textContent
+      )
+      expect(heading).toHaveFocus()
+      expect(screen.getByRole('button', { name: 'Stop here' })).toBeInTheDocument()
+    })
+
+    it('uses the typed numbers as the sketch, and waits for numbers that are usable', async () => {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await user.click(screen.getByRole('button', { name: 'Use numbers instead of tiers' }))
+      await user.type(screen.getByRole('textbox', { name: 'Outcome' }), 'Alice')
+      await user.type(screen.getByRole('textbox', { name: 'Percent' }), '70')
+      await user.click(screen.getByRole('button', { name: 'Add outcome' }))
+      await user.type(screen.getByRole('textbox', { name: 'Outcome' }), 'Bob')
+      await user.type(screen.getByRole('textbox', { name: 'Percent' }), '20')
+      await user.click(screen.getByRole('button', { name: 'Add outcome' }))
+      await closeAndPass(user)
+      const startButton = screen.getByRole('button', { name: 'Start the questions' })
+      expect(startButton).toBeEnabled()
+      await user.type(screen.getByRole('textbox', { name: 'Bob, percent' }), 'x')
+      expect(startButton).toBeDisabled()
+      await user.clear(screen.getByRole('textbox', { name: 'Bob, percent' }))
+      await user.type(screen.getByRole('textbox', { name: 'Bob, percent' }), '30')
+      await user.click(screen.getByRole('button', { name: 'Start the questions' }))
+      expect(screen.getByRole('button', { name: 'Stop here' })).toBeInTheDocument()
     })
   })
 
