@@ -451,26 +451,42 @@ switch (above).
 
 - Currency or unit for the stake gate — reuse the existing stakes catalog's
   currency list, or a plain free-text amount?
+  **Answered (v1):** an amount plus a currency of the existing catalog (fun stakes
+  are not offered), remembered in `localStorage` under its own key.
 - How many negation probes in thorough mode, and where in the sequence.
+  **Answered (v1):** two, in the second half of the run, once both staircases have
+  a bracket.
 - Whether the result trace should be screenshot-optimised the way the wager
   payout summary is.
+  **Answered (v1):** no; the trace is a collapsed list under the result.
 - Exact target band widths in logits for quick vs. thorough (placeholders:
   ~1 logit / ~0.3 logit).
+  **Answered (v1):** 1 logit and 0.3 logit (`TARGET_WIDTH_LOGIT`).
 - Where the log-odds grid bottoms out (1-in-1000? 1-in-10,000?).
+  **Answered (v1):** 1-in-1000 (0.1% to 99.9%).
 - Exact "hard contradiction" threshold (placeholder: ~1 logit).
+  **Answered (v1):** more than 1 logit.
 
 **Multi-outcome details**
 
 - Should the tool notice a two-humped curve and suggest splitting it into
   a yes/no question ("does the cold front arrive?") plus "if so, how
   cold?"
+  **Not built (v1):** the buckets follow the humps (the valley and the flanks are
+  edges), but no split is suggested.
 - Maximum number of outcomes/buckets (question budget and UI strain beyond
   ~8). The wager caps at 8 outcomes, so more would break the handoff.
+  **Answered (v1):** 8.
 - Number of spot checks, and whether they scale with the outcome count.
+  **Answered (v1):** up to 3 random pairs and one completeness check; they do not
+  scale (fewer pairs if fewer exist; "Everything else" is left out).
 - How tiers map to first-sketch numbers (fixed weights per tier, then
   normalised?).
+  **Answered (v1):** fixed weights, then normalised: 2%, 10%, 30%, 60%, 90%.
 - How "widen minimally" distributes the widening across bands when bounds
   are incoherent (all bands evenly in logits? only never-asked ones first?).
+  **Answered (v1):** evenly in logits, bands never asked about first; a widened side
+  is not tightened back.
 
 **Tool 3 details** (for its own requirements pass)
 
