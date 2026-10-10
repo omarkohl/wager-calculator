@@ -11,7 +11,7 @@
 
 ## Use It
 
-**[w.ratfr.de](https://w.ratfr.de)** — works on any device, no installation needed. See the [FAQ](https://w.ratfr.de) in the app for detailed explanations.
+**[w.ratfr.de](https://w.ratfr.de)** — works on any device, no installation needed. The site has two tools: the wager calculator (below) and [How sure are you?](#how-sure-are-you). See the [FAQ](https://w.ratfr.de/wager) of the wager calculator for detailed explanations.
 
 <a href="docs/screenshot.png"><img src="docs/screenshot.png" width="50%" alt="Screenshot"></a>
 
@@ -23,7 +23,12 @@ Wagers can easily be shared via the URL. [Here](https://w.ratfr.de/#v=2&c=Who+wi
 - Fair payouts via Brier scoring (a proper scoring rule that rewards honest predictions)
 - Multiple stake types: money (USD, EUR, etc.) or fun stakes (cookies, hugs)
 - Share wagers via URL — all data stays in your browser, nothing stored on servers
+- Put a number on a belief first, then bet on it (see below)
 - PWA: installable, works offline
+
+## How sure are you?
+
+A second tool, **How sure are you?**, helps you put a number on how likely you think something is: by choosing, again and again, between a prize if your claim holds and the same prize if a spinner (or, for small chances, a ball drawn at random) wins. It works for yes/no claims, claims with several outcomes and numbers, ends with a range and a best single number, and can open a wager with your numbers ("Bet on this"). Links to invite a friend to rate the same outcomes, or to share a result, carry everything in the URL. See [docs/dev/HOWSURE-SPEC.md](docs/dev/HOWSURE-SPEC.md).
 
 ## Progressive Web App (PWA)
 

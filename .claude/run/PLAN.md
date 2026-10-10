@@ -222,7 +222,7 @@ Read first: the requirements doc, `CLAUDE.md` ("Autonomous runs" included),
 
 ### Close
 
-- [ ] 27. **Docs**: README, SPECIFICATION (or a tool 2 spec beside it), CLAUDE.md
+- [x] 27. **Docs**: README, SPECIFICATION (or a tool 2 spec beside it), CLAUDE.md
       architecture, the requirements doc's open questions marked answered with the
       values above. Full `make precommit` (all browsers).
 - [ ] 28. **Finish**: summary and the "For review" list in PROGRESS.md (copied into

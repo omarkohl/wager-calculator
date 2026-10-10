@@ -2,6 +2,8 @@
 
 ## Overview
 
+> The site also holds a second tool, "How sure are you?" (belief elicitation, at `/elicit`), specified in [HOWSURE-SPEC.md](HOWSURE-SPEC.md). This document specifies the wager calculator.
+
 A client-side Progressive Web App (PWA) that calculates fair betting odds for friendly wagers using Brier scoring rules. The application functions as a calculator without user accounts or data storage, focusing on binary and multi-categorical betting scenarios.
 
 ## Core Features
@@ -227,7 +229,7 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 
 - **Static Hosting**: GitHub Pages, Netlify, Vercel, or Cloudflare Pages
 - **Build Output**: Static files in `dist/` directory after `bun run build`
-- **Base Path Configuration**: Vite `base` option set to `'./'` for relative paths (GitHub Pages compatibility)
+- **Base Path Configuration**: the build variable `BASE_PATH` (default `/`, normalised in `scripts/basePath.ts`) sets the Vite `base`, the PWA scope and `start_url`; `404.html` is a copy of `index.html` so deep links work on GitHub Pages
 - **CDN**: Automatic global distribution via hosting provider
 - **HTTPS**: Required for PWA features (all providers support HTTPS by default)
 - **Continuous Deployment**: Automated deployment on git push via GitHub Actions or provider integrations
@@ -243,10 +245,14 @@ Bets can have up to 8 outcomes with the default being 2, Yes and No.
 wager-calculator/
 ├── src/
 │   ├── components/         # React UI components (unit tests live next to them)
-│   ├── domain/             # Pure wager logic: types, Brier scoring, prediction rules, stakes
-│   ├── storage/            # URL hash format and localStorage preference
+│   │   └── elicit/         # The screens of tool 2 (see HOWSURE-SPEC.md)
+│   ├── domain/             # Pure wager logic: types, Brier scoring, prediction rules, stakes, seeded PRNG
+│   │   └── elicitation/    # Pure logic of tool 2 (see HOWSURE-SPEC.md)
+│   ├── storage/            # URL hash format, localStorage preferences; runs, invites and result links of tool 2
 │   ├── test/setup.ts       # Vitest environment setup
-│   ├── App.tsx             # Root React component holding the Wager state
+│   ├── Site.tsx            # The site shell: navigation, footer and the page of the current route
+│   ├── routes.ts           # Path routes and legacy redirects; route names live in routeTable.ts
+│   ├── App.tsx             # The wager calculator: holds the Wager state
 │   ├── main.tsx            # Application entry point
 │   └── index.css           # Tailwind CSS imports and global styles
 ├── e2e/                    # Playwright E2E tests

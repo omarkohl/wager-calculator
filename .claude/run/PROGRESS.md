@@ -2,7 +2,7 @@
 
 ## Next step
 
-27.
+28.
 
 ## Stack
 
@@ -46,6 +46,7 @@
 - 25e: howsure/25e-multi-trace, PR #124 (base howsure/25d-lottery-words)
 - 26a: howsure/26a-bet-on-this, PR #125 (base howsure/25e-multi-trace)
 - 26b: howsure/26b-invites, PR #126 (base howsure/26a-bet-on-this)
+- 26c: howsure/26c-result-links, PR #127 (base howsure/26b-invites)
 
 ## Log
 
@@ -597,6 +598,13 @@ thresholds, curve}, unit?)`: the curve is a polyline through N points (relative 
   start over; their own numbers as text; the trace replayed) with "Rate the same outcomes
   yourself", which leads to the gate with an invite for the same outcomes or parts. Chromium E2E:
   `elicit-invite-outcomes.spec.ts` (both kinds: sender, link, friend, tampered link).
+
+- **Step 27 (docs)**: new `docs/dev/HOWSURE-SPEC.md` (what tool 2 does in the code and the values
+  chosen), README section for the tool, CLAUDE.md architecture and key docs, and the requirements
+  doc's open questions for tool 2 and several outcomes marked answered (site and migration
+  questions stay open: out of scope). `make precommit` runs every browser: here only chromium is
+  available (Playwright's download is blocked), so the checks run were `make format lint typecheck
+test-coverage` and the whole chromium E2E suite through the local config; CI runs all browsers. The review corrected SPECIFICATION.md (base path, project tree) and said that `constants.ts` holds the settled values, not every constant.
 
 ## Decisions
 

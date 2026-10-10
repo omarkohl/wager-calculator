@@ -16,13 +16,16 @@ Brier scoring calculator for friendly wagers. PWA with React + TypeScript + Tail
 
 - [Specification](docs/dev/SPECIFICATION.md) - Full requirements
 - [howsure requirements](docs/dev/HOWSURE-REQUIREMENTS.md) - Scope extension: site shell, belief elicitation (tool 2)
+- [howsure spec](docs/dev/HOWSURE-SPEC.md) - What tool 2 does in the code, and the values the requirements left open
 - [Historical calculations](docs/dev/historical-calculations/) - How the expected outputs were derived (not used by any test)
 
 ## Architecture
 
-- `src/domain/` - Pure wager logic, no DOM: types (`wager.ts`), Brier scoring and settlements (`brier.ts`), payouts of every outcome and expected values (`expectation.ts`), step-by-step trace of a resolution (`explanation.ts`), prediction rules (`predictions.ts`), stakes catalog and formatting (`stakes.ts`), defaults
-- `src/storage/` - Browser persistence: the URL hash format (`urlHash.ts`) and the remembered stakes preference (`stakesPreference.ts`)
-- `src/components/` - React UI components; FAQ content lives in `components/faq.tsx`
+- `src/domain/` - Pure wager logic, no DOM: types (`wager.ts`), Brier scoring and settlements (`brier.ts`), payouts of every outcome and expected values (`expectation.ts`), step-by-step trace of a resolution (`explanation.ts`), prediction rules (`predictions.ts`), stakes catalog and formatting (`stakes.ts`), the seeded PRNG (`prng.ts`), defaults
+- `src/domain/elicitation/` - Pure logic of tool 2 ("How sure are you?"): log-odds grid and formatting (`logOdds.ts`, `format.ts`), the band rule and the quick and thorough searches (`bandRule.ts`, `quickSearch.ts`, `thorough.ts`), the reference lottery (`lottery.ts`), the yes/no trace and the hand-off to a wager (`trace.ts`, `handoff.ts`); for several outcomes and numbers: model and tiers (`model.ts`), coherent bands (`coherence.ts`), comparisons and spot checks (`comparisons.ts`), the question choice (`multiRun.ts`), results, trace and fixes (`multiResult.ts`, `multiTrace.ts`, `fixes.ts`, `insights.ts`) and bucketing of curves and bars (`bucketing.ts`). The values the requirements settle are in `constants.ts` (the search constants are beside their searches)
+- `src/storage/` - Browser persistence: the URL hash format (`urlHash.ts`) and the remembered stakes preference (`stakesPreference.ts`); for tool 2 the stake and yes/no runs, invites and result links (`elicitation.ts`), the runs of several outcomes and numbers (`multiRun.ts`, `continuousRun.ts`), their answers codec with replay (`multiAnswers.ts`), their result links (`multiShare.ts`) and the age of a stored run (`runAge.ts`)
+- `src/components/` - React UI components; FAQ content lives in `components/faq.tsx`; the screens of tool 2 are in `components/elicit/` (FAQ in `elicit/faq.tsx`)
+- `src/Site.tsx`, `src/routes.ts`, `src/routeTable.ts` - The site shell: path routes (landing page, wager calculator, tool 2); route names live only in `routeTable.ts`
 - `src/App.tsx` - Holds the single `Wager` state and wires components to it
 - Headless UI for accessible primitives
 - decimal.js for all probability and money arithmetic
@@ -38,6 +41,7 @@ These tests MUST try to imitate real users and not rely on hidden test IDs and s
 - Auto-distribute: only when total < 100%, only to untouched fields
 - Stakes (not "currency"): supports money and fun options (cookies, hugs)
 - Payouts must sum to zero; use seeded PRNG for rounding tiebreaks
+- Tool 2: the next question is a pure function of the seed and the answers; links are checked by replaying them and accepted only in their canonical spelling; the winning chance of the lottery is never a headline figure (anchoring)
 
 ## Autonomous runs
 
